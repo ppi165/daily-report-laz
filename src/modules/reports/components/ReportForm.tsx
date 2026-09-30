@@ -2,16 +2,56 @@
 
 import { useState } from "react";
 import AppShell from "@/src/shared/components/AppShell";
+import ManageDivisionModal from "./ManageDivisionModal";
 
 export default function ReportForm() {
+  const [divisions, setDivisions] = useState<string[]>([
+    "Sekretariat",
+    "Keuangan",
+    "Humas",
+    "Program",
+    "SDM",
+    "IT",
+    "Administrasi",
+    "Marketing",
+    "Lainnya",
+  ]);
   const [division, setDivision] = useState("Humas");
+  const [isManageDivisionOpen, setIsManageDivisionOpen] = useState(false);
   const [tasks, setTasks] = useState(
     `1. Menyelesaikan draft infografis laporan bulanan zakat mal periode Agustus 2026.
 2. Koordinasi bersama tim program terkait dokumentasi penyaluran beasiswa santri berprestasi di Bandung Barat.
 3. Menulis dan mempublikasikan siaran pers kegiatan tabligh akbar LAZ Persis ke portal media resmi serta feed media sosial Instagram.`
   );
+  const [results, setResults] = useState(
+    `1. Draft infografis 100% selesai dan siap dipublikasikan ke media sosial.
+2. Dokumentasi foto dan video penyaluran beasiswa terarsip rapi di cloud storage.
+3. Siaran pers telah tayang di website portal resmi LAZ Persis.`
+  );
   const [photoAttached, setPhotoAttached] = useState(true);
   const [showSuccessToast, setShowSuccessToast] = useState(true);
+
+  const handleAddDivision = (newDiv: string) => {
+    setDivisions((prev) => [...prev, newDiv]);
+    setDivision(newDiv);
+  };
+
+  const handleUpdateDivision = (oldDiv: string, newDiv: string) => {
+    setDivisions((prev) => prev.map((d) => (d === oldDiv ? newDiv : d)));
+    if (division === oldDiv) {
+      setDivision(newDiv);
+    }
+  };
+
+  const handleDeleteDivision = (targetDiv: string) => {
+    setDivisions((prev) => {
+      const filtered = prev.filter((d) => d !== targetDiv);
+      if (division === targetDiv && filtered.length > 0) {
+        setDivision(filtered[0]);
+      }
+      return filtered;
+    });
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,7 +59,7 @@ export default function ReportForm() {
   };
 
   return (
-    <AppShell headerTitle="Daily Report LAZ Persis" headerBadge="Unit Humas">
+    <AppShell headerTitle="Daily Report LAZ Persis" headerBadge={`Unit ${division}`}>
       <main className="p-4 sm:p-6 lg:p-8 flex-1 flex flex-col items-center">
         <div className="w-full max-w-4xl space-y-6">
           {/* Header Halaman */}
@@ -110,39 +150,69 @@ export default function ReportForm() {
                 </div>
               </div>
 
-              {/* Row 2: Bidang (Dropdown) */}
+              {/* Row 2: Bidang (Dropdown Dinamis & Tombol Tambah Bidang +) */}
               <div className="space-y-1.5">
-                <label
-                  className="text-sm font-semibold text-on-surface flex items-center justify-between"
-                  htmlFor="bidang-select"
-                >
-                  <span>Bidang / Divisi</span>
-                  <span className="text-xs text-secondary font-medium">
-                    Divisi Terpilih
-                  </span>
-                </label>
-                <div className="relative">
-                  <select
-                    className="w-full h-[42px] px-3.5 rounded-lg bg-surface-container-lowest border border-outline-variant text-on-surface text-sm appearance-none focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
-                    id="bidang-select"
-                    value={division}
-                    onChange={(e) => setDivision(e.target.value)}
+                <div className="flex items-center justify-between">
+                  <label
+                    className="text-sm font-semibold text-on-surface flex items-center gap-1.5"
+                    htmlFor="bidang-select"
                   >
-                    <option value="Sekretariat">Sekretariat</option>
-                    <option value="Keuangan">Keuangan</option>
-                    <option value="Humas">Humas</option>
-                    <option value="Program">Program</option>
-                    <option value="SDM">SDM</option>
-                    <option value="IT">IT</option>
-                    <option value="Administrasi">Administrasi</option>
-                    <option value="Marketing">Marketing</option>
-                    <option value="Lainnya">Lainnya</option>
-                  </select>
-                  <div className="absolute right-3.5 top-3 flex items-center pointer-events-none text-outline">
-                    <span className="material-symbols-outlined text-[18px]">
-                      expand_more
+                    <span>Bidang / Divisi</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setIsManageDivisionOpen(true)}
+                    className="text-xs text-secondary hover:text-primary font-semibold flex items-center gap-1 transition-colors cursor-pointer hover:underline"
+                  >
+                    <span className="material-symbols-outlined text-[16px]">
+                      add_circle
                     </span>
+                    <span>Tambah Bidang +</span>
+                  </button>
+                </div>
+                <div className="flex gap-2">
+                  <div className="relative flex-1">
+                    <select
+                      className="w-full h-[42px] px-3.5 rounded-lg bg-surface-container-lowest border border-outline-variant text-on-surface text-sm appearance-none focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 cursor-pointer"
+                      id="bidang-select"
+                      value={division}
+                      onChange={(e) => {
+                        if (e.target.value === "__ADD_NEW__") {
+                          setIsManageDivisionOpen(true);
+                        } else {
+                          setDivision(e.target.value);
+                        }
+                      }}
+                    >
+                      {divisions.map((div) => (
+                        <option key={div} value={div}>
+                          {div}
+                        </option>
+                      ))}
+                      <option
+                        value="__ADD_NEW__"
+                        className="font-semibold text-secondary"
+                      >
+                        + Tambah / Kelola Bidang...
+                      </option>
+                    </select>
+                    <div className="absolute right-3.5 top-3 flex items-center pointer-events-none text-outline">
+                      <span className="material-symbols-outlined text-[18px]">
+                        expand_more
+                      </span>
+                    </div>
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsManageDivisionOpen(true)}
+                    className="h-[42px] px-3.5 rounded-lg border border-secondary/80 bg-secondary/5 hover:bg-secondary/15 text-secondary text-xs sm:text-sm font-semibold flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer"
+                    title="Tambah atau kelola daftar bidang/divisi"
+                  >
+                    <span className="material-symbols-outlined text-[18px]">
+                      add
+                    </span>
+                    <span className="hidden sm:inline">Tambah Bidang +</span>
+                  </button>
                 </div>
               </div>
 
@@ -166,6 +236,30 @@ export default function ReportForm() {
                 <div className="flex justify-end pt-1">
                   <span className="text-xs text-outline">
                     {tasks.length} / 1000 karakter
+                  </span>
+                </div>
+              </div>
+
+              {/* Row 4: Hasil dari pengerjaan hari ini (Textarea) */}
+              <div className="space-y-1.5">
+                <label
+                  className="text-sm font-semibold text-on-surface flex items-center justify-between"
+                  htmlFor="hasil-input"
+                >
+                  <span>Hasil dari pengerjaan hari ini</span>
+                  <span className="text-xs text-outline">Wajib diisi</span>
+                </label>
+                <textarea
+                  className="w-full p-3.5 rounded-xl bg-surface-container-lowest border border-outline-variant text-on-surface text-sm focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 transition-all leading-relaxed"
+                  id="hasil-input"
+                  placeholder="Tuliskan hasil, capaian, output, atau perkembangan konkret dari pengerjaan hari ini..."
+                  rows={4}
+                  value={results}
+                  onChange={(e) => setResults(e.target.value)}
+                />
+                <div className="flex justify-end pt-1">
+                  <span className="text-xs text-outline">
+                    {results.length} / 1000 karakter
                   </span>
                 </div>
               </div>
@@ -334,6 +428,18 @@ export default function ReportForm() {
           </div>
         </div>
       </main>
+
+      {/* Modal Dialog: Kelola & Tambah Bidang / Divisi Dinamis */}
+      <ManageDivisionModal
+        isOpen={isManageDivisionOpen}
+        onClose={() => setIsManageDivisionOpen(false)}
+        divisions={divisions}
+        selectedDivision={division}
+        onAddDivision={handleAddDivision}
+        onUpdateDivision={handleUpdateDivision}
+        onDeleteDivision={handleDeleteDivision}
+        onSelectDivision={(d) => setDivision(d)}
+      />
     </AppShell>
   );
 }
