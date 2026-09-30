@@ -1,0 +1,180 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+
+export default function LoginForm() {
+  const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
+  const [identifier, setIdentifier] = useState("");
+  const [password, setPassword] = useState("");
+  const [remember, setRemember] = useState(false);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Front-end UI navigation to dashboard for now
+    router.push("/dashboard");
+  };
+
+  return (
+    <div className="bg-surface-container-low min-h-screen flex flex-col justify-between items-center px-4 py-8 antialiased selection:bg-secondary-container selection:text-primary">
+      {/* Top Security / Institutional Tag */}
+      <header className="w-full max-w-md flex items-center justify-between px-2 pt-2 pb-6 text-on-surface-variant">
+        <div className="flex items-center gap-2">
+          <span className="inline-flex items-center justify-center w-2 h-2 rounded-full bg-secondary"></span>
+          <span className="text-xs font-semibold tracking-wider text-outline">
+            PORTAL INTERNAL RESMI
+          </span>
+        </div>
+        <div className="flex items-center gap-1.5 text-xs font-semibold text-outline">
+          <span className="material-symbols-outlined text-[16px]">verified_user</span>
+          <span>Terenkripsi</span>
+        </div>
+      </header>
+
+      {/* Login Card Container */}
+      <main className="w-full max-w-md my-auto">
+        <div className="bg-surface-container-lowest rounded-xl p-8 border border-outline-variant/40 custom-shadow">
+          {/* Card Header: Brand Logo & Title */}
+          <div className="flex flex-col items-center text-center">
+            <div className="h-16 flex items-center justify-center mb-1">
+              <img
+                alt="Logo LAZ Persis"
+                className="h-12 w-auto max-w-[200px] object-contain"
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuDrfqFzaW-_PqKWqfCzm605ovRfiuJOBL1G8f3jyWWbV5yZe8-kuu_7uI5Ybb9MMbzmUAFlBNN-yOQaZk4Q_VRxHn2fVUewB6ei0JiqnD5jPvuRQGNhyS3uLiAwQggoyud3Ut6oHNy9n7jjpFIT1iYVEqG09qCrZDKUu5S0mZ53ziDTWvcuNl1oaVJI0enpA23AWA5mEJYDYe9Ia4iJ0ALWAZYRT2UNaQjmnsadUuy-xRHAfvI7YMuvGx9UlQQh1ACAoE8"
+              />
+            </div>
+            <h1 className="text-2xl font-semibold text-on-surface mt-4 tracking-tight">
+              Selamat Datang Kembali
+            </h1>
+            <p className="text-sm text-outline mt-1.5">
+              Masuk untuk mengisi daily report Anda.
+            </p>
+          </div>
+
+          {/* Login Form */}
+          <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
+            {/* Field Email / Username */}
+            <div>
+              <label
+                className="block text-sm font-medium text-on-surface mb-2"
+                htmlFor="identifier"
+              >
+                Email / Username
+              </label>
+              <div className="relative flex items-center">
+                <span className="material-symbols-outlined absolute left-3.5 text-outline text-[20px] pointer-events-none select-none">
+                  mail
+                </span>
+                <input
+                  className="w-full h-[44px] pl-11 pr-4 bg-surface-container-lowest border border-outline-variant/60 rounded-lg text-sm text-on-surface placeholder:text-outline-variant focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/15 transition-all duration-150"
+                  id="identifier"
+                  name="identifier"
+                  placeholder="nama@lazpersis.or.id atau username"
+                  required
+                  type="text"
+                  value={identifier}
+                  onChange={(e) => setIdentifier(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {/* Field Password */}
+            <div>
+              <label
+                className="block text-sm font-medium text-on-surface mb-2"
+                htmlFor="password"
+              >
+                Password
+              </label>
+              <div className="relative flex items-center">
+                <span className="material-symbols-outlined absolute left-3.5 text-outline text-[20px] pointer-events-none select-none">
+                  lock
+                </span>
+                <input
+                  className="w-full h-[44px] pl-11 pr-11 bg-surface-container-lowest border border-outline-variant/60 rounded-lg text-sm text-on-surface placeholder:text-outline-variant focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/15 transition-all duration-150 tracking-wider"
+                  id="password"
+                  name="password"
+                  placeholder="••••••••••••"
+                  required
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <button
+                  aria-label="Toggle password visibility"
+                  className="absolute right-3.5 text-outline hover:text-primary transition-colors flex items-center justify-center p-0.5 rounded focus:outline-none"
+                  id="togglePassword"
+                  title={showPassword ? "Sembunyikan Password" : "Lihat Password"}
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  <span className="material-symbols-outlined text-[20px]">
+                    {showPassword ? "visibility_off" : "visibility"}
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            {/* Row Opsi: Remember Me & Forgot Password */}
+            <div className="flex items-center justify-between pt-1 text-sm font-medium">
+              <label className="flex items-center gap-2.5 cursor-pointer select-none">
+                <input
+                  className="w-4 h-4 rounded border-outline-variant/80 text-primary-container focus:ring-secondary/20 focus:ring-offset-0 transition-colors cursor-pointer"
+                  id="remember"
+                  name="remember"
+                  type="checkbox"
+                  checked={remember}
+                  onChange={(e) => setRemember(e.target.checked)}
+                />
+                <span className="text-on-surface-variant text-xs">Ingat saya</span>
+              </label>
+              <a
+                className="text-primary-container hover:text-secondary text-xs transition-colors duration-150 focus:underline focus:outline-none"
+                href="#"
+              >
+                Lupa password?
+              </a>
+            </div>
+
+            {/* Submit Button */}
+            <div className="pt-2">
+              <button
+                className="w-full h-[46px] flex items-center justify-center gap-2 bg-primary-container hover:bg-secondary active:scale-[0.99] text-white text-sm font-medium rounded-xl shadow-sm transition-all duration-150 cursor-pointer"
+                type="submit"
+              >
+                <span>MASUK</span>
+                <span className="material-symbols-outlined text-[18px]">
+                  arrow_forward
+                </span>
+              </button>
+            </div>
+          </form>
+
+          {/* Institutional Assurance Badge */}
+          <div className="mt-6 pt-5 border-t border-surface-container-high flex items-center justify-center gap-2">
+            <span className="material-symbols-outlined text-secondary text-[18px]">
+              verified
+            </span>
+            <span className="text-xs text-on-surface-variant tracking-normal">
+              Pusat Akuntabilitas & Transparansi Amanah
+            </span>
+          </div>
+        </div>
+
+        {/* Small Footer Note */}
+        <footer className="mt-6 text-center px-4">
+          <p className="text-xs text-outline leading-relaxed">
+            Sistem Informasi Internal & Pelaporan Terpadu © LAZ Persis 2026. Menjaga
+            Amanah, Melayani Umat.
+          </p>
+        </footer>
+      </main>
+
+      {/* Clean Bottom Margin Anchor */}
+      <div className="w-full max-w-md flex justify-center py-2 text-outline-variant text-[11px] font-semibold">
+        <span>v2.4.0 • Build ID: LZP-DR-2026</span>
+      </div>
+    </div>
+  );
+}

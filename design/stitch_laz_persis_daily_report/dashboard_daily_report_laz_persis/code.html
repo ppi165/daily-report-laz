@@ -1,0 +1,484 @@
+<!DOCTYPE html><html class="light" lang="id"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Dashboard Utama - Daily Report LAZ Persis</title>
+<!-- Google Fonts: Inter -->
+<link href="https://fonts.googleapis.com" rel="preconnect">
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<!-- Material Symbols Outlined -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "primary-fixed-dim": "#87d8a0",
+            "on-tertiary": "#ffffff",
+            "tertiary-fixed": "#ffdcc3",
+            "surface-container-lowest": "#ffffff",
+            "inverse-surface": "#313030",
+            "primary-fixed": "#a2f5ba",
+            "on-tertiary-fixed-variant": "#6e3900",
+            "surface-tint": "#166c3e",
+            "surface-container": "#f0eded",
+            "tertiary": "#633300",
+            "surface": "#fcf9f8",
+            "on-secondary-fixed": "#00210d",
+            "on-secondary-container": "#00743d",
+            "on-tertiary-container": "#ffbf8c",
+            "primary": "#004a26",
+            "surface-dim": "#dcd9d9",
+            "surface-container-highest": "#e5e2e1",
+            "tertiary-fixed-dim": "#ffb77d",
+            "secondary": "#006d39",
+            "background": "#fcf9f8",
+            "on-surface": "#1c1b1b",
+            "outline": "#6f7a70",
+            "tertiary-container": "#854600",
+            "on-secondary": "#ffffff",
+            "secondary-fixed": "#88faac",
+            "inverse-primary": "#87d8a0",
+            "on-secondary-fixed-variant": "#00522a",
+            "on-surface-variant": "#3f4941",
+            "inverse-on-surface": "#f3f0ef",
+            "secondary-container": "#88faac",
+            "secondary-fixed-dim": "#6bdd92",
+            "on-primary-fixed-variant": "#00522b",
+            "outline-variant": "#bfc9be",
+            "surface-container-high": "#eae7e7",
+            "on-background": "#1c1b1b",
+            "on-error": "#ffffff",
+            "surface-bright": "#fcf9f8",
+            "error": "#ba1a1a",
+            "on-primary-fixed": "#00210e",
+            "on-error-container": "#93000a",
+            "surface-variant": "#e5e2e1",
+            "on-primary": "#ffffff",
+            "error-container": "#ffdad6",
+            "primary-container": "#076437",
+            "surface-container-low": "#f6f3f2",
+            "on-primary-container": "#8ddea5",
+            "on-tertiary-fixed": "#2f1500"
+          },
+          "borderRadius": {
+            "DEFAULT": "0.25rem",
+            "lg": "0.5rem",
+            "xl": "0.75rem",
+            "full": "9999px"
+          },
+          "spacing": {
+            "gutter-sm": "1rem",
+            "margin-sm": "1rem",
+            "space-sm": "0.5rem",
+            "space-xs": "0.25rem",
+            "space-md": "1rem",
+            "space-lg": "1.5rem",
+            "space-xl": "2rem",
+            "gutter": "1.5rem",
+            "margin": "2rem"
+          },
+          "fontFamily": {
+            "headline-xl": ["Inter"],
+            "label-md": ["Inter"],
+            "headline-md": ["Inter"],
+            "label-lg": ["Inter"],
+            "headline-lg": ["Inter"],
+            "body-lg": ["Inter"],
+            "headline-xl-mobile": ["Inter"],
+            "label-sm": ["Inter"],
+            "body-sm": ["Inter"],
+            "headline-sm": ["Inter"],
+            "body-md": ["Inter"]
+          },
+          "fontSize": {
+            "headline-xl": ["36px", { "lineHeight": "44px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+            "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "600" }],
+            "headline-md": ["22px", { "lineHeight": "28px", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+            "label-lg": ["14px", { "lineHeight": "20px", "letterSpacing": "0.01em", "fontWeight": "500" }],
+            "headline-lg": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+            "body-lg": ["16px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "headline-xl-mobile": ["28px", { "lineHeight": "36px", "letterSpacing": "-0.01em", "fontWeight": "700" }],
+            "label-sm": ["11px", { "lineHeight": "14px", "letterSpacing": "0.04em", "fontWeight": "600" }],
+            "body-sm": ["12px", { "lineHeight": "16px", "letterSpacing": "0em", "fontWeight": "400" }],
+            "headline-sm": ["18px", { "lineHeight": "24px", "letterSpacing": "0em", "fontWeight": "600" }],
+            "body-md": ["14px", { "lineHeight": "20px", "letterSpacing": "0em", "fontWeight": "400" }]
+          }
+        },
+      },
+    }
+  </script>
+</head>
+<body class="bg-background text-on-surface antialiased flex min-h-screen">
+<!-- ================= SIDEBAR (Shared Component: SideNavBar) ================= -->
+<aside class="fixed top-0 bottom-0 left-0 w-64 flex flex-col justify-between p-4 z-40 bg-surface-container-lowest border-r border-outline-variant shadow-sm">
+<!-- Header / Brand Logo & Subtext -->
+<div class="flex flex-col gap-6">
+<div class="flex items-center gap-3 px-2 pt-2">
+<img alt="Logo LAZ Persis" class="h-9 w-auto object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAHHwlpQNTGNoUH64gwH5gGFiOxeZxq-XjJmt4A4Myedkq1STk1UoxSArgsWr_jN8hDbr3G68pN9lp3LP__eYRL2H68_AjPQ5e4MDisMSW-ZciniSgzTWUSKEeZeqSa01tiAUjfLrd-SLklERH_41k-PDS8EGCGjPxp-zu0AGqMJx0DY_nDUsmWOy3y0We1ssnzv0-2rBAu5f0AUsNMuH69a-4-NCKDCR3ULynuhDBVNkXIZBKa4E0XLFY5qWu9SC3g-7g">
+<div class="flex flex-col">
+<span class="text-headline-sm font-headline-sm text-primary font-bold tracking-tight">LAZ Persis</span>
+<span class="text-body-sm font-body-sm text-on-surface-variant">Sistem Pelaporan Harian</span>
+</div>
+</div>
+<!-- Quick Action / CTA -->
+<div class="px-2">
+<button class="w-full bg-primary-container text-surface-container-lowest font-label-lg text-label-lg py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 shadow-sm hover:bg-secondary transition-colors duration-150">
+<span class="material-symbols-outlined text-[20px]" data-icon="add">add</span>
+<span class="">Input Laporan</span>
+</button>
+</div>
+<!-- Navigation Links -->
+<nav class="flex flex-col gap-1.5 px-1">
+<!-- Active: Dashboard -->
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg bg-primary-container text-on-primary-container font-medium transition-colors duration-150 scale-[0.99]" href="#">
+<span class="material-symbols-outlined text-[22px]" data-icon="dashboard" data-weight="fill" style="font-variation-settings: 'FILL' 1;">dashboard</span>
+<span class="text-label-lg font-label-lg">Dashboard</span>
+</a>
+<!-- Inactive: Daily Report -->
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant font-normal hover:bg-surface-container-high hover:text-on-surface transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-[22px]" data-icon="edit_document">edit_document</span>
+<span class="text-label-lg font-label-lg">Daily Report</span>
+</a>
+<!-- Inactive: Rekap Report -->
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant font-normal hover:bg-surface-container-high hover:text-on-surface transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-[22px]" data-icon="table_chart">table_chart</span>
+<span class="text-label-lg font-label-lg">Rekap Report</span>
+</a>
+<!-- Inactive: Profil -->
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant font-normal hover:bg-surface-container-high hover:text-on-surface transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-[22px]" data-icon="person">person</span>
+<span class="text-label-lg font-label-lg">Profil</span>
+</a>
+</nav>
+</div>
+<!-- Footer Action: Logout -->
+<div class="pt-4 border-t border-outline-variant">
+<a class="flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant font-normal hover:bg-surface-container-high hover:text-on-surface transition-colors duration-150" href="#">
+<span class="material-symbols-outlined text-[22px]" data-icon="logout">logout</span>
+<span class="text-label-lg font-label-lg">Logout</span>
+</a>
+</div>
+</aside>
+<!-- ================= MAIN LAYOUT WRAPPER ================= -->
+<div class="flex-1 ml-64 flex flex-col min-h-screen">
+<!-- ================= TOP APP BAR (Shared Component: TopNavBar) ================= -->
+<header class="fixed top-0 right-0 left-64 h-16 px-8 flex items-center justify-between z-30 bg-surface-container-lowest border-b border-outline-variant shadow-sm">
+<!-- Search Bar on Left -->
+<div class="w-96 relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px]" data-icon="search">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-surface border border-outline-variant rounded-lg text-body-md font-body-md text-on-surface placeholder:text-outline focus:outline-none focus:border-secondary focus:ring-1 focus:ring-secondary transition-all" placeholder="Cari aktivitas atau rekan kerja..." type="text">
+</div>
+<!-- Right Actions: Notifications & User Profile -->
+<div class="flex items-center gap-4">
+<!-- Notification Button with Indicator Dot -->
+<button class="relative p-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors duration-150">
+<span class="material-symbols-outlined text-[24px]" data-icon="notifications">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-secondary rounded-full ring-2 ring-surface-container-lowest"></span>
+</button>
+<!-- Divider -->
+<div class="h-6 w-px bg-outline-variant"></div>
+<!-- User Profile Cluster -->
+<div class="flex items-center gap-3">
+<div class="relative w-10 h-10 rounded-full overflow-hidden border border-outline-variant bg-surface-container-high flex-shrink-0">
+<img class="w-full h-full object-cover" data-alt="A dignified professional portrait of Ahmad Fauzi, an Indonesian male institutional communication officer in his late twenties wearing a clean white formal collared shirt against a bright, softly blurred minimalist office backdrop. The lighting is pristine, high-key, and natural, evoking sincerity and accountability in modern philanthropic management." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCn247TIAs7R8-zDWHwoeN8RTOBPLUZpEDYAKTXE-Vu4gq5tXxYXQdTxuFBAPBag-pPXnjHgYLrwi82oUcux15TpBfGvZnnJHe1AImvH-i7JV2V8bttE4ljzZkgMjCE7UsAHz6ZfMVkE_E_DmOTmVKJtuXCppT5JglnvHtsGbNUmo0yWjE2uAgnFr5IsUYr43PyO_W0bAyRNy_4HhYAOd9DnIvss6qdA8lW2yjcyrrh7v8M9HksxdURgA">
+</div>
+<div class="flex flex-col">
+<span class="text-label-lg font-label-lg text-on-surface font-semibold leading-tight">Ahmad Fauzi</span>
+<div class="flex items-center gap-1.5 mt-0.5">
+<span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-label-sm font-label-sm bg-primary-container/10 text-primary-container font-semibold">Humas</span>
+</div>
+</div>
+</div>
+</div>
+</header>
+<!-- ================= CANVAS CONTENT AREA ================= -->
+<main class="flex-1 mt-16 p-8 bg-background max-w-[1440px] w-full">
+<div class="space-y-6">
+<!-- Greeting Banner & Quick CTA Card Bento Cluster -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+<!-- Greeting Card (8 Cols) -->
+<div class="lg:col-span-8 bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center gap-2 mb-2">
+<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-label-sm font-label-sm bg-secondary-container/30 text-on-secondary-container font-semibold">
+<span class="material-symbols-outlined text-[14px]" data-icon="verified">verified</span>
+                  Amanah Operasional
+                </span>
+<span class="text-body-sm font-body-sm text-outline">Bulan Berjalan</span>
+</div>
+<h1 class="text-headline-lg font-headline-lg text-on-surface font-bold">
+                Selamat datang, Ahmad! 👋
+              </h1>
+<p class="text-body-md font-body-md text-on-surface-variant mt-1.5 max-w-xl">
+                Berikut ringkasan komitmen dan laporan aktivitas harian Anda bulan September 2026. Pertahankan konsistensi pelaporan untuk transparansi lembaga.
+              </p>
+</div>
+<div class="pt-4 mt-4 border-t border-surface-container flex items-center justify-between text-body-sm font-body-sm text-on-surface-variant">
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px] text-primary-container" data-icon="calendar_today">calendar_today</span>
+                Senin, 28 September 2026
+              </span>
+<span class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-[18px] text-primary-container" data-icon="schedule">schedule</span>
+                Zona Waktu: WIB (GMT+7)
+              </span>
+</div>
+</div>
+<!-- Quick CTA Card (4 Cols) -->
+<div class="lg:col-span-4 bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant shadow-sm flex flex-col justify-between relative overflow-hidden">
+<div class="space-y-2">
+<div class="flex items-center justify-between">
+<span class="text-label-md font-label-md text-outline">Status Hari Ini</span>
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-label-sm font-label-sm bg-error-container text-on-error-container font-semibold">
+                  Belum Lapor
+                </span>
+</div>
+<p class="text-headline-sm font-headline-sm font-semibold text-on-surface">Laporan Harian Belum Dikirim</p>
+<div class="flex items-center gap-2 text-body-sm font-body-sm text-on-surface-variant">
+<span class="material-symbols-outlined text-[18px] text-error" data-icon="alarm">alarm</span>
+<span class="">Belum disubmit (Batas 17:00 WIB)</span>
+</div>
+</div>
+<div class="pt-4 mt-4">
+<button class="w-full bg-primary-container hover:bg-secondary text-surface-container-lowest py-3 px-4 rounded-xl font-label-lg text-label-lg flex items-center justify-center gap-2 shadow-sm transition-all duration-150 active:scale-[0.99]">
+<span class="material-symbols-outlined text-[20px]" data-icon="add_circle">add_circle</span>
+<span class="">＋ Tulis Laporan Hari Ini</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Metric Stat Cards (3 Cols) -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Stat 1: Hari Kerja Aktif -->
+<div class="bg-surface-container-lowest p-5 rounded-2xl border border-outline-variant shadow-sm relative overflow-hidden flex flex-col justify-between">
+<div class="h-1 w-full bg-primary-container absolute top-0 left-0"></div>
+<div class="flex items-center justify-between">
+<span class="text-label-md font-label-md text-on-surface-variant">Presensi Kerja</span>
+<div class="p-2 rounded-lg bg-surface-container text-primary-container">
+<span class="material-symbols-outlined text-[20px]" data-icon="event_available">event_available</span>
+</div>
+</div>
+<div class="mt-3">
+<div class="text-headline-xl font-headline-xl text-on-surface font-bold tracking-tight">20 Hari</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant mt-1">Hari Kerja Aktif tercatat di September</p>
+</div>
+</div>
+<!-- Stat 2: Laporan Terpublikasi -->
+<div class="bg-surface-container-lowest p-5 rounded-2xl border border-outline-variant shadow-sm relative overflow-hidden flex flex-col justify-between">
+<div class="h-1 w-full bg-primary-container absolute top-0 left-0"></div>
+<div class="flex items-center justify-between">
+<span class="text-label-md font-label-md text-on-surface-variant">Laporan Terverifikasi</span>
+<span class="inline-flex items-center px-2 py-0.5 rounded-full text-label-sm font-label-sm bg-primary-container/10 text-primary-container font-semibold">
+                90% Konsistensi
+              </span>
+</div>
+<div class="mt-3">
+<div class="text-headline-xl font-headline-xl text-on-surface font-bold tracking-tight">18 Report</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant mt-1">Laporan Terpublikasi &amp; Terverifikasi Koordinator</p>
+</div>
+</div>
+<!-- Stat 3: Total Apresiasi Rekan Kerja -->
+<div class="bg-surface-container-lowest p-5 rounded-2xl border border-outline-variant shadow-sm relative overflow-hidden flex flex-col justify-between">
+<div class="h-1 w-full bg-secondary absolute top-0 left-0"></div>
+<div class="flex items-center justify-between">
+<span class="text-label-md font-label-md text-on-surface-variant">Sinergi Lembaga</span>
+<div class="p-2 rounded-lg bg-surface-container text-secondary">
+<span class="material-symbols-outlined text-[20px]" data-icon="handshake">handshake</span>
+</div>
+</div>
+<div class="mt-3">
+<div class="text-headline-xl font-headline-xl text-on-surface font-bold tracking-tight">142 Apresiasi</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant mt-1">Total Apresiasi Rekan Kerja diterima bulan ini</p>
+</div>
+</div>
+</div>
+<!-- Section Dua Kolom: Aktivitas Terbaru vs Feed Rekan -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+<!-- Kolom Kiri: Aktivitas Terbaru Anda (7 Cols) -->
+<section class="lg:col-span-7 bg-surface-container-lowest rounded-2xl border border-outline-variant p-6 shadow-sm flex flex-col">
+<div class="flex items-center justify-between pb-4 border-b border-surface-container">
+<div>
+<h2 class="text-headline-sm font-headline-sm font-semibold text-on-surface">Aktivitas Terbaru Anda</h2>
+<p class="text-body-sm font-body-sm text-on-surface-variant mt-0.5">Daftar laporan harian terakhir yang Anda kirimkan</p>
+</div>
+<a class="text-label-lg font-label-lg text-primary-container font-semibold hover:text-secondary flex items-center gap-1 transition-colors" href="#">
+<span class="">Lihat Rekap</span>
+<span class="material-symbols-outlined text-[16px]" data-icon="arrow_forward">arrow_forward</span>
+</a>
+</div>
+<!-- Single Card: Laporan Terakhir -->
+<div class="mt-5 p-5 rounded-xl border border-outline-variant bg-surface flex flex-col gap-4">
+<!-- Top Row: Date & Status -->
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant" data-icon="event">event</span>
+<span class="text-label-lg font-label-lg font-semibold text-on-surface">27 Sep 2026</span>
+<span class="text-body-sm font-body-sm text-outline">• Dikirim 16:45 WIB</span>
+</div>
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-label-sm font-label-sm bg-primary-container/10 text-primary-container font-semibold">
+                  PUBLISHED
+                </span>
+</div>
+<!-- Title & Description -->
+<div>
+<h3 class="text-headline-sm font-headline-sm font-semibold text-on-surface">
+                  Finalisasi Desain Booklet Zakat Produktif &amp; Dokumentasi Distribusi Beasiswa Peduli
+                </h3>
+<p class="text-body-md font-body-md text-on-surface-variant mt-1.5 leading-relaxed">
+                  Menyelesaikan proofing materi cetak booklet program Zakat Produktif 2026 untuk Muzakki korporat. Melakukan pendampingan pengambilan foto dan video serah terima beasiswa pendidikan tingkat santri binaan di Bandung Timur.
+                </p>
+</div>
+<!-- 2 Foto Thumbnail Terlampir -->
+<div class="grid grid-cols-2 gap-3 mt-1">
+<div class="relative rounded-lg overflow-hidden border border-outline-variant h-36 bg-surface-container">
+<img class="w-full h-full object-cover hover:scale-105 transition-transform duration-200" data-alt="A clean, minimalist high-angle photograph of printed graphic design mockups for an Islamic zakat booklet, displaying charts and deep forest green color palettes neatly arranged on a white work desk beside a digital tablet. The scene is bright, clean, and professional with natural soft day-lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCeayxIDwbVCrGlNGxpZnPUUVuHdj2zcf4rUbthvHKhGLaEkkd03wVH7mrdNM152RVUX8S9oOdPSMdra0UXB9xpTq2K335EQTGsO9MR0P4hC4nIkgMOkJIE8SgFRbcf6WjwU_X4TNvpW8aYUNafgfGaljTUfmSxSE1fppwy5jBZOsgbK5xrxmldjihmjB-jmpvgF_mbS0F2xjw7QEup0oc9Rm5aumHGkkQTGdvCERMTQVSD_g5kxWkS3g">
+<span class="absolute bottom-2 left-2 bg-inverse-surface/70 backdrop-blur-sm text-surface-container-lowest text-label-sm font-label-sm px-2 py-0.5 rounded">
+                    Booklet_Zakat_Preview.jpg
+                  </span>
+</div>
+<div class="relative rounded-lg overflow-hidden border border-outline-variant h-36 bg-surface-container">
+<img class="w-full h-full object-cover hover:scale-105 transition-transform duration-200" data-alt="A heartwarming documentary-style photograph capturing the distribution of educational scholarships to cheerful young students holding folders in a tidy classroom setting. The image portrays genuine community trust and transparency with high-key balanced light, clean institutional composition, and soft green branding touches." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD8yv2A3s4KIJclxzY9SCCwO5tzZybqfxJcy76uZ-AmyMYQfS3DzsXdfHCEGacf08poLiVWfk4hbh3wcplMBPJd3nbbPe7QdRs_sdwYvb3RV57HOvMi9iHYBqku-uR8ABArwlT8eVB5DPpEoeDD2qH4Cex_btW8IVWSpFlGOGVFF4Tzwj3ibfBSpn9cvLy-Bad7O4ANE3mI7c5knTL6c7F7Ek79MkF0IGzTXOXkp3T_HfnFXQie0T-Hjg">
+<span class="absolute bottom-2 left-2 bg-inverse-surface/70 backdrop-blur-sm text-surface-container-lowest text-label-sm font-label-sm px-2 py-0.5 rounded">
+                    Dokumentasi_Beasiswa.jpg
+                  </span>
+</div>
+</div>
+<!-- Footer Row: Apresiasi & Action -->
+<div class="flex items-center justify-between pt-3 border-t border-outline-variant/60">
+<div class="flex items-center gap-1.5 text-body-sm font-body-sm font-semibold text-primary-container bg-primary-container/10 px-3 py-1.5 rounded-lg">
+<span class="">👏 14 apresiasi rekan kerja</span>
+</div>
+<button class="text-body-sm font-body-sm text-on-surface-variant hover:text-primary font-medium flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]" data-icon="visibility">visibility</span>
+<span class="">Detail Lengkap</span>
+</button>
+</div>
+</div>
+<!-- Extra subtle archived entry note -->
+<div class="mt-4 p-3.5 rounded-xl bg-surface border border-outline-variant flex items-center justify-between text-body-sm font-body-sm">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-outline text-[20px]" data-icon="history">history</span>
+<div>
+<span class="font-medium text-on-surface">26 Sep 2026: Koordinasi Media Partner Tabloid Suara</span>
+<span class="text-outline text-label-sm ml-2">8 apresiasi</span>
+</div>
+</div>
+<span class="text-label-sm font-label-sm text-outline">Terverifikasi</span>
+</div>
+</section>
+<!-- Kolom Kanan: Feed Laporan Rekan Hari Ini (5 Cols) -->
+<section class="lg:col-span-5 bg-surface-container-lowest rounded-2xl border border-outline-variant p-6 shadow-sm flex flex-col justify-between">
+<div>
+<div class="flex items-center justify-between pb-4 border-b border-surface-container">
+<div>
+<h2 class="text-headline-sm font-headline-sm font-semibold text-on-surface">Feed Laporan Rekan Hari Ini</h2>
+<p class="text-body-sm font-body-sm text-on-surface-variant mt-0.5">Sinergi lintas bidang LAZ Persis</p>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant text-[20px]" data-icon="dynamic_feed">dynamic_feed</span>
+</div>
+<!-- Timeline Feed List -->
+<div class="mt-4 space-y-4">
+<!-- Feed Item 1: Program -->
+<div class="p-3.5 rounded-xl border border-outline-variant bg-surface hover:bg-surface-container-low transition-colors duration-150">
+<div class="flex items-start gap-3">
+<div class="w-9 h-9 rounded-full overflow-hidden border border-outline-variant flex-shrink-0 bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="Close-up documentary portrait of Siti Rahma, an Indonesian Muslim field operations specialist wearing an emerald green hijab and institutional vest, smiling sincerely against an outdoor social distribution backdrop. Clean, professional lighting with crisp environmental details reflecting moral integrity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAf3vIPMWnL7kxZibcz-vtrIz2FtkisqAblRR5VDp8Heo4JLAJll4_N4iIuJjcDtjTRTgWijZvvHkB6sFdYmVDYuiD9SXzsy1IoNNSU6SI0CNL6jA7aVQNfXIJYRi4ry1cr8gmG0vGu_oJqmUoCmaeFpxiQcTVBbZoFXQqzmSHKoQEodhCdv_Wi1FmMSmt5UfAKSZzpUp2ilVNFVKDlSBa6f8Md_vxE5WH0Psq_PiIzoHsCuoxU2C8u4A">
+</div>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<span class="text-label-lg font-label-lg text-on-surface font-semibold">Siti Rahma</span>
+<span class="text-label-sm font-label-sm text-outline">14:20 WIB</span>
+</div>
+<div class="flex items-center gap-1.5 mt-0.5">
+<span class="inline-flex items-center px-1.5 py-0.2 rounded text-label-sm font-label-sm bg-secondary-container/40 text-on-secondary-container font-semibold">Program</span>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant mt-1.5 leading-snug">
+                        Penyaluran Paket Sembako Dhuafa Cianjur: Berhasil mendistribusikan 120 paket amanah pangan ke 3 desa terpencil.
+                      </p>
+<div class="flex items-center gap-3 mt-2.5 pt-2 border-t border-surface-container text-label-sm font-label-sm text-outline">
+<button class="hover:text-primary-container flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[14px]" data-icon="thumb_up">thumb_up</span>
+<span class="">Apresiasi (9)</span>
+</button>
+<span class="">•</span>
+<span class="">2 Lampiran Foto</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Feed Item 2: Keuangan -->
+<div class="p-3.5 rounded-xl border border-outline-variant bg-surface hover:bg-surface-container-low transition-colors duration-150">
+<div class="flex items-start gap-3">
+<div class="w-9 h-9 rounded-full overflow-hidden border border-outline-variant flex-shrink-0 bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="Professional portrait of Dedi Kurniawan, an Indonesian corporate accountant dressed in a pressed collared shirt and glasses in an organized institutional office desk environment. The lighting is pristine, high-key, showcasing modern administrative accountability and transparency." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA_VJuuWL8gw-ci81zUKTIng7djX2tNyLJVZzEm1FH40KTctzk7JSG0sAZ4IxmxSmioHLMJzusUknwA0xzjF6FLfIDw_2Sa3Qt0D4R2kLNaL2PplPUBuJ8ftfVMwmRuV5RodECtnTzvjcuKPyGXmPG55VU7u02NBfjCFAjgDgG0EbfbWZ1YEB-dkEiElntfco2ipV8MFcvHENqNii2w7PtKvNIWsZ13OzLHt9oUA-pT8KrvyBhpoLLq-w">
+</div>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<span class="text-label-lg font-label-lg text-on-surface font-semibold">Dedi Kurniawan</span>
+<span class="text-label-sm font-label-sm text-outline">12:05 WIB</span>
+</div>
+<div class="flex items-center gap-1.5 mt-0.5">
+<span class="inline-flex items-center px-1.5 py-0.2 rounded text-label-sm font-label-sm bg-surface-container-highest text-on-surface-variant font-semibold">Keuangan</span>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant mt-1.5 leading-snug">
+                        Rekonsiliasi Bank Rekening Infaq &amp; Zakat Mal Q3: Penutupan neraca saldo harian dan verifikasi mutasi online gate.
+                      </p>
+<div class="flex items-center gap-3 mt-2.5 pt-2 border-t border-surface-container text-label-sm font-label-sm text-outline">
+<button class="hover:text-primary-container flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[14px]" data-icon="thumb_up">thumb_up</span>
+<span class="">Apresiasi (6)</span>
+</button>
+<span class="">•</span>
+<span class="">1 Lampiran Spreadsheet</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Feed Item 3: Humas -->
+<div class="p-3.5 rounded-xl border border-outline-variant bg-surface hover:bg-surface-container-low transition-colors duration-150">
+<div class="flex items-start gap-3">
+<div class="w-9 h-9 rounded-full overflow-hidden border border-outline-variant flex-shrink-0 bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="A dignified portrait of Nabila Putri, an Indonesian public relations specialist wearing an ivory headscarf and blazer, engaging comfortably in front of a clean office background. The setting conveys institutional warmth and clarity under soft natural lighting." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBxgg9tDRQ-R8zTmXydrusmZ24RJeP3qyk_k5RmINwSkMq9ZPNr_z949VM6EBxmADr4RqDTPHZopiq7vgxvA-dJDsE3b8Z_5aoHAkU8t_UsgpkLSeV2_OOpPccpb11zuzcC6tENDfqkCZwUaeuo-DMx3sezNTrcZHMytST9No8SE6I9kFkyIneT9-y1-qvhQvA_wesGllnkapKMVKD4XSX_hnjOSe6xWijpBKP-_CNqFN1vlKBdYvhxrg">
+</div>
+<div class="flex-1">
+<div class="flex items-center justify-between">
+<span class="text-label-lg font-label-lg text-on-surface font-semibold">Nabila Putri</span>
+<span class="text-label-sm font-label-sm text-outline">10:30 WIB</span>
+</div>
+<div class="flex items-center gap-1.5 mt-0.5">
+<span class="inline-flex items-center px-1.5 py-0.2 rounded text-label-sm font-label-sm bg-primary-container/10 text-primary-container font-semibold">Humas</span>
+</div>
+<p class="text-body-sm font-body-sm text-on-surface-variant mt-1.5 leading-snug">
+                        Penyusunan Press Release Kampanye Qurban Berkelanjutan 1448 H untuk distribusi portal berita nasional.
+                      </p>
+<div class="flex items-center gap-3 mt-2.5 pt-2 border-t border-surface-container text-label-sm font-label-sm text-outline">
+<button class="hover:text-primary-container flex items-center gap-1 transition-colors">
+<span class="material-symbols-outlined text-[14px]" data-icon="thumb_up">thumb_up</span>
+<span class="">Apresiasi (11)</span>
+</button>
+<span class="">•</span>
+<span class="">Rilis Dokumen</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="pt-4 mt-4 border-t border-surface-container">
+<a class="w-full py-2.5 rounded-xl border border-outline-variant text-label-lg font-label-lg text-on-surface hover:bg-surface text-center block transition-colors" href="#">
+                Jelajahi Semua Laporan Rekan
+              </a>
+</div>
+</section>
+</div>
+</div>
+</main>
+</div>
+
+
+</body></html>
