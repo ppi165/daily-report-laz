@@ -1,8 +1,40 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import AppShell from "@/src/shared/components/AppShell";
 
+interface ReportData {
+  id: string;
+  content: string;
+  status: string;
+  appreciations: number;
+  division: string;
+  createdAt: string | Date;
+  author?: { name: string };
+  [key: string]: unknown;
+}
+
 export default function RekapReport() {
+  const [reports, setReports] = useState<ReportData[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchReports = async () => {
+      try {
+        const res = await fetch("/api/v1/reports");
+        const result = await res.json();
+        if (result.success) {
+          setReports(result.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch reports:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchReports();
+  }, []);
+
   return (
     <AppShell headerTitle="Rekap Daily Report LAZ Persis" headerBadge="Unit Humas">
       <main className="p-4 sm:p-6 lg:p-8 flex-1 flex flex-col items-center">
@@ -190,6 +222,7 @@ export default function RekapReport() {
                   aria-label="Pilih Periode"
                   className="appearance-none bg-surface-container-lowest border border-outline-variant text-on-surface rounded-xl px-4 py-2 pr-9 text-sm focus:border-secondary focus:ring-1 focus:ring-secondary cursor-pointer"
                 >
+                  <option>Hari Ini</option>
                   <option>Mingguan</option>
                   <option>Bulanan</option>
                   <option>Custom</option>
@@ -253,229 +286,79 @@ export default function RekapReport() {
 
           {/* Feed Layout: Report Cards Grid (2 Columns) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Card 1: Ahmad Fauzi */}
-            <div className="bg-surface-container-lowest rounded-2xl p-6 border border-outline-variant custom-shadow-card custom-shadow-hover transition-shadow flex flex-col justify-between">
-              <div>
-                {/* Card Header */}
-                <div className="flex items-start justify-between mb-4 pb-4 border-b border-surface-container">
-                  <div className="flex items-center gap-3">
-                    <img
-                      className="w-11 h-11 rounded-full object-cover border border-outline-variant"
-                      alt="Ahmad Fauzi"
-                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8k_2bzNbJSLAxivw30TRjIsgj-qfebHFsGFz4n1BEvTRbJuKKvmHb1BU86JdhH5wVtN2FPb_bKiscoZKCRBLYozuFVx9RoyzB2gNany1f81QMlOsjd9mCVTD4sXVJXvpXm00KoJy3j4lO03DwJQ64sVznnIsMTjWe38MJYHRFYE3irg5z9G44lyprdzkhhTCru5mOldkxuKEr6tNKUILpq-QmLfveTAUl7desvDZfHIgp-56VHrTQBw"
-                    />
-                    <div>
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                        <span className="text-base font-semibold text-on-surface leading-tight">
-                          Ahmad Fauzi
-                        </span>
-                        <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-surface-container text-on-surface-variant w-max">
-                          Humas
-                        </span>
+            {loading ? (
+              <div className="col-span-full py-12 flex justify-center">
+                <div className="w-8 h-8 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
+              </div>
+            ) : reports.length > 0 ? (
+              reports.map((report) => (
+                <div key={report.id} className="bg-surface-container-lowest rounded-2xl p-6 border border-outline-variant custom-shadow-card custom-shadow-hover transition-shadow flex flex-col justify-between">
+                  <div>
+                    {/* Card Header */}
+                    <div className="flex items-start justify-between mb-4 pb-4 border-b border-surface-container">
+                      <div className="flex items-center gap-3">
+                        <div className="w-11 h-11 rounded-full bg-primary-container text-white flex items-center justify-center font-bold text-lg">
+                          {report.author?.name?.charAt(0) || 'A'}
+                        </div>
+                        <div>
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                            <span className="text-base font-semibold text-on-surface leading-tight">
+                              {report.author?.name || 'Anonim'}
+                            </span>
+                            <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-surface-container text-on-surface-variant w-max">
+                              {report.division}
+                            </span>
+                          </div>
+                          <span className="text-xs text-on-surface-variant block mt-0.5">
+                            {new Date(report.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })} • {new Date(report.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB
+                          </span>
+                        </div>
                       </div>
-                      <span className="text-xs text-on-surface-variant block mt-0.5">
-                        28 Sep 2026 • 15:30 WIB
+                      <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[rgba(9,145,79,0.10)] text-secondary">
+                        {report.status}
                       </span>
                     </div>
+                    {/* Card Content Body */}
+                    <div className="text-sm text-on-surface mb-4 leading-relaxed whitespace-pre-wrap line-clamp-4">
+                      {report.content}
+                    </div>
                   </div>
-                  <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[rgba(9,145,79,0.10)] text-secondary">
-                    PUBLISHED
-                  </span>
-                </div>
-                {/* Card Content Body */}
-                <p className="text-sm text-on-surface mb-4 leading-relaxed">
-                  Membuat desain materi publikasi untuk kegiatan tabligh akbar dan
-                  distribusi logistik zakat produktif, serta mendokumentasikan kegiatan
-                  liputan bersama relawan.
-                </p>
-                {/* Card Photos (2 Side by Side) */}
-                <div className="grid grid-cols-2 gap-3 mb-5">
-                  <div className="rounded-lg overflow-hidden aspect-video border border-outline-variant">
-                    <img
-                      className="w-full h-full object-cover"
-                      alt="Aktivitas 1"
-                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuBP7W0RR_RexhHIWRBUqzasCs8w1PEd9wv5RAEl5G_X-A9d76_rH297U4Tnj9G__hNRFiaMl3IJyKGj0gPifaV9imIpc_lYIIGMDksKqRg90IDbtqCkKFur4Dpfs54P4JSrqrC4YrDiUrv8dekinQZtPvDUlX5tKBh7D5v1kd1ZCm_ZRnJpeAKJN7643au6oImTVQTd06-jh0wBx7Z9zEziRqVkhvS7b_JjNV4ih_S1ILsb6218DOCSIw"
-                    />
-                  </div>
-                  <div className="rounded-lg overflow-hidden aspect-video border border-outline-variant">
-                    <img
-                      className="w-full h-full object-cover"
-                      alt="Aktivitas 2"
-                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuD6B2GRDNffItCBGHLcy3mc4NcnK05fTYKM_TWJJNRvzbzjrUVvtdHHG19JYSXLqTztWA6MuzNpbzylCTBbKlI32hCWs-kPq3UoIXxH10L4e-smbrUZzHQIqGEcGa506PlqEsb6AA4-ralOW2YG4rwynQq4dWYjFIufCbV8YEmnjToZsvYjk3gsyvkJ-Bi87KhBc-Ezh4dg9VURpjSb9ZfvCUSWa1KzTUQpNNuf_ROPxfchYx1U1JHYgg"
-                    />
-                  </div>
-                </div>
-              </div>
-              {/* Card Footer Actions */}
-              <div className="flex items-center justify-between pt-3 border-t border-surface-container">
-                <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#FFF8F0] text-[#B45309] border border-[#FFEDD5] hover:bg-[#FFEDD5] transition-colors text-xs font-semibold">
-                  <span>👏</span>
-                  <span>12 Apresiasi</span>
-                </button>
-                <a
-                  className="text-sm font-medium text-primary hover:text-secondary flex items-center gap-1"
-                  href="#"
-                >
-                  <span>Lihat Detail</span>
-                  <span className="material-symbols-outlined text-[16px]">
-                    arrow_forward
-                  </span>
-                </a>
-              </div>
-            </div>
-
-            {/* Card 2: Fajar Hidayat */}
-            <div className="bg-surface-container-lowest rounded-2xl p-6 border border-outline-variant custom-shadow-card custom-shadow-hover transition-shadow flex flex-col justify-between">
-              <div>
-                {/* Card Header */}
-                <div className="flex items-start justify-between mb-4 pb-4 border-b border-surface-container">
-                  <div className="flex items-center gap-3">
-                    <img
-                      className="w-11 h-11 rounded-full object-cover border border-outline-variant"
-                      alt="Fajar Hidayat"
-                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuDGmu9i7WtbFL-GxGDE4nsOKci342GKD1hS-aE6f9Zkc0X1NS407611hAllgDwtP-dwSkZgYiWhOHLx2gLq3-qpX2JDiF84ZTRYVG87mdj0MxzbvHbP7QFdA9Bn2IfZ4_XZSWVTVVVc12rIpED2AxPT7emk73-gh_c1rCNf-wqpouZFxeQvLjty5LqT05Ab6GB-2Zdqr5be-6kDBy0TxbxXCTLBDDBcSnXYBLKNfGp_PrkDos7DBx4vbA"
-                    />
-                    <div>
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                        <span className="text-base font-semibold text-on-surface leading-tight">
-                          Fajar Hidayat
-                        </span>
-                        <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-surface-container text-on-surface-variant w-max">
-                          Program
-                        </span>
-                      </div>
-                      <span className="text-xs text-on-surface-variant block mt-0.5">
-                        28 Sep 2026 • 14:15 WIB
+                  {/* Card Footer Actions */}
+                  <div className="flex items-center justify-between pt-3 border-t border-surface-container">
+                    <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#FFF8F0] text-[#B45309] border border-[#FFEDD5] hover:bg-[#FFEDD5] transition-colors text-xs font-semibold">
+                      <span>👏</span>
+                      <span>{report.appreciations} Apresiasi</span>
+                    </button>
+                    <a
+                      className="text-sm font-medium text-primary hover:text-secondary flex items-center gap-1 cursor-pointer"
+                    >
+                      <span>Lihat Detail</span>
+                      <span className="material-symbols-outlined text-[16px]">
+                        arrow_forward
                       </span>
-                    </div>
+                    </a>
                   </div>
-                  <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[rgba(9,145,79,0.10)] text-secondary">
-                    PUBLISHED
+                </div>
+              ))
+            ) : (
+              <div className="col-span-full bg-surface-container-lowest rounded-2xl p-6 border-2 border-dashed border-outline-variant flex flex-col items-center justify-center text-center">
+                <div className="w-14 h-14 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant mb-3">
+                  <span className="material-symbols-outlined text-[28px]">
+                    description
                   </span>
                 </div>
-                {/* Card Content Body */}
-                <p className="text-sm text-on-surface mb-4 leading-relaxed">
-                  Koordinasi verifikasi calon mustahik beasiswa santri berprestasi wilayah
-                  Jawa Barat dan penyusunan berita acara serah terima dana bantuan
-                  pendidikan.
+                <h3 className="text-base text-on-surface mb-1 font-semibold">
+                  Belum Ada Daily Report
+                </h3>
+                <p className="text-xs text-on-surface-variant max-w-xs mb-5">
+                  Belum ada laporan yang dipublikasikan pada periode yang dipilih.
                 </p>
-                {/* Card Single Photo */}
-                <div className="mb-5 rounded-lg overflow-hidden aspect-[2/1] border border-outline-variant">
-                  <img
-                    className="w-full h-full object-cover"
-                    alt="Aktivitas"
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuDWZPcSVZJ0oxia-HbnW4it-4Kx1FNoBFbRhhf3VTY1C_HH8fP1VzybUSFLmRkOQ7GbfnwNXhuDHyxeGVvhpBtbeb4dSgO9gSDYB4zcU5C-QL8n0tyQVn64SgNXrY8B1TCSOhb5_dV_wRmaX8FTdEE3PtZmQFScRfcbwoK5d8MvTEY1S2GQU4fPP0CxyB1hCxs3DqYAw6SVrz4dhcGH29svHiblPRD4HS_nkiENy11AI-f06FbldoVXtw"
-                  />
-                </div>
-              </div>
-              {/* Card Footer Actions */}
-              <div className="flex items-center justify-between pt-3 border-t border-surface-container">
-                <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#FFF8F0] text-[#B45309] border border-[#FFEDD5] hover:bg-[#FFEDD5] transition-colors text-xs font-semibold">
-                  <span>👏</span>
-                  <span>9 Apresiasi</span>
-                </button>
-                <a
-                  className="text-sm font-medium text-primary hover:text-secondary flex items-center gap-1"
-                  href="#"
-                >
-                  <span>Lihat Detail</span>
-                  <span className="material-symbols-outlined text-[16px]">
-                    arrow_forward
-                  </span>
+                <a href="/daily-report" className="px-4 py-2 bg-primary-container text-white rounded-xl text-sm font-medium hover:bg-secondary transition-colors inline-flex items-center gap-2">
+                  <span className="material-symbols-outlined text-[20px]">add</span>
+                  <span>Buat Daily Report</span>
                 </a>
               </div>
-            </div>
-
-            {/* Card 3: Nurul Aini */}
-            <div className="bg-surface-container-lowest rounded-2xl p-6 border border-outline-variant custom-shadow-card custom-shadow-hover transition-shadow flex flex-col justify-between">
-              <div>
-                {/* Card Header */}
-                <div className="flex items-start justify-between mb-4 pb-4 border-b border-surface-container">
-                  <div className="flex items-center gap-3">
-                    <img
-                      className="w-11 h-11 rounded-full object-cover border border-outline-variant"
-                      alt="Nurul Aini"
-                      src="https://lh3.googleusercontent.com/aida-public/AB6AXuAG9-gs0_UyfiB0Sx3fdadspH8N70gabgy0ncdOlMO8ZUvUIBDINBzwYZxcJlpldAtx55yU0O0k-MD_fEemcB-RgXRDakIsdkE1ynU_b-3GivtoDTCi612oXlT-I2__w819fRPRniA_8aQlcs91WlIj8xEEZjH5E4_fKoKVmlMC-cwAwKSOLhEycNUGTgJHE4DK8YnVN2sc8_RuPQ7YQfQEQIzvlTvISuF96Yv0hdEzUUeC7JfD3Fmhog"
-                    />
-                    <div>
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                        <span className="text-base font-semibold text-on-surface leading-tight">
-                          Nurul Aini
-                        </span>
-                        <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-surface-container text-on-surface-variant w-max">
-                          Keuangan
-                        </span>
-                      </div>
-                      <span className="text-xs text-on-surface-variant block mt-0.5">
-                        28 Sep 2026 • 11:20 WIB
-                      </span>
-                    </div>
-                  </div>
-                  <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[rgba(9,145,79,0.10)] text-secondary">
-                    PUBLISHED
-                  </span>
-                </div>
-                {/* Card Content Body */}
-                <p className="text-sm text-on-surface mb-6 leading-relaxed">
-                  Rekonsiliasi mutasi rekening zakat, infak, shadaqah bank syariah mitra
-                  dan penerbitan bukti setor zakat resmi untuk muzakki korporat.
-                </p>
-                {/* Decorative Info Metric Box */}
-                <div className="p-3.5 mb-5 rounded-xl bg-surface-container-low border border-outline-variant/60 flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <span className="material-symbols-outlined text-secondary text-[24px]">
-                      verified
-                    </span>
-                    <div>
-                      <div className="text-[11px] text-on-surface-variant">
-                        Status Transaksi
-                      </div>
-                      <div className="text-xs font-semibold text-on-surface mt-0.5">
-                        32 Bukti Setor Terverifikasi
-                      </div>
-                    </div>
-                  </div>
-                  <span className="text-[11px] text-secondary font-semibold">
-                    Terselesaikan
-                  </span>
-                </div>
-              </div>
-              {/* Card Footer Actions */}
-              <div className="flex items-center justify-between pt-3 border-t border-surface-container">
-                <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#FFF8F0] text-[#B45309] border border-[#FFEDD5] hover:bg-[#FFEDD5] transition-colors text-xs font-semibold">
-                  <span>👏</span>
-                  <span>15 Apresiasi</span>
-                </button>
-                <a
-                  className="text-sm font-medium text-primary hover:text-secondary flex items-center gap-1"
-                  href="#"
-                >
-                  <span>Lihat Detail</span>
-                  <span className="material-symbols-outlined text-[16px]">
-                    arrow_forward
-                  </span>
-                </a>
-              </div>
-            </div>
-
-            {/* Box Empty State Contoh (Panduan Alternatif / Tampilan Bersih) */}
-            <div className="bg-surface-container-lowest rounded-2xl p-6 border-2 border-dashed border-outline-variant flex flex-col items-center justify-center text-center">
-              <div className="w-14 h-14 rounded-full bg-surface-container-high flex items-center justify-center text-on-surface-variant mb-3">
-                <span className="material-symbols-outlined text-[28px]">
-                  description
-                </span>
-              </div>
-              <h3 className="text-base text-on-surface mb-1 font-semibold">
-                Belum Ada Daily Report
-              </h3>
-              <p className="text-xs text-on-surface-variant max-w-xs mb-5">
-                Belum ada laporan yang dipublikasikan pada periode yang dipilih.
-              </p>
-              <button className="px-4 py-2 bg-primary-container text-white rounded-xl text-sm font-medium hover:bg-secondary transition-colors inline-flex items-center gap-2">
-                <span className="material-symbols-outlined text-[20px]">add</span>
-                <span>Buat Daily Report</span>
-              </button>
-            </div>
+            )}
           </div>
         </div>
       </main>

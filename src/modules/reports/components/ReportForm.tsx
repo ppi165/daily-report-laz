@@ -29,7 +29,8 @@ export default function ReportForm() {
 3. Siaran pers telah tayang di website portal resmi LAZ Persis.`
   );
   const [photoAttached, setPhotoAttached] = useState(true);
-  const [showSuccessToast, setShowSuccessToast] = useState(true);
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const handleAddDivision = (newDiv: string) => {
     setDivisions((prev) => [...prev, newDiv]);
@@ -53,9 +54,40 @@ export default function ReportForm() {
     });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setShowSuccessToast(true);
+    setLoading(true);
+    
+    // Gabungkan task dan result untuk content laporan
+    const combinedContent = `**Pekerjaan:**\n${tasks}\n\n**Hasil:**\n${results}`;
+    
+    try {
+      const res = await fetch("/api/v1/reports", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: "Laporan Harian", // Default title
+          content: combinedContent,
+          division: division,
+          attachments: [] // Simulasi attachments kosong untuk saat ini
+        })
+      });
+
+      const data = await res.json();
+      
+      if (res.ok && data.success) {
+        setShowSuccessToast(true);
+        // Reset form
+        setTasks("");
+        setResults("");
+      } else {
+        alert(data.message || "Gagal mengirim laporan.");
+      }
+    } catch (error) {
+      alert("Terjadi kesalahan jaringan.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -274,19 +306,19 @@ export default function ReportForm() {
                     Dokumentasi Pekerjaan
                   </h2>
                   <p className="text-xs text-on-surface-variant">
-                    Upload maksimal 2 foto dokumentasi pekerjaan. Format JPG, PNG,
-                    WebP (maksimal 5 MB per foto).
+                    Upload 1 foto dokumentasi pekerjaan. Format JPG, PNG,
+                    WebP (maksimal 5 MB).
                   </p>
                 </div>
 
-                {/* 2 Slot Upload Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-1">
+                {/* 1 Slot Upload Grid */}
+                <div className="grid grid-cols-1 gap-4 pt-1">
                   {/* Slot 1: Sudah ada foto preview */}
                   {photoAttached ? (
                     <div className="border-2 border-[#CBD5E1] rounded-xl p-4 bg-surface-container-lowest flex flex-col justify-between relative group hover:border-primary-container transition-colors duration-150">
                       <div className="flex items-start justify-between mb-3">
                         <span className="text-xs font-semibold bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded">
-                          Foto 1
+                          Foto Dokumentasi
                         </span>
                         <button
                           className="text-error hover:bg-error-container/30 px-2 py-1 rounded text-xs flex items-center gap-1 transition-colors"
@@ -295,7 +327,7 @@ export default function ReportForm() {
                           onClick={() => setPhotoAttached(false)}
                         >
                           <span className="material-symbols-outlined text-[16px]">
-                            delete
+                             delete
                           </span>
                           Hapus Foto
                         </button>
@@ -323,7 +355,7 @@ export default function ReportForm() {
                       </div>
                     </div>
                   ) : (
-                    <div
+                    <label
                       onClick={() => setPhotoAttached(true)}
                       className="border-2 border-dashed border-[#CBD5E1] rounded-xl p-6 text-center hover:border-primary-container hover:bg-surface-container-low/40 transition-colors duration-150 flex flex-col items-center justify-center cursor-pointer min-h-[128px]"
                     >
@@ -333,33 +365,19 @@ export default function ReportForm() {
                         </span>
                       </div>
                       <p className="text-xs font-semibold text-on-surface">
-                        Pilih atau Tarik Foto 1 ke sini
+                        Pilih atau Tarik Foto ke sini
                       </p>
                       <p className="text-[11px] text-outline mt-0.5">
                         PNG / JPG hingga 5MB
                       </p>
-                    </div>
+                      <input
+                        accept="image/png, image/jpeg, image/webp"
+                        className="hidden"
+                        type="file"
+                        onChange={() => setPhotoAttached(true)}
+                      />
+                    </label>
                   )}
-
-                  {/* Slot 2: Slot Kosong */}
-                  <label className="border-2 border-dashed border-[#CBD5E1] rounded-xl p-6 text-center hover:border-primary-container hover:bg-surface-container-low/40 transition-colors duration-150 flex flex-col items-center justify-center cursor-pointer min-h-[128px]">
-                    <div className="w-10 h-10 rounded-full bg-[#E6F4EA] flex items-center justify-center mb-2 text-primary-container">
-                      <span className="material-symbols-outlined text-[24px]">
-                        add
-                      </span>
-                    </div>
-                    <p className="text-xs font-semibold text-on-surface">
-                      Pilih atau Tarik Foto ke sini
-                    </p>
-                    <p className="text-[11px] text-outline mt-0.5">
-                      PNG / JPG hingga 5MB
-                    </p>
-                    <input
-                      accept="image/png, image/jpeg, image/webp"
-                      className="hidden"
-                      type="file"
-                    />
-                  </label>
                 </div>
               </div>
 
@@ -378,13 +396,14 @@ export default function ReportForm() {
 
                 {/* Tombol Utama / Kirim Report */}
                 <button
-                  className="w-full sm:w-auto bg-primary-container hover:bg-secondary text-white font-semibold px-8 py-3 rounded-xl shadow-md flex items-center justify-center gap-2 transition-transform duration-150 active:scale-[0.99] text-sm cursor-pointer"
+                  disabled={loading}
+                  className="w-full sm:w-auto bg-primary-container hover:bg-secondary text-white font-semibold px-8 py-3 rounded-xl shadow-md flex items-center justify-center gap-2 transition-transform duration-150 active:scale-[0.99] text-sm cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
                   type="submit"
                 >
                   <span className="material-symbols-outlined text-[20px]">
                     check
                   </span>
-                  <span>Kirim &amp; Publikasikan</span>
+                  <span>{loading ? 'MEMPROSES...' : 'Kirim & Publikasikan'}</span>
                 </button>
               </div>
             </form>

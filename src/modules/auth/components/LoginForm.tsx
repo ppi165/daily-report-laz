@@ -9,11 +9,34 @@ export default function LoginForm() {
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Front-end UI navigation to dashboard for now
-    router.push("/dashboard");
+    setLoading(true);
+    setError("");
+
+    try {
+      const res = await fetch("/api/v1/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identifier, password, remember }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        setError(data.message || "Gagal login, periksa kembali data Anda.");
+      } else {
+        router.push("/dashboard");
+        router.refresh();
+      }
+    } catch (err) {
+      setError("Terjadi kesalahan jaringan.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -54,6 +77,12 @@ export default function LoginForm() {
 
           {/* Login Form */}
           <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
+            {error && (
+              <div className="p-3 bg-error-container text-on-error-container text-sm rounded-lg border border-error/20">
+                {error}
+              </div>
+            )}
+            
             {/* Field Email / Username */}
             <div>
               <label
@@ -140,13 +169,16 @@ export default function LoginForm() {
             {/* Submit Button */}
             <div className="pt-2">
               <button
-                className="w-full h-[46px] flex items-center justify-center gap-2 bg-primary-container hover:bg-secondary active:scale-[0.99] text-white text-sm font-medium rounded-xl shadow-sm transition-all duration-150 cursor-pointer"
+                disabled={loading}
+                className="w-full h-[46px] flex items-center justify-center gap-2 bg-primary-container hover:bg-secondary active:scale-[0.99] text-white text-sm font-medium rounded-xl shadow-sm transition-all duration-150 cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
                 type="submit"
               >
-                <span>MASUK</span>
-                <span className="material-symbols-outlined text-[18px]">
-                  arrow_forward
-                </span>
+                <span>{loading ? 'MEMPROSES...' : 'MASUK'}</span>
+                {!loading && (
+                  <span className="material-symbols-outlined text-[18px]">
+                    arrow_forward
+                  </span>
+                )}
               </button>
             </div>
           </form>
@@ -162,11 +194,9 @@ export default function LoginForm() {
           </div>
         </div>
 
-        {/* Small Footer Note */}
         <footer className="mt-6 text-center px-4">
           <p className="text-xs text-outline leading-relaxed">
-            Sistem Informasi Internal & Pelaporan Terpadu © LAZ Persis 2026. Menjaga
-            Amanah, Melayani Umat.
+            &copy; 2026 Lembaga Amil Zakat Persis (LAZ Persis)
           </p>
         </footer>
       </main>

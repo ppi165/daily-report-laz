@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 interface TopNavBarProps {
   onToggleSidebar?: () => void;
   title?: string;
@@ -64,8 +66,12 @@ export default function TopNavBar({
         <div className="h-6 w-px bg-outline-variant"></div>
 
         {/* User Profile Cluster */}
-        <div className="flex items-center gap-2.5 sm:gap-3">
-          <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden border border-outline-variant bg-surface-container-high flex-shrink-0">
+        <Link
+          href="/profil"
+          className="flex items-center gap-2.5 sm:gap-3 p-1 rounded-xl hover:bg-surface-container transition-colors group cursor-pointer"
+          title="Buka Profil Saya"
+        >
+          <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden border border-outline-variant bg-surface-container-high flex-shrink-0 group-hover:border-secondary transition-colors">
             <img
               className="w-full h-full object-cover"
               alt="Ahmad Fauzi"
@@ -73,7 +79,7 @@ export default function TopNavBar({
             />
           </div>
           <div className="hidden sm:flex flex-col text-left">
-            <span className="text-sm font-semibold text-on-surface leading-tight">
+            <span className="text-sm font-semibold text-on-surface leading-tight group-hover:text-primary transition-colors">
               Ahmad Fauzi
             </span>
             <div className="flex items-center gap-1.5 mt-0.5">
@@ -82,7 +88,7 @@ export default function TopNavBar({
               </span>
             </div>
           </div>
-        </div>
+        </Link>
       </div>
     </header>
   );

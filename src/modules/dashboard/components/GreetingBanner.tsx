@@ -1,4 +1,24 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
 export default function GreetingBanner() {
+  const [userName, setUserName] = useState("Pegawai");
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch("/api/v1/users/me");
+        const data = await res.json();
+        if (data.success) {
+          setUserName(data.data.name.split(' ')[0]);
+        }
+      } catch (error) {
+        console.error("Failed to fetch user:", error);
+      }
+    };
+    fetchUser();
+  }, []);
   return (
     <div className="lg:col-span-8 bg-surface-container-lowest p-6 rounded-2xl border border-outline-variant shadow-sm flex flex-col justify-between">
       <div>
@@ -10,7 +30,7 @@ export default function GreetingBanner() {
           <span className="text-sm text-outline">Bulan Berjalan</span>
         </div>
         <h1 className="text-2xl lg:text-3xl text-on-surface font-bold">
-          Selamat datang, Ahmad! 👋
+          Selamat datang, {userName}! 👋
         </h1>
         <p className="text-sm lg:text-base text-on-surface-variant mt-1.5 max-w-xl leading-relaxed">
           Berikut ringkasan komitmen dan laporan aktivitas harian Anda bulan September 2026. Pertahankan konsistensi pelaporan untuk transparansi lembaga.

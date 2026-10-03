@@ -1,4 +1,29 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
 export default function DashboardStats() {
+  const [stats, setStats] = useState({
+    totalReports: 0,
+    activeUsers: 0,
+    totalUsers: 0,
+    completionRate: 0
+  });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await fetch("/api/v1/dashboard/stats");
+        const result = await res.json();
+        if (result.success) {
+          setStats(result.data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch stats:", error);
+      }
+    };
+    fetchStats();
+  }, []);
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       {/* Stat 1: Hari Kerja Aktif */}
@@ -16,10 +41,10 @@ export default function DashboardStats() {
         </div>
         <div className="mt-3">
           <div className="text-3xl text-on-surface font-bold tracking-tight">
-            20 Hari
+            {stats.activeUsers} <span className="text-xl">dari {stats.totalUsers}</span>
           </div>
           <p className="text-xs text-on-surface-variant mt-1">
-            Hari Kerja Aktif tercatat di September
+            Pegawai Aktif Melapor
           </p>
         </div>
       </div>
@@ -37,10 +62,10 @@ export default function DashboardStats() {
         </div>
         <div className="mt-3">
           <div className="text-3xl text-on-surface font-bold tracking-tight">
-            18 Report
+            {stats.totalReports} Report
           </div>
           <p className="text-xs text-on-surface-variant mt-1">
-            Laporan Terpublikasi &amp; Terverifikasi Koordinator
+            Total Laporan Terpublikasi Institusi
           </p>
         </div>
       </div>
@@ -58,10 +83,10 @@ export default function DashboardStats() {
         </div>
         <div className="mt-3">
           <div className="text-3xl text-on-surface font-bold tracking-tight">
-            142 Apresiasi
+            {stats.completionRate}%
           </div>
           <p className="text-xs text-on-surface-variant mt-1">
-            Total Apresiasi Rekan Kerja diterima bulan ini
+            Tingkat Partisipasi Laporan
           </p>
         </div>
       </div>
