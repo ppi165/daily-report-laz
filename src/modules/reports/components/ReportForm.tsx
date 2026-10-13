@@ -142,7 +142,7 @@ export default function ReportForm() {
                   </label>
                   <div className="relative flex items-center">
                     <input
-                      className="w-full h-[42px] px-3.5 rounded-lg bg-[#F9FAFB] border border-[#E5E7EB] text-on-surface text-sm font-medium cursor-not-allowed select-none focus:ring-0 focus:border-[#E5E7EB]"
+                      className="w-full h-[42px] px-3.5 rounded-lg bg-surface-container border border-outline-variant/60 text-on-surface text-sm font-medium cursor-not-allowed select-none focus:ring-0"
                       readOnly
                       type="text"
                       value="Ahmad Fauzi"
@@ -165,7 +165,7 @@ export default function ReportForm() {
                   </label>
                   <div className="relative flex items-center">
                     <input
-                      className="w-full h-[42px] px-3.5 rounded-lg bg-[#F9FAFB] border border-[#E5E7EB] text-on-surface text-sm font-medium cursor-not-allowed select-none focus:ring-0 focus:border-[#E5E7EB]"
+                      className="w-full h-[42px] px-3.5 rounded-lg bg-surface-container border border-outline-variant/60 text-on-surface text-sm font-medium cursor-not-allowed select-none focus:ring-0"
                       readOnly
                       type="text"
                       value="Senin, 28 September 2026"
@@ -332,7 +332,7 @@ export default function ReportForm() {
                           Hapus Foto
                         </button>
                       </div>
-                      <div className="flex items-center gap-3 bg-[#F9FAFB] p-3 rounded-lg border border-[#E5E7EB]">
+                      <div className="flex items-center gap-3 bg-surface-container p-3 rounded-lg border border-outline-variant/60">
                         <div className="w-16 h-16 rounded-md overflow-hidden shrink-0 border border-outline-variant/40 bg-surface-variant">
                           <img
                             alt="dokumentasi_desain_kajian.jpg"

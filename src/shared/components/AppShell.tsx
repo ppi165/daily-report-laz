@@ -18,7 +18,7 @@ export default function AppShell({
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-background text-on-surface flex flex-col">
+    <div className="min-h-screen bg-background text-on-surface flex flex-col transition-colors duration-200">
       {/* Sidebar */}
       <SideNavBar
         isOpen={sidebarOpen}

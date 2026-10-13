@@ -2,9 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useTheme } from "@/src/shared/context/ThemeContext";
 
 export default function LoginForm() {
   const router = useRouter();
+  const { isDarkMode, toggleTheme } = useTheme();
   const [showPassword, setShowPassword] = useState(false);
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
@@ -40,18 +43,39 @@ export default function LoginForm() {
   };
 
   return (
-    <div className="bg-surface-container-low min-h-screen flex flex-col justify-between items-center px-4 py-8 antialiased selection:bg-secondary-container selection:text-primary">
+    <div className="bg-surface-container-low min-h-screen flex flex-col justify-between items-center px-4 py-8 antialiased selection:bg-secondary-container selection:text-primary transition-colors duration-300">
       {/* Top Security / Institutional Tag */}
       <header className="w-full max-w-md flex items-center justify-between px-2 pt-2 pb-6 text-on-surface-variant">
-        <div className="flex items-center gap-2">
-          <span className="inline-flex items-center justify-center w-2 h-2 rounded-full bg-secondary"></span>
-          <span className="text-xs font-semibold tracking-wider text-outline">
-            PORTAL INTERNAL RESMI
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-outline hover:text-primary transition-colors group cursor-pointer"
+          title="Kembali ke Landing Page"
+        >
+          <span className="material-symbols-outlined text-[18px] transition-transform group-hover:-translate-x-1">
+            arrow_back
           </span>
-        </div>
-        <div className="flex items-center gap-1.5 text-xs font-semibold text-outline">
-          <span className="material-symbols-outlined text-[16px]">verified_user</span>
-          <span>Terenkripsi</span>
+          <span>Kembali ke Beranda</span>
+        </Link>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-outline">
+            <span className="material-symbols-outlined text-[16px] text-secondary">verified_user</span>
+            <span>Portal Resmi</span>
+          </div>
+          <button
+            type="button"
+            onClick={toggleTheme}
+            className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors ${
+              isDarkMode
+                ? 'bg-white/10 text-yellow-300 hover:bg-white/20'
+                : 'bg-surface-container-high text-gray-800 hover:bg-surface-variant border border-outline-variant/60'
+            }`}
+            title={isDarkMode ? "Ganti ke Mode Terang" : "Ganti ke Mode Gelap"}
+            aria-label="Toggle Dark Mode"
+          >
+            <span className="material-symbols-outlined text-[18px]">
+              {isDarkMode ? "light_mode" : "dark_mode"}
+            </span>
+          </button>
         </div>
       </header>
 

@@ -41,7 +41,7 @@ export default function RekapReport() {
         <div className="max-w-[1240px] w-full space-y-6">
           {/* Header Section */}
           <div className="pt-2">
-            <h1 className="text-2xl sm:text-3xl font-bold text-[#1A1A1A] tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-bold text-on-surface tracking-tight">
               Rekap Daily Report
             </h1>
             <p className="text-sm sm:text-base text-on-surface-variant mt-1">
@@ -71,7 +71,7 @@ export default function RekapReport() {
               </div>
               {/* Stat 2 */}
               <div className="relative pl-4 border-l-4 border-primary-container">
-                <div className="text-3xl text-[#1A1A1A] font-bold tracking-tight">
+                <div className="text-3xl text-on-surface font-bold tracking-tight">
                   14
                 </div>
                 <div className="text-sm text-on-surface-variant mt-0.5 font-medium">
