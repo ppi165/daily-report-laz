@@ -40,8 +40,15 @@ export class AuthController {
       return response;
 
     } catch (error: any) {
+      console.error('[AuthController.login Error]:', error);
       return NextResponse.json(
-        { success: false, message: 'Terjadi kesalahan pada server', error: error.message },
+        { 
+          success: false, 
+          message: error?.message?.includes('FATAL') 
+            ? 'Koneksi database gagal (Supabase tidak dapat dijangkau). Pastikan project Supabase aktif.' 
+            : 'Terjadi kesalahan pada server', 
+          error: error.message 
+        },
         { status: 500 }
       );
     }
