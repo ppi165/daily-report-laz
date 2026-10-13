@@ -10,11 +10,8 @@ export default function ProfileView() {
   // Form State yang dapat dilengkapi/diedit secara mandiri oleh user
   const [formData, setFormData] = useState({
     name: "Ahmad Fauzi, S.Kom.",
-    nip: "LZP-2024-089",
     division: "Humas",
-    position: "Staf Publikasi & Media",
     email: "ahmad.fauzi@lazpersis.or.id",
-    phone: "0812-3456-7890",
     joinDate: "01 Januari 2024",
     bio: "Bertanggung jawab dalam pengelolaan publikasi siaran pers resmi, media sosial lembaga, dan dokumentasi lapangan program penyaluran zakat LAZ Persis.",
   });
@@ -140,7 +137,7 @@ export default function ProfileView() {
               </span>
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#F0FDF4] text-[#166534] border border-[#BBF7D0] font-medium">
                 <span className="material-symbols-outlined text-[14px]">check</span>
-                NIP &amp; Divisi Terisi
+                Divisi Terisi
               </span>
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#FFFBEB] text-[#92400E] border border-[#FDE68A] font-medium">
                 <span className="material-symbols-outlined text-[14px]">info</span>
@@ -186,16 +183,10 @@ export default function ProfileView() {
                 <h2 className="text-lg font-bold text-on-surface leading-snug">
                   {formData.name}
                 </h2>
-                <span className="text-xs text-outline font-mono mt-0.5">
-                  NIP: {formData.nip}
-                </span>
 
                 <div className="flex items-center gap-1.5 mt-2">
                   <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary-container/10 text-primary-container">
                     Unit {formData.division}
-                  </span>
-                  <span className="text-xs text-on-surface-variant font-medium">
-                    • {formData.position}
                   </span>
                 </div>
 
@@ -210,15 +201,6 @@ export default function ProfileView() {
                     </span>
                     <span className="font-medium text-on-surface truncate max-w-[170px]" title={formData.email}>
                       {formData.email}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-outline flex items-center gap-1.5">
-                      <span className="material-symbols-outlined text-[16px]">call</span>
-                      WhatsApp
-                    </span>
-                    <span className="font-medium text-on-surface">
-                      {formData.phone}
                     </span>
                   </div>
                   <div className="flex items-center justify-between">
@@ -317,7 +299,7 @@ export default function ProfileView() {
                   </div>
 
                   <form onSubmit={handleSaveProfile} className="space-y-5">
-                    {/* Row 1: Nama Lengkap & NIP */}
+                    {/* Row 1: Nama Lengkap & Email */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                       <div className="space-y-1.5">
                         <label className="text-xs sm:text-sm font-semibold text-on-surface flex items-center justify-between">
@@ -336,21 +318,24 @@ export default function ProfileView() {
 
                       <div className="space-y-1.5">
                         <label className="text-xs sm:text-sm font-semibold text-on-surface flex items-center justify-between">
-                          <span>NIP / ID Amil LAZ Persis</span>
-                          <span className="text-[11px] text-secondary font-medium">Wajib</span>
+                          <span>Email Resmi Lembaga</span>
+                          <span className="text-[11px] text-outline font-normal">Sesuai Akun Login</span>
                         </label>
-                        <input
-                          type="text"
-                          required
-                          value={formData.nip}
-                          onChange={(e) => handleInputChange("nip", e.target.value)}
-                          className="w-full h-[42px] px-3.5 rounded-xl bg-surface-container-lowest border border-outline-variant text-on-surface text-sm focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 transition-all font-mono"
-                          placeholder="cth: LZP-2024-089"
-                        />
+                        <div className="relative flex items-center">
+                          <input
+                            type="email"
+                            readOnly
+                            value={formData.email}
+                            className="w-full h-[42px] px-3.5 rounded-xl bg-surface-container border border-outline-variant/60 text-outline text-sm cursor-not-allowed select-none focus:ring-0"
+                          />
+                          <div className="absolute right-3.5 flex items-center pointer-events-none text-outline">
+                            <span className="material-symbols-outlined text-[18px]">lock</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Row 2: Bidang / Divisi & Jabatan / Posisi */}
+                    {/* Row 2: Bidang / Divisi Penugasan */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                       <div className="space-y-1.5">
                         <label className="text-xs sm:text-sm font-semibold text-on-surface flex items-center justify-between">
@@ -379,60 +364,9 @@ export default function ProfileView() {
                           </div>
                         </div>
                       </div>
-
-                      <div className="space-y-1.5">
-                        <label className="text-xs sm:text-sm font-semibold text-on-surface flex items-center justify-between">
-                          <span>Jabatan / Peran Spesifik</span>
-                          <span className="text-[11px] text-secondary font-medium">Wajib</span>
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          value={formData.position}
-                          onChange={(e) => handleInputChange("position", e.target.value)}
-                          className="w-full h-[42px] px-3.5 rounded-xl bg-surface-container-lowest border border-outline-variant text-on-surface text-sm focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 transition-all"
-                          placeholder="cth: Staf Publikasi & Media"
-                        />
-                      </div>
                     </div>
 
-                    {/* Row 3: Email (Readonly) & No. Telepon / WhatsApp */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                      <div className="space-y-1.5">
-                        <label className="text-xs sm:text-sm font-semibold text-on-surface flex items-center justify-between">
-                          <span>Email Resmi Lembaga</span>
-                          <span className="text-[11px] text-outline font-normal">Sesuai Akun Login</span>
-                        </label>
-                        <div className="relative flex items-center">
-                          <input
-                            type="email"
-                            readOnly
-                            value={formData.email}
-                            className="w-full h-[42px] px-3.5 rounded-xl bg-[#F9FAFB] border border-[#E5E7EB] text-outline text-sm cursor-not-allowed select-none focus:ring-0"
-                          />
-                          <div className="absolute right-3.5 flex items-center pointer-events-none text-outline">
-                            <span className="material-symbols-outlined text-[18px]">lock</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="space-y-1.5">
-                        <label className="text-xs sm:text-sm font-semibold text-on-surface flex items-center justify-between">
-                          <span>Nomor WhatsApp / Kontak</span>
-                          <span className="text-[11px] text-secondary font-medium">Wajib</span>
-                        </label>
-                        <input
-                          type="tel"
-                          required
-                          value={formData.phone}
-                          onChange={(e) => handleInputChange("phone", e.target.value)}
-                          className="w-full h-[42px] px-3.5 rounded-xl bg-surface-container-lowest border border-outline-variant text-on-surface text-sm focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 transition-all"
-                          placeholder="08xxxxxxxxxx"
-                        />
-                      </div>
-                    </div>
-
-                    {/* Row 4: Bio / Ringkasan Tanggung Jawab */}
+                    {/* Row 3: Bio / Ringkasan Tanggung Jawab */}
                     <div className="space-y-1.5">
                       <label className="text-xs sm:text-sm font-semibold text-on-surface flex items-center justify-between">
                         <span>Ringkasan Tugas &amp; Amanah</span>
@@ -487,7 +421,7 @@ export default function ProfileView() {
                     </div>
 
                     <div className="bg-surface-container-lowest rounded-2xl p-5 border border-outline-variant/60 shadow-sm relative pl-4 border-l-4 border-primary-container">
-                      <div className="text-2xl font-bold text-[#1A1A1A]">142</div>
+                      <div className="text-2xl font-bold text-on-surface">142</div>
                       <div className="text-xs text-on-surface-variant mt-1 font-medium">
                         Apresiasi Diterima
                       </div>
