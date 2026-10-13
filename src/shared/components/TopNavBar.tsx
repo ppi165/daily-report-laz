@@ -1,6 +1,8 @@
 "use client";
 
 import Link from "next/link";
+import { useTheme } from "@/src/shared/context/ThemeContext";
+import NotificationDropdown from "./NotificationDropdown";
 
 interface TopNavBarProps {
   onToggleSidebar?: () => void;
@@ -13,8 +15,10 @@ export default function TopNavBar({
   title,
   badge = "Unit Humas",
 }: TopNavBarProps) {
+  const { isDarkMode, toggleTheme } = useTheme();
+
   return (
-    <header className="fixed top-0 right-0 left-0 lg:left-64 h-16 px-4 lg:px-8 flex items-center justify-between z-30 bg-surface-container-lowest border-b border-outline-variant shadow-sm">
+    <header className="fixed top-0 right-0 left-0 lg:left-64 h-16 px-4 lg:px-8 flex items-center justify-between z-30 bg-surface-container-lowest border-b border-outline-variant shadow-sm transition-colors duration-300">
       <div className="flex items-center gap-3">
         {/* Mobile Hamburger Button */}
         <button
@@ -51,16 +55,22 @@ export default function TopNavBar({
         )}
       </div>
 
-      {/* Right Actions: Notifications & User Profile */}
-      <div className="flex items-center gap-3 lg:gap-4">
-        {/* Notification Button with Indicator Dot */}
+      {/* Right Actions: Theme Toggle, Notifications & User Profile */}
+      <div className="flex items-center gap-2 sm:gap-3 lg:gap-4">
+        {/* Dark/Light Mode Toggle Button */}
         <button
-          className="relative p-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors duration-150"
-          title="Notifikasi"
+          onClick={toggleTheme}
+          className="p-2 rounded-lg text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors duration-150 flex items-center justify-center cursor-pointer"
+          title={isDarkMode ? "Ganti ke Mode Terang" : "Ganti ke Mode Gelap"}
+          aria-label="Toggle Dark Mode"
         >
-          <span className="material-symbols-outlined text-[24px]">notifications</span>
-          <span className="absolute top-2 right-2 w-2 h-2 bg-secondary rounded-full ring-2 ring-surface-container-lowest"></span>
+          <span className="material-symbols-outlined text-[22px]">
+            {isDarkMode ? "light_mode" : "dark_mode"}
+          </span>
         </button>
+
+        {/* Notification Dropdown with Popover */}
+        <NotificationDropdown />
 
         {/* Divider */}
         <div className="h-6 w-px bg-outline-variant"></div>
