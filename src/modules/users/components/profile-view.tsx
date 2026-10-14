@@ -273,9 +273,6 @@ export default function ProfileView() {
                     <h3 className="text-lg font-bold text-on-surface">
                       Formulir Identitas &amp; Kepegawaian
                     </h3>
-                    <p className="text-xs sm:text-sm text-outline mt-0.5">
-                      Silakan isi dan lengkapi data kepegawaian Anda. Data ini dapat disesuaikan sewaktu-waktu.
-                    </p>
                   </div>
 
                   <form onSubmit={handleSaveProfile} className="space-y-5">
