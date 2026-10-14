@@ -103,9 +103,6 @@ export default function ProfileView() {
                     85% Terisi
                   </span>
                 </div>
-                <p className="text-xs sm:text-sm text-on-surface-variant mt-1">
-                  Data yang Anda lengkapi akan tampil pada kartu laporan harian dan mempermudah komunikasi tim.
-                </p>
               </div>
 
               <div className="shrink-0 text-left md:text-right">
@@ -303,7 +300,7 @@ export default function ProfileView() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                       <div className="space-y-1.5">
                         <label className="text-xs sm:text-sm font-semibold text-on-surface flex items-center justify-between">
-                          <span>Nama Lengkap &amp; Gelar</span>
+                          <span>Nama Lengkap</span>
                           <span className="text-[11px] text-secondary font-medium">Wajib</span>
                         </label>
                         <input
@@ -318,7 +315,7 @@ export default function ProfileView() {
 
                       <div className="space-y-1.5">
                         <label className="text-xs sm:text-sm font-semibold text-on-surface flex items-center justify-between">
-                          <span>Email Resmi Lembaga</span>
+                          <span>Email</span>
                           <span className="text-[11px] text-outline font-normal">Sesuai Akun Login</span>
                         </label>
                         <div className="relative flex items-center">
@@ -335,11 +332,11 @@ export default function ProfileView() {
                       </div>
                     </div>
 
-                    {/* Row 2: Bidang / Divisi Penugasan */}
+                    {/* Row 2: Bidang */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                       <div className="space-y-1.5">
                         <label className="text-xs sm:text-sm font-semibold text-on-surface flex items-center justify-between">
-                          <span>Bidang / Divisi Penugasan</span>
+                          <span>Bidang</span>
                           <span className="text-[11px] text-secondary font-medium">Wajib</span>
                         </label>
                         <div className="relative">

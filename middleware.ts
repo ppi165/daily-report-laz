@@ -4,30 +4,42 @@ import { verifyJWT } from './src/shared/utils/jwt';
 
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
-  const isProtectedRoute = path.startsWith('/dashboard') || 
-                           path.startsWith('/daily-report') || 
-                           path.startsWith('/rekap-report') || 
-                           path.startsWith('/profil');
+  const token = request.cookies.get('token')?.value;
+  const verifiedToken = token ? await verifyJWT(token) : null;
+
+  // 1. Rute yang memerlukan autentikasi login (Protected Routes)
+  const isProtectedRoute =
+    path.startsWith('/dashboard') ||
+    path.startsWith('/daily-report') ||
+    path.startsWith('/rekap-report') ||
+    path.startsWith('/reports') ||
+    path.startsWith('/profil');
 
   if (isProtectedRoute) {
-    const token = request.cookies.get('token')?.value;
-
-    if (!token) {
-      return NextResponse.redirect(new URL('/login', request.url));
-    }
-
-    const verifiedToken = await verifyJWT(token);
-    
-    if (!verifiedToken) {
+    if (!token || !verifiedToken) {
       const response = NextResponse.redirect(new URL('/login', request.url));
-      response.cookies.delete('token');
+      if (token && !verifiedToken) {
+        response.cookies.delete('token');
+      }
       return response;
     }
+  }
+
+  // 2. Jika amil sudah terautentikasi dan mengakses halaman login, alihkan langsung ke dashboard
+  if (path === '/login' && verifiedToken) {
+    return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/daily-report/:path*', '/rekap-report/:path*', '/profil/:path*'],
+  matcher: [
+    '/dashboard/:path*',
+    '/daily-report/:path*',
+    '/rekap-report/:path*',
+    '/reports/:path*',
+    '/profil/:path*',
+    '/login',
+  ],
 };

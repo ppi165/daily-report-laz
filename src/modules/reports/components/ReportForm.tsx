@@ -184,24 +184,12 @@ export default function ReportForm() {
 
               {/* Row 2: Bidang (Dropdown Dinamis & Tombol Tambah Bidang +) */}
               <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <label
-                    className="text-sm font-semibold text-on-surface flex items-center gap-1.5"
-                    htmlFor="bidang-select"
-                  >
-                    <span>Bidang / Divisi</span>
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => setIsManageDivisionOpen(true)}
-                    className="text-xs text-secondary hover:text-primary font-semibold flex items-center gap-1 transition-colors cursor-pointer hover:underline"
-                  >
-                    <span className="material-symbols-outlined text-[16px]">
-                      add_circle
-                    </span>
-                    <span>Tambah Bidang +</span>
-                  </button>
-                </div>
+                <label
+                  className="text-sm font-semibold text-on-surface flex items-center gap-1.5"
+                  htmlFor="bidang-select"
+                >
+                  <span>Bidang</span>
+                </label>
                 <div className="flex gap-2">
                   <div className="relative flex-1">
                     <select
@@ -238,12 +226,12 @@ export default function ReportForm() {
                     type="button"
                     onClick={() => setIsManageDivisionOpen(true)}
                     className="h-[42px] px-3.5 rounded-lg border border-secondary/80 bg-secondary/5 hover:bg-secondary/15 text-secondary text-xs sm:text-sm font-semibold flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer"
-                    title="Tambah atau kelola daftar bidang/divisi"
+                    title="Tambah atau kelola daftar bidang"
                   >
                     <span className="material-symbols-outlined text-[18px]">
                       add
                     </span>
-                    <span className="hidden sm:inline">Tambah Bidang +</span>
+                    <span>Tambah Bidang</span>
                   </button>
                 </div>
               </div>
@@ -437,14 +425,6 @@ export default function ReportForm() {
               </button>
             </div>
           )}
-
-          {/* Footer Context Note */}
-          <div className="text-center pb-8 pt-2">
-            <p className="text-xs text-outline">
-              © 2026 Lembaga Amil Zakat Persatuan Islam (LAZ Persis) • Divisi
-              Humas &amp; Transformasi Digital
-            </p>
-          </div>
         </div>
       </main>
 

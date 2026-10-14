@@ -48,9 +48,6 @@ export default function TeamFeed() {
             <h2 className="text-lg font-semibold text-on-surface">
               Feed Laporan Rekan Hari Ini
             </h2>
-            <p className="text-xs text-on-surface-variant mt-0.5">
-              Sinergi lintas bidang LAZ Persis
-            </p>
           </div>
           <span className="material-symbols-outlined text-on-surface-variant text-[20px]">
             dynamic_feed

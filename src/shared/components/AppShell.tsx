@@ -35,7 +35,14 @@ export default function AppShell({
         />
 
         {/* Content Area */}
-        <div className="flex-1 mt-16">{children}</div>
+        <div className="flex-1 mt-16 flex flex-col justify-between">
+          <div className="flex-1">{children}</div>
+          <footer className="border-t border-outline-variant/40 py-5 text-center px-4 mt-auto">
+            <p className="text-xs text-outline font-medium tracking-wide">
+              &copy; 2026 Daily Report LAZ Persis
+            </p>
+          </footer>
+        </div>
       </div>
     </div>
   );

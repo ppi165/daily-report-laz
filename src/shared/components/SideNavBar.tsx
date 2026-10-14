@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 interface SideNavBarProps {
   isOpen?: boolean;
@@ -10,19 +10,6 @@ interface SideNavBarProps {
 
 export default function SideNavBar({ isOpen = false, onClose }: SideNavBarProps) {
   const pathname = usePathname();
-  const router = useRouter();
-
-  const handleLogout = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    try {
-      await fetch('/api/v1/auth/logout', { method: 'POST' });
-    } catch (error) {
-      console.error('Logout error:', error);
-    } finally {
-      router.push('/login');
-      router.refresh();
-    }
-  };
 
   const navItems = [
     {
@@ -133,15 +120,12 @@ export default function SideNavBar({ isOpen = false, onClose }: SideNavBarProps)
           </nav>
         </div>
 
-        {/* Footer Action: Logout */}
-        <div className="pt-4 border-t border-outline-variant px-1">
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-on-surface-variant font-normal hover:bg-surface-container-high hover:text-error transition-colors duration-150 text-sm"
-          >
-            <span className="material-symbols-outlined text-[22px]">logout</span>
-            <span>Logout</span>
-          </button>
+        {/* Footer Info */}
+        <div className="pt-4 border-t border-outline-variant px-2">
+          <div className="flex items-center justify-between text-xs text-outline">
+            <span className="font-medium">LAZ Persis Daily</span>
+            <span className="px-1.5 py-0.5 rounded text-[10px] bg-surface-container font-mono">v1.0</span>
+          </div>
         </div>
       </aside>
     </>

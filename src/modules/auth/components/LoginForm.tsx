@@ -220,7 +220,7 @@ export default function LoginForm() {
 
         <footer className="mt-6 text-center px-4">
           <p className="text-xs text-outline leading-relaxed">
-            &copy; 2026 Lembaga Amil Zakat Persis (LAZ Persis)
+            &copy; 2026 Daily Report LAZ Persis
           </p>
         </footer>
       </main>

@@ -9,9 +9,6 @@ export default function RecentActivityCard() {
             <h2 className="text-lg font-semibold text-on-surface">
               Aktivitas Terbaru Anda
             </h2>
-            <p className="text-xs text-on-surface-variant mt-0.5">
-              Daftar laporan harian terakhir yang Anda kirimkan
-            </p>
           </div>
           <Link
             className="text-sm text-primary-container font-semibold hover:text-secondary flex items-center gap-1 transition-colors"

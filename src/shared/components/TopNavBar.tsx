@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useTheme } from "@/src/shared/context/ThemeContext";
 import NotificationDropdown from "./NotificationDropdown";
+import ProfileDropdown from "./ProfileDropdown";
 
 interface TopNavBarProps {
   onToggleSidebar?: () => void;
@@ -55,7 +55,7 @@ export default function TopNavBar({
         )}
       </div>
 
-      {/* Right Actions: Theme Toggle, Notifications & User Profile */}
+      {/* Right Actions: Theme Toggle, Notifications & User Profile Dropdown */}
       <div className="flex items-center gap-2 sm:gap-3 lg:gap-4">
         {/* Dark/Light Mode Toggle Button */}
         <button
@@ -75,30 +75,8 @@ export default function TopNavBar({
         {/* Divider */}
         <div className="h-6 w-px bg-outline-variant"></div>
 
-        {/* User Profile Cluster */}
-        <Link
-          href="/profil"
-          className="flex items-center gap-2.5 sm:gap-3 p-1 rounded-xl hover:bg-surface-container transition-colors group cursor-pointer"
-          title="Buka Profil Saya"
-        >
-          <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden border border-outline-variant bg-surface-container-high flex-shrink-0 group-hover:border-secondary transition-colors">
-            <img
-              className="w-full h-full object-cover"
-              alt="Ahmad Fauzi"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuCn247TIAs7R8-zDWHwoeN8RTOBPLUZpEDYAKTXE-Vu4gq5tXxYXQdTxuFBAPBag-pPXnjHgYLrwi82oUcux15TpBfGvZnnJHe1AImvH-i7JV2V8bttE4ljzZkgMjCE7UsAHz6ZfMVkE_E_DmOTmVKJtuXCppT5JglnvHtsGbNUmo0yWjE2uAgnFr5IsUYr43PyO_W0bAyRNy_4HhYAOd9DnIvss6qdA8lW2yjcyrrh7v8M9HksxdURgA"
-            />
-          </div>
-          <div className="hidden sm:flex flex-col text-left">
-            <span className="text-sm font-semibold text-on-surface leading-tight group-hover:text-primary transition-colors">
-              Ahmad Fauzi
-            </span>
-            <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[11px] font-semibold bg-primary-container/10 text-primary-container">
-                Humas
-              </span>
-            </div>
-          </div>
-        </Link>
+        {/* User Profile Dropdown */}
+        <ProfileDropdown />
       </div>
     </header>
   );

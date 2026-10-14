@@ -1,6 +1,6 @@
 import { SignJWT, jwtVerify } from 'jose';
 
-const secretKey = process.env.JWT_SECRET;
+const secretKey = process.env.JWT_SECRET || 'laz-persis-default-secret-key-2026-safe-fallback';
 const key = new TextEncoder().encode(secretKey);
 
 export async function signJWT(payload: any, expiresIn: string = '1d') {
