@@ -8,939 +8,741 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 <!-- END:nextjs-agent-rules -->
 
-# AGENT RULES — MODULAR MONOLITH
+# Next.js 15 Architecture Rules
 
-## 1. CORE PRINCIPLE
+## Architecture Philosophy
 
-Project ini menggunakan arsitektur **Modular Monolith**.
+This project follows:
 
-Semua fitur berjalan dalam **satu aplikasi/deployment**, tetapi kode dibagi menjadi modul-modul berdasarkan domain atau business capability.
+- Feature Driven Architecture
+- Use Case Driven Business Logic
+- App Router First
+- Server Components First
+- Clean Architecture Principles
+- 1 File = 1 Responsibility
 
-Agent WAJIB:
+Goals:
 
-* Menjaga modularitas kode.
-* Memisahkan setiap domain/fitur secara jelas.
-* Menghindari ketergantungan antar modul yang tidak diperlukan.
-* Menghindari struktur kode yang terlalu terpusat.
-* Menghindari pembuatan microservices kecuali diminta secara eksplisit.
-* Mengutamakan maintainability, readability, scalability, dan separation of concerns.
+- scalable
+- maintainable
+- testable
+- predictable
+- AI-friendly
 
-Jangan mengubah arsitektur menjadi microservices tanpa instruksi eksplisit dari user.
-
----
-
-# 2. DEVELOPMENT PRINCIPLES
-
-Agent harus mengikuti prinsip:
-
-* Separation of Concerns
-* Single Responsibility Principle
-* Don't Repeat Yourself (DRY)
-* Keep It Simple (KISS)
-* Explicit over implicit
-* Reusable components
-* Low coupling
-* High cohesion
-* Consistent naming
-* Clean and readable code
-
-Prioritaskan solusi sederhana yang sesuai kebutuhan project.
-
-Jangan membuat abstraction berlebihan hanya untuk terlihat "clean".
+Architecture consistency is mandatory.
 
 ---
 
-# 3. PROJECT STRUCTURE
+# Core Principles
 
-Gunakan struktur modular seperti berikut:
+## 1 File = 1 Responsibility
 
-```text
+Every file should have a single purpose.
+
+Examples:
+
+- One use-case per file
+- One repository per file
+- One action per file
+- One schema per file
+- One component per file
+
+Avoid multi-purpose files.
+
+Bad:
+
+```ts
+user.service.ts
+```
+
+Contains:
+
+- create user
+- update user
+- delete user
+- login
+- register
+- forgot password
+
+Good:
+
+```ts
+create-user.use-case.ts
+update-user.use-case.ts
+delete-user.use-case.ts
+login.use-case.ts
+```
+
+---
+
+# Project Structure
+
+```txt
 src/
+├── app/
 ├── modules/
-│   ├── auth/
-│   │   ├── controllers/
-│   │   ├── services/
-│   │   ├── repositories/
-│   │   ├── models/
-│   │   ├── validators/
-│   │   ├── routes/
-│   │   └── index.*
-│   │
-│   ├── users/
-│   │   ├── controllers/
-│   │   ├── services/
-│   │   ├── repositories/
-│   │   ├── models/
-│   │   ├── validators/
-│   │   ├── routes/
-│   │   └── index.*
-│   │
-│   ├── reports/
-│   │   ├── controllers/
-│   │   ├── services/
-│   │   ├── repositories/
-│   │   ├── models/
-│   │   ├── validators/
-│   │   ├── routes/
-│   │   └── index.*
-│   │
-│   └── ...
-│
-├── shared/
-│   ├── database/
-│   ├── middleware/
-│   ├── utils/
-│   ├── constants/
-│   ├── types/
-│   └── config/
-│
-└── app.*
+├── common/
+├── infrastructure/
+└── types/
 ```
-
-Sesuaikan ekstensi file dan struktur dengan framework yang digunakan.
-
-Jangan membuat struktur folder baru tanpa alasan yang jelas.
 
 ---
 
-# 4. MODULE BOUNDARY
+# App Router Rules
 
-Setiap module harus merepresentasikan satu domain atau business capability.
+Everything inside:
 
-Contoh:
-
-```text
-auth
-users
-reports
-employees
-departments
-notifications
-exports
+```txt
+src/app/
 ```
 
-Setiap module harus memiliki tanggung jawab yang jelas.
+is responsible only for:
 
-Contoh:
+- routing
+- layouts
+- page composition
+- route handlers
 
-```text
-reports
-→ membuat laporan
-→ mengubah laporan
-→ melihat laporan
-→ menghapus laporan
-→ mengambil rekap laporan
+Examples:
+
+```txt
+app/
+├── dashboard/
+│   └── page.tsx
+├── users/
+│   ├── page.tsx
+│   └── [id]/
+│       └── page.tsx
+└── api/
 ```
 
-Jangan memasukkan logic laporan ke dalam module users hanya karena user membuat laporan.
+Business logic must never live here.
 
 ---
 
-# 5. MODULE INTERNAL STRUCTURE
+# Feature Driven Structure
 
-Setiap module sebaiknya mengikuti pola:
+Every business domain belongs inside:
 
-```text
-module/
-├── controllers/
-├── services/
+```txt
+src/modules/
+```
+
+Example:
+
+```txt
+src/modules/
+├── auth/
+├── users/
+├── products/
+├── orders/
+└── payments/
+```
+
+Never organize by technical layer globally.
+
+Avoid:
+
+```txt
+src/actions/
+src/services/
+src/repositories/
+src/hooks/
+```
+
+Always organize by feature.
+
+---
+
+# Standard Feature Structure
+
+Every feature should follow:
+
+```txt
+feature/
+├── actions/
+├── use-cases/
 ├── repositories/
-├── models/
-├── validators/
-├── routes/
-└── index.*
+├── services/
+├── schemas/
+├── components/
+├── hooks/
+├── types/
+├── constants/
+└── index.ts
 ```
 
-Tanggung jawab:
+Example:
 
-### Controller
+```txt
+users/
+├── actions/
+├── use-cases/
+├── repositories/
+├── services/
+├── schemas/
+├── components/
+├── hooks/
+└── types/
+```
 
-Controller bertanggung jawab terhadap:
+---
 
-* menerima request
-* validasi input dasar
-* memanggil service
-* mengembalikan response
+# Server Component First
 
-Controller TIDAK boleh berisi business logic yang kompleks.
+Default to:
 
-Contoh:
+```tsx
+export default async function Page() {}
+```
 
-```text
-Request
-   ↓
-Controller
-   ↓
-Service
-   ↓
+Use Server Components whenever possible.
+
+Advantages:
+
+- better performance
+- reduced bundle size
+- better SEO
+- less client JavaScript
+
+---
+
+# Client Component Rules
+
+Use:
+
+```tsx
+"use client";
+```
+
+only when required.
+
+Examples:
+
+- useState
+- useEffect
+- useReducer
+- DOM access
+- event handlers
+
+Avoid turning entire pages into Client Components.
+
+---
+
+# Page Rules
+
+Pages are composition layers.
+
+Pages may:
+
+- render UI
+- load data
+- call actions
+- handle route params
+- handle search params
+
+Pages must NOT:
+
+- contain business logic
+- contain validation logic
+- contain database queries
+- contain external service logic
+
+Keep pages thin.
+
+Target:
+
+```txt
+< 150 lines
+```
+
+---
+
+# Component Rules
+
+Components are presentation layers.
+
+Components may:
+
+- render UI
+- manage local UI state
+- receive props
+
+Components must NOT:
+
+- access Prisma
+- contain business rules
+- perform database operations
+
+Prefer:
+
+```txt
+user-card.tsx
+user-form.tsx
+user-table.tsx
+```
+
+Avoid giant components.
+
+---
+
+# Server Action Rules
+
+Server Actions are orchestration layers.
+
+Responsibilities:
+
+- receive input
+- validate input
+- execute use-case
+- return result
+
+Example:
+
+```ts
+"use server";
+
+export async function createUserAction(
+  input: CreateUserInput
+) {
+  return createUserUseCase.execute(input);
+}
+```
+
+Server Actions must NOT:
+
+- access Prisma directly
+- contain business logic
+- become massive files
+
+---
+
+# Route Handler Rules
+
+Route Handlers should:
+
+- parse request
+- validate request
+- execute use-case
+- return response
+
+Example:
+
+```txt
+app/api/users/route.ts
+```
+
+Route Handlers must NOT:
+
+- contain business logic
+- access Prisma directly
+
+---
+
+# Business Logic Rules
+
+Business logic belongs only inside:
+
+```txt
+use-cases/
+```
+
+Examples:
+
+```txt
+create-user.use-case.ts
+update-user.use-case.ts
+delete-user.use-case.ts
+```
+
+Use-cases should:
+
+- expose execute()
+- have one responsibility
+- be framework independent
+
+Example:
+
+```ts
+export class CreateUserUseCase {
+  async execute(input: CreateUserInput) {}
+}
+```
+
+---
+
+# Validation Rules
+
+Validation uses:
+
+```txt
+Zod
+```
+
+One schema per use-case.
+
+Examples:
+
+```txt
+create-user.schema.ts
+update-user.schema.ts
+login.schema.ts
+```
+
+Schemas are the source of truth.
+
+Example:
+
+```ts
+export const CreateUserSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+});
+```
+
+---
+
+# Repository Rules
+
+Repositories handle:
+
+- Prisma
+- SQL
+- database access
+- persistence
+
+Repositories must NOT:
+
+- contain business logic
+- contain UI logic
+- contain validation logic
+
+Example:
+
+```ts
+export class UserRepository {
+  async findByEmail(email: string) {}
+}
+```
+
+---
+
+# Prisma Rules
+
+Prisma access is restricted.
+
+Allowed:
+
+```txt
+repositories/
+```
+
+Forbidden:
+
+```txt
+page.tsx
+component.tsx
+action.ts
+route.ts
+hook.ts
+```
+
+Never call:
+
+```ts
+prisma.user.findMany()
+```
+
+outside repositories.
+
+---
+
+# Service Rules
+
+Services handle reusable integrations.
+
+Examples:
+
+```txt
+mail.service.ts
+storage.service.ts
+cache.service.ts
+payment.service.ts
+auth.service.ts
+```
+
+Services should:
+
+- remain focused
+- be reusable
+- avoid domain business logic
+
+Avoid God Services.
+
+Bad:
+
+```txt
+app.service.ts
+system.service.ts
+```
+
+---
+
+# Hook Rules
+
+Hooks handle reusable client logic.
+
+Examples:
+
+```txt
+use-auth.ts
+use-pagination.ts
+use-debounce.ts
+```
+
+Hooks must NOT:
+
+- contain business logic
+- access database
+- access Prisma
+
+---
+
+# Shared Code Rules
+
+Shared code belongs inside:
+
+```txt
+src/common/
+```
+
+Example:
+
+```txt
+common/
+├── components/
+├── hooks/
+├── utils/
+├── constants/
+├── validators/
+└── lib/
+```
+
+Only reusable code belongs here.
+
+Never place feature-specific logic in common.
+
+---
+
+# Infrastructure Rules
+
+External systems belong inside:
+
+```txt
+src/infrastructure/
+```
+
+Examples:
+
+```txt
+infrastructure/
+├── prisma/
+├── redis/
+├── cache/
+├── storage/
+├── queue/
+└── payments/
+```
+
+Infrastructure should never contain business rules.
+
+---
+
+# Dependency Flow
+
+Allowed:
+
+```txt
+Page
+↓
+Action
+↓
+Use Case
+↓
 Repository
-   ↓
+↓
+Prisma
+↓
 Database
 ```
 
----
+Alternative:
 
-### Service
-
-Service adalah tempat utama untuk business logic.
-
-Service bertanggung jawab terhadap:
-
-* business rules
-* proses data
-* validasi bisnis
-* koordinasi repository
-* koordinasi module lain jika diperlukan
-
-Jangan meletakkan business logic kompleks di controller.
-
----
-
-### Repository
-
-Repository bertanggung jawab terhadap akses database.
-
-Repository:
-
-* query database
-* insert
-* update
-* delete
-* find
-* transaction jika diperlukan
-
-Business logic tidak boleh diletakkan di repository.
-
----
-
-### Model
-
-Model bertanggung jawab terhadap representasi data dan database schema sesuai teknologi yang digunakan.
-
----
-
-### Validator
-
-Validator bertanggung jawab terhadap validasi input.
-
-Contoh:
-
-```text
-required
-email
-string
-number
-maximum length
-file type
-file size
+```txt
+Route Handler
+↓
+Use Case
+↓
+Repository
+↓
+Database
 ```
 
-Validasi bisnis yang kompleks tetap berada di Service.
+Forbidden:
+
+```txt
+Component → Prisma
+Page → Prisma
+Action → Prisma
+Repository → Component
+```
+
+Avoid circular dependencies.
 
 ---
 
-### Routes
+# Naming Convention
 
-Routes hanya bertanggung jawab terhadap pemetaan endpoint ke controller.
+Use:
 
-Contoh:
+```txt
+kebab-case
+```
 
-```text
-POST   /reports
-GET    /reports
-GET    /reports/:id
-PUT    /reports/:id
-DELETE /reports/:id
+Examples:
+
+```txt
+create-user.use-case.ts
+create-user.schema.ts
+create-user.action.ts
+user.repository.ts
+user-card.tsx
+```
+
+Avoid:
+
+```txt
+CreateUser.ts
+UserService.ts
+userStuff.ts
+LOGIN.ts
 ```
 
 ---
 
-# 6. DEPENDENCY RULE
+# File Size Limits
 
-Dependency antar module harus dikontrol.
+Recommended maximum:
 
-Contoh yang diperbolehkan:
-
-```text
-Reports
-   ↓
-Users
+```txt
+Page        ≤ 150 lines
+Component   ≤ 200 lines
+Action      ≤ 100 lines
+Use Case    ≤ 150 lines
+Repository  ≤ 150 lines
+Hook        ≤ 100 lines
 ```
 
-Jika Reports membutuhkan data user, Reports boleh menggunakan public interface/service dari Users.
-
-Hindari:
-
-```text
-Reports
-   ↓
-Users Repository
-   ↓
-Users Database
-```
-
-Module tidak boleh mengakses internal implementation module lain secara langsung.
-
-Gunakan public service/interface.
+Split files when limits are exceeded.
 
 ---
 
-# 7. SHARED LAYER
+# Clean Code Rules
 
-Folder `shared` hanya digunakan untuk sesuatu yang benar-benar bersifat umum.
+Always:
 
-Contoh:
+- prefer composition over inheritance
+- use explicit naming
+- keep functions small
+- avoid magic values
+- separate concerns aggressively
+- write self-documenting code
 
-```text
-shared/
-├── database
-├── middleware
-├── utils
-├── constants
-├── config
-└── types
-```
+Avoid:
 
-Jangan memasukkan business logic khusus module ke dalam `shared`.
-
-Jika sebuah function hanya digunakan oleh module Reports, letakkan di:
-
-```text
-modules/reports/
-```
-
-bukan:
-
-```text
-shared/utils/
+```txt
+- giant files
+- nested logic hell
+- duplicated business logic
+- dumping everything into utils
 ```
 
 ---
 
-# 8. DATABASE RULES
+# Forbidden Rules
 
-Gunakan satu database untuk aplikasi Modular Monolith.
+Never:
 
-Setiap module bertanggung jawab terhadap data/domain masing-masing.
-
-Contoh:
-
-```text
-users
-employees
-reports
-departments
-notifications
-```
-
-Jangan membuat database terpisah untuk setiap module kecuali user meminta secara eksplisit.
-
-Gunakan transaction ketika satu operasi memengaruhi beberapa data yang harus konsisten.
+- query Prisma inside pages
+- query Prisma inside components
+- query Prisma inside actions
+- place business logic inside actions
+- place business logic inside route handlers
+- create generic utility dumping grounds
+- create massive service files
+- duplicate business logic
 
 ---
 
-# 9. API RULES
+# AI Agent Workflow
 
-API harus mengikuti struktur yang konsisten.
+Before generating code:
 
-Gunakan:
+1. Identify feature
+2. Identify use-case
+3. Create schema
+4. Create repository
+5. Create use-case
+6. Create action
+7. Create components
+8. Connect page
+9. Connect route
+10. Test flow
 
-```text
-/api/v1/...
-```
-
-Contoh:
-
-```text
-/api/v1/auth
-/api/v1/users
-/api/v1/reports
-/api/v1/departments
-```
-
-Gunakan HTTP method secara tepat:
-
-```text
-GET     → mengambil data
-POST    → membuat data
-PUT     → mengganti/update data
-PATCH   → update sebagian
-DELETE  → menghapus data
-```
-
-Response API harus konsisten.
-
-Contoh:
-
-```json
-{
-  "success": true,
-  "message": "Report created successfully",
-  "data": {}
-}
-```
-
-Error:
-
-```json
-{
-  "success": false,
-  "message": "Validation failed",
-  "errors": {}
-}
-```
+Never skip layers.
 
 ---
 
-# 10. AUTHENTICATION & AUTHORIZATION
+# AI Assistant Requirements
 
-Authentication dan authorization harus dipisahkan.
+When generating new features:
 
-Authentication:
+- create feature structure automatically
+- create schema before use-case
+- create repository before action
+- separate UI from business logic
+- follow dependency flow strictly
+- reuse existing code whenever possible
+- setiap membuat plan (rencana implementasi) wajib menggunakan Bahasa Indonesia
 
-```text
-Siapa user tersebut?
-```
-
-Authorization:
-
-```text
-Apa yang boleh dilakukan user tersebut?
-```
-
-Jangan mengandalkan frontend untuk security.
-
-Semua permission penting harus divalidasi di backend.
-
-Contoh:
-
-```text
-Admin
-→ melihat semua laporan
-
-Employee
-→ membuat laporan
-→ melihat laporan sendiri
-```
-
-Backend tetap harus melakukan pengecekan permission.
+Do not sacrifice architecture for shorter code.
 
 ---
 
-# 11. FRONTEND RULES
+# Golden Rule
 
-Frontend juga harus menggunakan struktur modular.
-
-Contoh:
-
-```text
-src/
-├── modules/
-│   ├── auth/
-│   ├── reports/
-│   ├── users/
-│   └── departments/
-│
-├── components/
-├── layouts/
-├── pages/
-├── hooks/
-├── services/
-├── utils/
-└── config/
-```
-
-Komponen yang hanya digunakan oleh satu module harus berada di module tersebut.
-
-Contoh:
-
-```text
-modules/reports/components/ReportForm
-```
-
-bukan:
-
-```text
-components/ReportForm
-```
-
-Jika hanya digunakan oleh Reports.
+If a file cannot be explained in one sentence, it probably has more than one responsibility and should be split.
 
 ---
 
-# 12. UI COMPONENT RULE
+# Database Sync Rule
 
-Gunakan reusable components untuk elemen yang benar-benar digunakan berulang.
-
-Contoh:
-
-```text
-Button
-Modal
-Input
-Select
-Table
-Card
-Dialog
-Toast
-```
-
-Jangan membuat komponen global untuk sesuatu yang hanya digunakan satu kali.
-
-Pertahankan konsistensi:
-
-* typography
-* spacing
-* border radius
-* button style
-* form style
-* table style
-* responsive behavior
-
-Jangan mengubah desain UI yang sudah ada kecuali user meminta perubahan.
+When adding or modifying data fields in the frontend (mock-db, local storage, components), you MUST:
+1. Update `prisma/schema.prisma` with the new fields.
+2. Run `npx prisma db push` to push the changes to Supabase.
+3. Update the synchronization API (`src/app/api/db-sync/route.ts`) to ensure the new fields are included in the `create` and `update` queries.
+Never leave database modifications hanging only in local storage!
 
 ---
 
-# 13. FILE UPLOAD RULE
+# Interaction Rule
 
-Jika aplikasi menggunakan upload file:
-
-Backend wajib memvalidasi:
-
-```text
-file type
-file size
-file name
-storage location
-access permission
-```
-
-Jangan mempercayai validasi frontend.
-
-Frontend hanya membantu user.
-
-Backend tetap menjadi sumber validasi utama.
+If the user explicitly types **"jawab dlu"** or **"jangan dlu eksekusi"** (or similar phrases), you MUST NOT write or edit any code, run terminal commands that modify state, or execute any changes. You must ONLY answer the question or provide an analysis/plan. You must wait until the user explicitly says **"gas"**, **"eksekusi"**, or gives the green light before you proceed to execute the proposed changes.
 
 ---
 
-# 14. ERROR HANDLING
-
-Jangan menggunakan error handling yang tidak konsisten.
-
-Gunakan centralized error handling apabila framework mendukung.
-
-Error harus:
-
-* informatif
-* aman
-* tidak membocorkan informasi sensitif
-* mudah ditelusuri saat debugging
-
-Jangan menampilkan:
-
-```text
-database password
-API key
-secret
-stack trace production
-```
-
-kepada user.
-
----
-
-# 15. ENVIRONMENT VARIABLES
-
-Semua konfigurasi sensitif harus menggunakan environment variables.
-
-Contoh:
-
-```text
-DATABASE_URL
-DB_HOST
-DB_USER
-DB_PASSWORD
-JWT_SECRET
-APP_URL
-STORAGE_PATH
-```
-
-Jangan hardcode:
-
-```text
-password
-secret key
-API key
-database credential
-```
-
-di source code.
-
----
-
-# 16. SECURITY
-
-Agent wajib memperhatikan:
-
-* authentication
-* authorization
-* input validation
-* SQL injection
-* XSS
-* CSRF jika relevan
-* file upload security
-* password hashing
-* secret management
-* rate limiting jika diperlukan
-* secure HTTP headers
-
-Jangan menyimpan password dalam plaintext.
-
----
-
-# 17. CHANGE MANAGEMENT
-
-Sebelum melakukan perubahan besar:
-
-1. Periksa struktur project.
-2. Identifikasi module yang terdampak.
-3. Identifikasi dependency.
-4. Periksa file yang sudah ada.
-5. Gunakan kembali code yang tersedia jika sesuai.
-6. Hindari membuat duplicate implementation.
-
-Jangan langsung membuat file baru sebelum memastikan fitur tersebut belum tersedia.
-
----
-
-# 18. MODIFY, DON'T REWRITE
-
-Jika fitur sudah tersedia:
-
-```text
-MODIFY
-```
-
-bukan:
-
-```text
-REWRITE EVERYTHING
-```
-
-Jangan menghapus atau mengganti arsitektur existing hanya karena memiliki pendekatan yang berbeda.
-
-Jika perubahan besar memang diperlukan:
-
-* jelaskan alasan
-* identifikasi impact
-* lakukan perubahan secara bertahap
-
----
-
-# 19. NO UNNECESSARY DEPENDENCIES
-
-Jangan menambahkan library/package baru jika tidak diperlukan.
-
-Sebelum menambahkan dependency:
-
-1. Periksa apakah fitur dapat dibuat menggunakan dependency yang sudah tersedia.
-2. Jika tidak, gunakan dependency yang stabil dan relevan.
-3. Hindari dependency yang hanya digunakan untuk satu fungsi sederhana.
-
----
-
-# 20. TESTING
-
-Setiap business-critical feature harus dapat diuji.
-
-Prioritaskan:
-
-```text
-Unit Test
-Integration Test
-API Test
-```
-
-Minimal test case harus mencakup:
-
-```text
-success case
-validation error
-authentication error
-authorization error
-not found
-server/database error
-```
-
----
-
-# 21. LOGGING
-
-Gunakan logging untuk proses penting.
-
-Contoh:
-
-```text
-login
-logout
-create report
-update report
-delete report
-export data
-permission denied
-system error
-```
-
-Jangan menyimpan data sensitif di log.
-
----
-
-# 22. PERFORMANCE
-
-Prioritaskan performa yang masuk akal tanpa premature optimization.
-
-Perhatikan:
-
-* database query
-* N+1 query
-* pagination
-* unnecessary API request
-* image size
-* caching jika diperlukan
-* lazy loading jika relevan
-
-Jangan melakukan optimasi kompleks tanpa kebutuhan nyata.
-
----
-
-# 23. RESPONSIVE DESIGN
-
-Frontend harus mendukung:
-
-```text
-Desktop
-Tablet
-Mobile
-```
-
-Gunakan responsive layout.
-
-Jangan membuat desain hanya untuk satu ukuran layar kecuali user meminta secara khusus.
-
----
-
-# 24. NAMING CONVENTION
-
-Gunakan nama yang jelas dan konsisten.
-
-Contoh:
-
-```text
-createReport
-updateReport
-deleteReport
-getReportById
-```
-
-Hindari:
-
-```text
-doThing
-processData
-handleStuff
-tempFunction
-```
-
-Nama module harus menggambarkan domain.
-
----
-
-# 25. CODE QUALITY
-
-Sebelum menyelesaikan perubahan, Agent harus memeriksa:
-
-```text
-- syntax error
-- import error
-- unused import
-- duplicate code
-- broken dependency
-- incorrect route
-- incorrect API call
-- database mismatch
-- authentication issue
-- authorization issue
-- responsive issue
-```
-
-Jangan menyatakan pekerjaan selesai jika masih terdapat error yang diketahui.
-
----
-
-# 26. GIT / VERSION CONTROL
-
-Gunakan commit berdasarkan perubahan yang logis.
-
-Contoh:
-
-```text
-feat: add report submission
-fix: fix report validation
-refactor: improve report service
-style: improve dashboard layout
-docs: update API documentation
-```
-
-Hindari commit yang mencampurkan banyak perubahan tidak berkaitan.
-
----
-
-# 27. AGENT WORKFLOW
-
-Setiap kali menerima task, ikuti workflow:
-
-### STEP 1 — Understand
-
-Pahami:
-
-* tujuan task
-* module terkait
-* input
-* output
-* business rule
-* existing implementation
-
-### STEP 2 — Inspect
-
-Periksa:
-
-```text
-project structure
-existing modules
-related files
-database schema
-API
-frontend components
-dependencies
-```
-
-### STEP 3 — Plan
-
-Tentukan:
-
-```text
-module yang terdampak
-file yang perlu dibuat
-file yang perlu diubah
-dependency
-database changes
-API changes
-```
-
-### STEP 4 — Implement
-
-Implementasikan perubahan dengan tetap mengikuti Modular Monolith.
-
-### STEP 5 — Validate
-
-Periksa:
-
-```text
-build
-lint
-test
-API
-database
-UI
-responsive
-authentication
-authorization
-```
-
-### STEP 6 — Review
-
-Pastikan:
-
-```text
-tidak ada duplicate code
-tidak ada dependency yang tidak perlu
-tidak ada business logic di controller
-tidak ada module yang melanggar boundary
-tidak ada secret yang hardcoded
-```
-
-### STEP 7 — Report
-
-Berikan ringkasan:
-
-```text
-Changes made
-Files changed
-Modules affected
-Database changes
-API changes
-Testing performed
-Known issues
-```
-
----
-
-# 28. IMPORTANT AGENT BEHAVIOR
-
-Agent DILARANG:
-
-* membuat microservices tanpa instruksi
-* melakukan rewrite project tanpa alasan
-* menghapus fitur existing tanpa izin
-* mengubah database schema secara sembarangan
-* membuat duplicate component
-* membuat duplicate API
-* memasukkan semua logic ke satu file
-* membuat controller terlalu kompleks
-* mengakses database langsung dari frontend
-* hardcode credentials
-* memasukkan business logic ke shared utilities
-* membuat abstraction berlebihan
-* menambahkan dependency tanpa kebutuhan
-
----
-
-# 29. ARCHITECTURE DECISION PRIORITY
-
-Jika terjadi konflik antara beberapa pendekatan, gunakan prioritas:
-
-```text
-1. Existing project requirement
-2. Business requirement
-3. Module boundary
-4. Security
-5. Maintainability
-6. Simplicity
-7. Performance
-```
-
-Jangan mengorbankan business requirement hanya demi architectural purity.
-
----
-
-# 30. GOLDEN RULE
-
-> "One application, multiple well-defined modules."
-
-Project ini adalah **Modular Monolith**, bukan kumpulan file yang saling bercampur dan bukan microservices.
-
-Setiap module harus:
-
-* memiliki tanggung jawab yang jelas,
-* memiliki internal implementation sendiri,
-* berkomunikasi melalui interface/service yang jelas,
-* memiliki coupling seminimal mungkin,
-* dan tetap dapat berkembang tanpa merusak module lain.
-
-Sebelum menulis kode, **pahami struktur project terlebih dahulu.**
-
-Sebelum membuat file baru, **periksa apakah functionality tersebut sudah tersedia.**
-
-Sebelum mengubah arsitektur, **pastikan perubahan tersebut benar-benar diperlukan.**
-
-**Do not overengineer. Build modular, simple, maintainable software.**
+# UI Global Rule: No Emojis in UI
+
+Never use raw emojis in any UI elements (e.g. ⚡, 🎙️, 👩, 👨, 📦, 📍, 📋, 🎲, ♀, ♂, etc.).
+- Replace emojis with clean modern typography or Google Material Symbols (`<span className="material-symbols-outlined">icon_name</span>`) / SVG icons.
+- UI must remain sleek, minimalist, professional, and dark-glass aesthetic without raw emoji characters.
