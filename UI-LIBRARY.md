@@ -29,6 +29,7 @@ Seluruh komponen tersimpan pada direktori `components/ui/` dan siap diimpor meng
 | 17 | **Sheet** | `components/ui/sheet.tsx` | Drawer samping (off-canvas) untuk navigasi sidebar pada perangkat mobile. |
 | 18 | **Skeleton** | `components/ui/skeleton.tsx` | Placeholder animasi saat data dashboard dan rekap sedang dimuat. |
 | 19 | **Textarea** | `components/ui/textarea.tsx` | Area input teks multi-baris untuk rincian tugas dan hasil capaian pekerjaan. |
+| 20 | **Tabs** | `components/ui/tabs.tsx` | Navigasi tab konten (seperti di halaman profil: Biodata, Kinerja, Keamanan). |
 
 ---
 
