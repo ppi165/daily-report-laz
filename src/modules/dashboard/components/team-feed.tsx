@@ -1,4 +1,8 @@
 import Link from "next/link";
+import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 export default function TeamFeed() {
   const feeds = [
@@ -41,73 +45,77 @@ export default function TeamFeed() {
   ];
 
   return (
-    <section className="lg:col-span-5 bg-surface-container-lowest rounded-2xl border border-outline-variant p-6 shadow-sm flex flex-col justify-between">
-      <div>
-        <div className="flex items-center justify-between pb-4 border-b border-surface-container">
-          <h2 className="text-lg font-semibold text-on-surface">
-            Feed Laporan Rekan Tim
-          </h2>
-          <span className="text-xs text-on-surface-variant font-medium">
-            Hari ini
-          </span>
-        </div>
+    <Card className="lg:col-span-5 bg-surface-container-lowest rounded-2xl border-outline-variant p-6 shadow-sm flex flex-col justify-between">
+      <CardContent className="p-0 flex flex-col justify-between h-full">
+        <div>
+          <div className="flex items-center justify-between pb-4 border-b border-surface-container">
+            <h2 className="text-lg font-semibold text-on-surface">
+              Feed Laporan Rekan Tim
+            </h2>
+            <span className="text-xs text-on-surface-variant font-medium">
+              Hari ini
+            </span>
+          </div>
 
-        <div className="mt-4 space-y-4">
-          {feeds.map((item) => (
-            <div
-              key={item.id}
-              className="p-3.5 rounded-xl border border-outline-variant bg-surface-container-low/40 hover:bg-surface-container-low transition-colors"
-            >
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 rounded-full overflow-hidden shrink-0 border border-outline-variant bg-surface-variant">
-                  <img
-                    alt={item.name}
-                    className="w-full h-full object-cover"
-                    src={item.avatar}
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center justify-between gap-1 mb-1">
-                    <span className="text-sm font-semibold text-on-surface truncate">
-                      {item.name}
-                    </span>
-                    <span className="text-xs text-outline">{item.time}</span>
-                  </div>
-                  <div className="mb-2">
-                    <span
-                      className={`inline-block px-2 py-0.5 rounded text-[11px] font-semibold ${item.divisionColor}`}
-                    >
-                      {item.division}
-                    </span>
-                  </div>
-                  <p className="text-xs sm:text-sm text-on-surface-variant line-clamp-2 leading-relaxed">
-                    {item.text}
-                  </p>
-                  <div className="mt-3 flex items-center gap-3 text-xs text-outline">
-                    <button className="hover:text-primary-container flex items-center gap-1 transition-colors cursor-pointer">
-                      <span className="material-symbols-outlined text-[14px]">
-                        thumb_up
+          <div className="mt-4 space-y-4">
+            {feeds.map((item) => (
+              <div
+                key={item.id}
+                className="p-3.5 rounded-xl border border-outline-variant bg-surface-container-low/40 hover:bg-surface-container-low transition-colors"
+              >
+                <div className="flex items-start gap-3">
+                  <Avatar className="w-10 h-10 border border-outline-variant bg-surface-variant shrink-0">
+                    <AvatarImage src={item.avatar} alt={item.name} />
+                    <AvatarFallback>{item.name.charAt(0)}</AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-1 mb-1">
+                      <span className="text-sm font-semibold text-on-surface truncate">
+                        {item.name}
                       </span>
-                      <span>Apresiasi ({item.appreciation})</span>
-                    </button>
-                    <span>•</span>
-                    <span>{item.attachments}</span>
+                      <span className="text-xs text-outline">{item.time}</span>
+                    </div>
+                    <div className="mb-2">
+                      <Badge
+                        variant="secondary"
+                        className={`text-[11px] font-semibold ${item.divisionColor}`}
+                      >
+                        {item.division}
+                      </Badge>
+                    </div>
+                    <p className="text-xs sm:text-sm text-on-surface-variant line-clamp-2 leading-relaxed">
+                      {item.text}
+                    </p>
+                    <div className="mt-3 flex items-center gap-3 text-xs text-outline">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-auto p-0 hover:bg-transparent hover:text-primary-container flex items-center gap-1 text-xs text-outline transition-colors"
+                      >
+                        <span className="material-symbols-outlined text-[14px]">
+                          thumb_up
+                        </span>
+                        <span>Apresiasi ({item.appreciation})</span>
+                      </Button>
+                      <span>•</span>
+                      <span>{item.attachments}</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
 
-      <div className="pt-4 mt-4 border-t border-surface-container">
-        <Link
-          className="w-full py-2.5 rounded-xl border border-outline-variant text-sm font-medium text-on-surface hover:bg-surface text-center block transition-colors"
-          href="/rekap-report"
-        >
-          Jelajahi Semua Laporan Rekan
-        </Link>
-      </div>
-    </section>
+        <div className="pt-4 mt-4 border-t border-surface-container">
+          <Link
+            className="w-full py-2.5 rounded-xl border border-outline-variant text-sm font-medium text-on-surface hover:bg-surface text-center block transition-colors"
+            href="/rekap-report"
+          >
+            Jelajahi Semua Laporan Rekan
+          </Link>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
