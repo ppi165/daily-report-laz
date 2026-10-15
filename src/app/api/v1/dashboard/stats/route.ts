@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: false, message: 'Token invalid' }, { status: 401 });
     }
 
-    const data = await getDashboardStatsUseCase.execute();
+    const data = await getDashboardStatsUseCase.execute(user.userId as string);
     return NextResponse.json({ success: true, data }, { status: 200 });
   } catch (error) {
     return NextResponse.json(

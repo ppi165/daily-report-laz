@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 
 export default function GreetingBanner() {
   const [userName, setUserName] = useState("Pegawai");
+  const [currentDateFormatted, setCurrentDateFormatted] = useState("");
+  const [currentMonthYear, setCurrentMonthYear] = useState("");
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -18,6 +20,21 @@ export default function GreetingBanner() {
       }
     };
     fetchUser();
+
+    const now = new Date();
+    const dateFormatted = new Intl.DateTimeFormat("id-ID", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }).format(now);
+    setCurrentDateFormatted(dateFormatted);
+
+    const monthYear = new Intl.DateTimeFormat("id-ID", {
+      month: "long",
+      year: "numeric",
+    }).format(now);
+    setCurrentMonthYear(monthYear);
   }, []);
 
   return (
@@ -34,7 +51,7 @@ export default function GreetingBanner() {
           Selamat datang, {userName}!
         </h1>
         <p className="text-sm lg:text-base text-on-surface-variant mt-1.5 max-w-xl leading-relaxed">
-          Berikut ringkasan komitmen dan laporan aktivitas harian Anda bulan September 2026. Pertahankan konsistensi pelaporan untuk transparansi lembaga.
+          Berikut ringkasan komitmen dan laporan aktivitas harian Anda bulan {currentMonthYear || "ini"}. Pertahankan konsistensi pelaporan untuk transparansi lembaga.
         </p>
       </div>
       <div className="pt-4 mt-4 border-t border-surface-container flex flex-wrap items-center justify-between gap-2 text-sm text-on-surface-variant">
@@ -42,7 +59,7 @@ export default function GreetingBanner() {
           <span className="material-symbols-outlined text-[18px] text-primary-container">
             calendar_today
           </span>
-          Senin, 28 September 2026
+          {currentDateFormatted || "Hari ini"}
         </span>
         <span className="flex items-center gap-1.5">
           <span className="material-symbols-outlined text-[18px] text-primary-container">

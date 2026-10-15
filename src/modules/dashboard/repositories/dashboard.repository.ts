@@ -14,6 +14,32 @@ export class DashboardRepository {
   async countTotalUsers() {
     return prisma.user.count();
   }
+
+  async findTodayReportByUserId(userId: string) {
+    const now = new Date();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+    const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+
+    return prisma.report.findFirst({
+      where: {
+        authorId: userId,
+        createdAt: {
+          gte: startOfDay,
+          lte: endOfDay,
+        },
+      },
+      select: {
+        id: true,
+        title: true,
+        createdAt: true,
+        status: true,
+        division: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+  }
 }
 
 export const dashboardRepository = new DashboardRepository();

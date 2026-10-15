@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AppShell from "@/src/common/components/app-shell";
 import ManageDivisionModal from "./manage-division-modal";
 import { createReportAction } from "../actions/create-report.action";
@@ -12,6 +12,8 @@ interface UploadedFile {
 }
 
 export default function ReportForm() {
+  const [userName, setUserName] = useState("Memuat nama...");
+  const [todayFormatted, setTodayFormatted] = useState("");
   const [divisions, setDivisions] = useState<string[]>([
     "Sekretariat",
     "Keuangan",
@@ -25,24 +27,44 @@ export default function ReportForm() {
   ]);
   const [division, setDivision] = useState("Humas");
   const [isManageDivisionOpen, setIsManageDivisionOpen] = useState(false);
-  const [tasks, setTasks] = useState(
-    `1. Menyelesaikan draft infografis laporan bulanan zakat mal periode Agustus 2026.
-2. Koordinasi bersama tim program terkait dokumentasi penyaluran beasiswa santri berprestasi di Bandung Barat.
-3. Menulis dan mempublikasikan siaran pers kegiatan tabligh akbar LAZ Persis ke portal media resmi serta feed media sosial Instagram.`
-  );
-  const [results, setResults] = useState(
-    `1. Draft infografis 100% selesai dan siap dipublikasikan ke media sosial.
-2. Dokumentasi foto dan video penyaluran beasiswa terarsip rapi di cloud storage.
-3. Siaran pers telah tayang di website portal resmi LAZ Persis.`
-  );
-  const [uploadedPhoto, setUploadedPhoto] = useState<UploadedFile | null>({
-    url: "https://lh3.googleusercontent.com/aida-public/AB6AXuD3kIG4oV_hEXsjD1ITSZV56PcTF7XSAfkSpKs6brQ84CJ_4L1DR9S6tkLSZuA2XM7DyXU-daCmvkUfflih6DL1cR4bHp0BbjuubFsHKFBNBvMxiRIi7co3cJ98q_vT-V0BSzg_Ba5oF_Yr__KNSPvNkTXbKaXjcfTVALOPQryxUIcfs8C03PQHc-2U78gemsb7Qi-eyT5IDmm8_gMtMafAKlQsQCFtaruOWf2a4vneMYqFVFSU_Zlyrg",
-    name: "dokumentasi_desain_kajian.webp",
-    savedPercentage: "68%",
-  });
+  const [tasks, setTasks] = useState("");
+  const [results, setResults] = useState("");
+  const [uploadedPhoto, setUploadedPhoto] = useState<UploadedFile | null>(null);
   const [uploading, setUploading] = useState(false);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    async function loadCurrentUser() {
+      try {
+        const res = await fetch("/api/v1/users/me");
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && json.data) {
+            if (json.data.name) setUserName(json.data.name);
+            if (json.data.division) {
+              setDivision(json.data.division);
+              setDivisions((prev) =>
+                prev.includes(json.data.division) ? prev : [json.data.division, ...prev]
+              );
+            }
+          }
+        }
+      } catch {
+        setUserName("Pegawai");
+      }
+    }
+
+    loadCurrentUser();
+
+    const formatted = new Intl.DateTimeFormat("id-ID", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }).format(new Date());
+    setTodayFormatted(formatted);
+  }, []);
 
   const handleAddDivision = (newDiv: string) => {
     setDivisions((prev) => [...prev, newDiv]);
@@ -118,6 +140,7 @@ export default function ReportForm() {
         setShowSuccessToast(true);
         setTasks("");
         setResults("");
+        setUploadedPhoto(null);
       } else {
         alert(result.message || "Gagal mengirim laporan.");
       }
@@ -176,7 +199,7 @@ export default function ReportForm() {
                       className="w-full h-[42px] px-3.5 rounded-lg bg-surface-container border border-outline-variant/60 text-on-surface text-sm font-medium cursor-not-allowed select-none focus:ring-0"
                       readOnly
                       type="text"
-                      value="Ahmad Fauzi"
+                      value={userName}
                     />
                     <div className="absolute right-3.5 flex items-center pointer-events-none text-outline">
                       <span className="material-symbols-outlined text-[18px]">
@@ -198,7 +221,7 @@ export default function ReportForm() {
                       className="w-full h-[42px] px-3.5 rounded-lg bg-surface-container border border-outline-variant/60 text-on-surface text-sm font-medium cursor-not-allowed select-none focus:ring-0"
                       readOnly
                       type="text"
-                      value="Senin, 28 September 2026"
+                      value={todayFormatted || "Hari ini"}
                     />
                     <div className="absolute right-3.5 flex items-center pointer-events-none text-outline">
                       <span className="material-symbols-outlined text-[18px]">
