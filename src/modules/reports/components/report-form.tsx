@@ -4,6 +4,17 @@ import { useState, useEffect } from "react";
 import AppShell from "@/src/common/components/app-shell";
 import ManageDivisionModal from "./manage-division-modal";
 import { createReportAction } from "../actions/create-report.action";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface UploadedFile {
   url: string;
@@ -191,12 +202,12 @@ export default function ReportForm() {
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-1.5">
-                  <label className="text-sm font-semibold text-on-surface flex items-center gap-1">
+                  <Label className="text-sm font-semibold text-on-surface flex items-center gap-1">
                     Nama Pegawai
-                  </label>
+                  </Label>
                   <div className="relative flex items-center">
-                    <input
-                      className="w-full h-[42px] px-3.5 rounded-lg bg-surface-container border border-outline-variant/60 text-on-surface text-sm font-medium cursor-not-allowed select-none focus:ring-0"
+                    <Input
+                      className="w-full h-[42px] px-3.5 rounded-lg bg-surface-container border border-outline-variant/60 text-on-surface text-sm font-medium cursor-not-allowed select-none focus-visible:ring-0"
                       readOnly
                       type="text"
                       value={userName}
@@ -213,12 +224,12 @@ export default function ReportForm() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-sm font-semibold text-on-surface flex items-center gap-1">
+                  <Label className="text-sm font-semibold text-on-surface flex items-center gap-1">
                     Tanggal Report
-                  </label>
+                  </Label>
                   <div className="relative flex items-center">
-                    <input
-                      className="w-full h-[42px] px-3.5 rounded-lg bg-surface-container border border-outline-variant/60 text-on-surface text-sm font-medium cursor-not-allowed select-none focus:ring-0"
+                    <Input
+                      className="w-full h-[42px] px-3.5 rounded-lg bg-surface-container border border-outline-variant/60 text-on-surface text-sm font-medium cursor-not-allowed select-none focus-visible:ring-0"
                       readOnly
                       type="text"
                       value={todayFormatted || "Hari ini"}
@@ -236,68 +247,67 @@ export default function ReportForm() {
               </div>
 
               <div className="space-y-1.5">
-                <label
+                <Label
                   className="text-sm font-semibold text-on-surface flex items-center gap-1.5"
                   htmlFor="bidang-select"
                 >
                   <span>Bidang</span>
-                </label>
+                </Label>
                 <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <select
-                      className="w-full h-[42px] px-3.5 rounded-lg bg-surface-container-lowest border border-outline-variant text-on-surface text-sm appearance-none focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 cursor-pointer"
-                      id="bidang-select"
+                  <div className="flex-1">
+                    <Select
                       value={division}
-                      onChange={(e) => {
-                        if (e.target.value === "__ADD_NEW__") {
+                      onValueChange={(val) => {
+                        if (val === "__ADD_NEW__") {
                           setIsManageDivisionOpen(true);
-                        } else {
-                          setDivision(e.target.value);
+                        } else if (val) {
+                          setDivision(val);
                         }
                       }}
                     >
-                      {divisions.map((div) => (
-                        <option key={div} value={div}>
-                          {div}
-                        </option>
-                      ))}
-                      <option
-                        value="__ADD_NEW__"
-                        className="font-semibold text-secondary"
-                      >
-                        + Tambah / Kelola Bidang...
-                      </option>
-                    </select>
-                    <div className="absolute right-3.5 top-3 flex items-center pointer-events-none text-outline">
-                      <span className="material-symbols-outlined text-[18px]">
-                        expand_more
-                      </span>
-                    </div>
+                      <SelectTrigger className="w-full h-[42px] px-3.5 rounded-lg bg-surface-container-lowest border-outline-variant text-on-surface text-sm">
+                        <SelectValue placeholder="Pilih Bidang" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-surface-container-lowest border-outline-variant">
+                        {divisions.map((div) => (
+                          <SelectItem key={div} value={div}>
+                            {div}
+                          </SelectItem>
+                        ))}
+                        <SelectItem
+                          value="__ADD_NEW__"
+                          className="font-semibold text-secondary"
+                        >
+                          + Tambah / Kelola Bidang...
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <button
+                  <Button
                     type="button"
+                    variant="outline"
                     onClick={() => setIsManageDivisionOpen(true)}
-                    className="h-[42px] px-3.5 rounded-lg border border-secondary/80 bg-secondary/5 hover:bg-secondary/15 text-secondary text-xs sm:text-sm font-semibold flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer"
+                    className="h-[42px] px-3.5 rounded-lg border-secondary/80 bg-secondary/5 hover:bg-secondary/15 text-secondary text-xs sm:text-sm font-semibold flex items-center gap-1.5 shrink-0 transition-colors cursor-pointer"
                     title="Tambah atau kelola daftar bidang"
                   >
                     <span className="material-symbols-outlined text-[18px]">
                       add
                     </span>
                     <span>Tambah Bidang</span>
-                  </button>
+                  </Button>
                 </div>
               </div>
 
               <div className="space-y-1.5">
-                <label
+                <Label
                   className="text-sm font-semibold text-on-surface flex items-center justify-between"
                   htmlFor="pekerjaan-input"
                 >
                   <span>Apa yang dikerjakan hari ini?</span>
                   <span className="text-xs text-outline">Wajib diisi</span>
-                </label>
-                <textarea
-                  className="w-full p-3.5 rounded-xl bg-surface-container-lowest border border-outline-variant text-on-surface text-sm focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 transition-all leading-relaxed"
+                </Label>
+                <Textarea
+                  className="w-full p-3.5 rounded-xl bg-surface-container-lowest border border-outline-variant text-on-surface text-sm focus-visible:ring-secondary/20 transition-all leading-relaxed"
                   id="pekerjaan-input"
                   placeholder="Tuliskan aktivitas, pekerjaan, tugas, atau hasil yang telah diselesaikan hari ini secara rinci..."
                   rows={5}
@@ -312,15 +322,15 @@ export default function ReportForm() {
               </div>
 
               <div className="space-y-1.5">
-                <label
+                <Label
                   className="text-sm font-semibold text-on-surface flex items-center justify-between"
                   htmlFor="hasil-input"
                 >
                   <span>Hasil dari pengerjaan hari ini</span>
                   <span className="text-xs text-outline">Wajib diisi</span>
-                </label>
-                <textarea
-                  className="w-full p-3.5 rounded-xl bg-surface-container-lowest border border-outline-variant text-on-surface text-sm focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20 transition-all leading-relaxed"
+                </Label>
+                <Textarea
+                  className="w-full p-3.5 rounded-xl bg-surface-container-lowest border border-outline-variant text-on-surface text-sm focus-visible:ring-secondary/20 transition-all leading-relaxed"
                   id="hasil-input"
                   placeholder="Tuliskan hasil, capaian, output, atau perkembangan konkret dari pengerjaan hari ini..."
                   rows={4}
@@ -424,26 +434,27 @@ export default function ReportForm() {
               </div>
 
               <div className="pt-6 border-t border-surface-container flex flex-col sm:flex-row items-center justify-between gap-4">
-                <button
-                  className="w-full sm:w-auto px-5 py-2.5 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface hover:bg-surface-container-low hover:text-primary transition-colors text-sm font-medium flex items-center justify-center gap-2 cursor-pointer"
+                <Button
+                  variant="outline"
+                  className="w-full sm:w-auto px-5 py-2.5 rounded-lg border-outline-variant bg-surface-container-lowest text-on-surface hover:bg-surface-container-low hover:text-primary transition-colors text-sm font-medium flex items-center justify-center gap-2"
                   type="button"
                 >
                   <span className="material-symbols-outlined text-[18px] text-outline">
                     save
                   </span>
                   <span>Simpan Draf Sementara</span>
-                </button>
+                </Button>
 
-                <button
+                <Button
                   disabled={loading || uploading}
-                  className="w-full sm:w-auto bg-primary-container hover:bg-secondary text-white font-semibold px-8 py-3 rounded-xl shadow-md flex items-center justify-center gap-2 transition-transform duration-150 active:scale-[0.99] text-sm cursor-pointer disabled:opacity-70 disabled:cursor-not-allowed"
+                  className="w-full sm:w-auto bg-primary-container hover:bg-secondary text-white font-semibold px-8 py-3 rounded-xl shadow-md flex items-center justify-center gap-2 transition-transform duration-150 active:scale-[0.99] text-sm disabled:opacity-70 disabled:cursor-not-allowed h-auto"
                   type="submit"
                 >
                   <span className="material-symbols-outlined text-[20px]">
                     check
                   </span>
                   <span>{loading ? 'MEMPROSES...' : 'Kirim & Publikasikan'}</span>
-                </button>
+                </Button>
               </div>
             </form>
           </div>

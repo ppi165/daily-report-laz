@@ -2,6 +2,18 @@
 
 import { useState, useEffect } from "react";
 import AppShell from "@/src/common/components/app-shell";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface ReportData {
   id: string;
@@ -115,12 +127,7 @@ export default function RekapReport() {
                     </span>
                     <span className="font-semibold text-primary">24 report</span>
                   </div>
-                  <div className="w-full bg-surface-container rounded-full h-2.5 overflow-hidden">
-                    <div
-                      className="bg-[#076437] h-2.5 rounded-full transition-all duration-500"
-                      style={{ width: "100%" }}
-                    ></div>
-                  </div>
+                  <Progress value={100} className="h-2.5 bg-surface-container" />
                 </div>
 
                 <div className="space-y-1">
@@ -131,12 +138,7 @@ export default function RekapReport() {
                     </span>
                     <span className="font-semibold text-secondary">20 report</span>
                   </div>
-                  <div className="w-full bg-surface-container rounded-full h-2.5 overflow-hidden">
-                    <div
-                      className="bg-secondary h-2.5 rounded-full transition-all duration-500"
-                      style={{ width: "83.3%" }}
-                    ></div>
-                  </div>
+                  <Progress value={83.3} className="h-2.5 bg-surface-container" />
                 </div>
 
                 <div className="space-y-1">
@@ -147,12 +149,7 @@ export default function RekapReport() {
                     </span>
                     <span className="font-semibold text-on-surface">16 report</span>
                   </div>
-                  <div className="w-full bg-surface-container rounded-full h-2.5 overflow-hidden">
-                    <div
-                      className="bg-primary-container opacity-85 h-2.5 rounded-full transition-all duration-500"
-                      style={{ width: "66.6%" }}
-                    ></div>
-                  </div>
+                  <Progress value={66.6} className="h-2.5 bg-surface-container" />
                 </div>
 
                 <div className="space-y-1">
@@ -163,12 +160,7 @@ export default function RekapReport() {
                     </span>
                     <span className="font-semibold text-on-surface">12 report</span>
                   </div>
-                  <div className="w-full bg-surface-container rounded-full h-2.5 overflow-hidden">
-                    <div
-                      className="bg-secondary opacity-75 h-2.5 rounded-full transition-all duration-500"
-                      style={{ width: "50%" }}
-                    ></div>
-                  </div>
+                  <Progress value={50} className="h-2.5 bg-surface-container" />
                 </div>
 
                 <div className="space-y-1">
@@ -179,12 +171,7 @@ export default function RekapReport() {
                     </span>
                     <span className="font-semibold text-on-surface">10 report</span>
                   </div>
-                  <div className="w-full bg-surface-container rounded-full h-2.5 overflow-hidden">
-                    <div
-                      className="bg-primary opacity-70 h-2.5 rounded-full transition-all duration-500"
-                      style={{ width: "41.6%" }}
-                    ></div>
-                  </div>
+                  <Progress value={41.6} className="h-2.5 bg-surface-container" />
                 </div>
 
                 <div className="space-y-1">
@@ -195,12 +182,7 @@ export default function RekapReport() {
                     </span>
                     <span className="font-semibold text-on-surface">4 report</span>
                   </div>
-                  <div className="w-full bg-surface-container rounded-full h-2.5 overflow-hidden">
-                    <div
-                      className="bg-outline h-2.5 rounded-full transition-all duration-500"
-                      style={{ width: "16.6%" }}
-                    ></div>
-                  </div>
+                  <Progress value={16.6} className="h-2.5 bg-surface-container" />
                 </div>
               </div>
             </div>
@@ -208,77 +190,72 @@ export default function RekapReport() {
 
           <div className="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant custom-shadow-card flex flex-wrap items-center justify-between gap-4">
             <div className="flex flex-wrap items-center gap-3">
-              <div className="relative">
-                <select
-                  aria-label="Pilih Periode"
-                  className="appearance-none bg-surface-container-lowest border border-outline-variant text-on-surface rounded-xl px-4 py-2 pr-9 text-sm focus:border-secondary focus:ring-1 focus:ring-secondary cursor-pointer"
-                >
-                  <option>Hari Ini</option>
-                  <option>Mingguan</option>
-                  <option>Bulanan</option>
-                  <option>Custom</option>
-                </select>
-                <span className="material-symbols-outlined pointer-events-none absolute right-2.5 top-2 text-outline text-[20px]">
-                  keyboard_arrow_down
-                </span>
-              </div>
+              <Select defaultValue="Hari Ini">
+                <SelectTrigger className="w-[140px] bg-surface-container-lowest border-outline-variant text-on-surface rounded-xl text-sm h-10">
+                  <SelectValue placeholder="Pilih Periode" />
+                </SelectTrigger>
+                <SelectContent className="bg-surface-container-lowest border-outline-variant">
+                  <SelectItem value="Hari Ini">Hari Ini</SelectItem>
+                  <SelectItem value="Mingguan">Mingguan</SelectItem>
+                  <SelectItem value="Bulanan">Bulanan</SelectItem>
+                  <SelectItem value="Custom">Custom</SelectItem>
+                </SelectContent>
+              </Select>
 
-              <div className="relative">
-                <select
-                  aria-label="Pilih Rentang Tanggal"
-                  className="appearance-none bg-surface-container-lowest border border-outline-variant text-on-surface rounded-xl px-4 py-2 pr-9 text-sm focus:border-secondary focus:ring-1 focus:ring-secondary cursor-pointer"
-                >
-                  <option>21 – 27 September 2026</option>
-                  <option>14 – 20 September 2026</option>
-                  <option>07 – 13 September 2026</option>
-                </select>
-                <span className="material-symbols-outlined pointer-events-none absolute right-2.5 top-2 text-outline text-[20px]">
-                  keyboard_arrow_down
-                </span>
-              </div>
+              <Select defaultValue="21 – 27 September 2026">
+                <SelectTrigger className="w-[210px] bg-surface-container-lowest border-outline-variant text-on-surface rounded-xl text-sm h-10">
+                  <SelectValue placeholder="Pilih Rentang Tanggal" />
+                </SelectTrigger>
+                <SelectContent className="bg-surface-container-lowest border-outline-variant">
+                  <SelectItem value="21 – 27 September 2026">21 – 27 September 2026</SelectItem>
+                  <SelectItem value="14 – 20 September 2026">14 – 20 September 2026</SelectItem>
+                  <SelectItem value="07 – 13 September 2026">07 – 13 September 2026</SelectItem>
+                </SelectContent>
+              </Select>
 
-              <div className="relative">
-                <select
-                  aria-label="Filter Bidang"
-                  className="appearance-none bg-surface-container-lowest border border-outline-variant text-on-surface rounded-xl px-4 py-2 pr-9 text-sm focus:border-secondary focus:ring-1 focus:ring-secondary cursor-pointer"
-                >
-                  <option>Semua Bidang</option>
-                  <option>Humas</option>
-                  <option>Program</option>
-                  <option>Sekretariat</option>
-                  <option>Keuangan</option>
-                  <option>SDM</option>
-                  <option>IT</option>
-                </select>
-                <span className="material-symbols-outlined pointer-events-none absolute right-2.5 top-2 text-outline text-[20px]">
-                  keyboard_arrow_down
-                </span>
-              </div>
+              <Select defaultValue="Semua Bidang">
+                <SelectTrigger className="w-[160px] bg-surface-container-lowest border-outline-variant text-on-surface rounded-xl text-sm h-10">
+                  <SelectValue placeholder="Filter Bidang" />
+                </SelectTrigger>
+                <SelectContent className="bg-surface-container-lowest border-outline-variant">
+                  <SelectItem value="Semua Bidang">Semua Bidang</SelectItem>
+                  <SelectItem value="Humas">Humas</SelectItem>
+                  <SelectItem value="Program">Program</SelectItem>
+                  <SelectItem value="Sekretariat">Sekretariat</SelectItem>
+                  <SelectItem value="Keuangan">Keuangan</SelectItem>
+                  <SelectItem value="SDM">SDM</SelectItem>
+                  <SelectItem value="IT">IT</SelectItem>
+                </SelectContent>
+              </Select>
 
               <div className="relative min-w-[260px] w-full sm:w-auto mt-2 sm:mt-0">
-                <span className="material-symbols-outlined absolute left-3 top-2 text-outline text-[20px]">
+                <span className="material-symbols-outlined absolute left-3 top-2.5 text-outline text-[20px] pointer-events-none">
                   search
                 </span>
-                <input
-                  className="w-full pl-9 pr-3 py-2 bg-surface-container-lowest border border-outline-variant rounded-xl text-sm text-on-surface placeholder:text-outline focus:border-secondary focus:ring-1 focus:ring-secondary focus:outline-none"
+                <Input
+                  className="w-full pl-9 pr-3 py-2 bg-surface-container-lowest border-outline-variant rounded-xl text-sm text-on-surface placeholder:text-outline h-10"
                   placeholder="Cari nama pegawai atau isi report..."
                   type="text"
                 />
               </div>
             </div>
 
-            <button className="w-full sm:w-auto bg-surface-container-lowest border border-primary-container text-primary-container hover:bg-[#F0FDF4] text-sm font-medium px-4 py-2 rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer">
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto border-primary-container text-primary-container hover:bg-[#F0FDF4] text-sm font-medium px-4 h-10 rounded-xl flex items-center justify-center gap-2"
+            >
               <span className="material-symbols-outlined text-[20px]">
                 download
               </span>
               <span>Export Excel</span>
-            </button>
+            </Button>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {loading ? (
-              <div className="col-span-full py-12 flex justify-center">
-                <div className="w-8 h-8 rounded-full border-4 border-primary border-t-transparent animate-spin"></div>
+              <div className="col-span-full py-12 flex flex-col items-center justify-center gap-3">
+                <Skeleton className="w-10 h-10 rounded-full" />
+                <p className="text-sm text-outline">Memuat daftar laporan...</p>
               </div>
             ) : reports.length > 0 ? (
               reports.map((report) => (
@@ -294,18 +271,18 @@ export default function RekapReport() {
                             <span className="text-base font-semibold text-on-surface leading-tight">
                               {report.author?.name || 'Anonim'}
                             </span>
-                            <span className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-surface-container text-on-surface-variant w-max">
+                            <Badge variant="secondary" className="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-surface-container text-on-surface-variant w-max">
                               {report.division}
-                            </span>
+                            </Badge>
                           </div>
                           <span className="text-xs text-on-surface-variant block mt-0.5">
                             {new Date(report.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })} • {new Date(report.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB
                           </span>
                         </div>
                       </div>
-                      <span className="px-2.5 py-1 rounded-full text-[11px] font-semibold bg-[rgba(9,145,79,0.10)] text-secondary">
+                      <Badge variant="secondary" className="px-2.5 py-1 text-[11px] font-semibold bg-[rgba(9,145,79,0.10)] text-secondary border-transparent">
                         {report.status}
-                      </span>
+                      </Badge>
                     </div>
 
                     <div className="text-sm text-on-surface mb-4 leading-relaxed whitespace-pre-wrap line-clamp-4">
@@ -314,10 +291,14 @@ export default function RekapReport() {
                   </div>
 
                   <div className="flex items-center justify-between pt-3 border-t border-surface-container">
-                    <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#FFF8F0] text-[#B45309] border border-[#FFEDD5] hover:bg-[#FFEDD5] transition-colors text-xs font-semibold cursor-pointer">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#FFF8F0] text-[#B45309] border-[#FFEDD5] hover:bg-[#FFEDD5] text-xs font-semibold h-auto"
+                    >
                       <span className="material-symbols-outlined text-[14px]">thumb_up</span>
                       <span>{report.appreciations} Apresiasi</span>
-                    </button>
+                    </Button>
                     <a
                       className="text-sm font-medium text-primary hover:text-secondary flex items-center gap-1 cursor-pointer"
                     >

@@ -1,6 +1,17 @@
 "use client";
 
 import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface ManageDivisionModalProps {
   isOpen: boolean;
@@ -28,8 +39,6 @@ export default function ManageDivisionModal({
   const [editValue, setEditValue] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
-
-  if (!isOpen) return null;
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,42 +104,36 @@ export default function ManageDivisionModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="bg-surface-container-lowest border border-outline-variant/60 rounded-2xl w-full max-w-lg shadow-2xl flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
-        <div className="px-6 py-4.5 border-b border-surface-container flex items-center justify-between bg-surface-container-low/40">
-          <div className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center">
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="max-w-lg bg-surface-container-lowest border-outline-variant p-0 overflow-hidden sm:max-w-lg">
+        <DialogHeader className="px-6 py-4 border-b border-surface-container bg-surface-container-low/40">
+          <div className="flex items-center gap-2.5 text-left">
+            <div className="w-9 h-9 rounded-xl bg-secondary/10 text-secondary flex items-center justify-center shrink-0">
               <span className="material-symbols-outlined text-[20px]">
                 domain
               </span>
             </div>
             <div>
-              <h3 className="text-base font-bold text-on-surface">
+              <DialogTitle className="text-base font-bold text-on-surface">
                 Kelola Bidang / Divisi
-              </h3>
-              <p className="text-xs text-on-surface-variant">
+              </DialogTitle>
+              <p className="text-xs text-on-surface-variant mt-0.5">
                 Tambah, ubah, atau hapus daftar bidang kerja LAZ Persis
               </p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-1.5 rounded-lg text-outline hover:bg-surface-container hover:text-on-surface transition-colors cursor-pointer"
-            title="Tutup Modal"
-          >
-            <span className="material-symbols-outlined text-[20px]">close</span>
-          </button>
-        </div>
+        </DialogHeader>
 
-        <div className="p-6 space-y-5 flex-1 max-h-[70vh] overflow-y-auto">
+        <div className="p-6 space-y-5 max-h-[65vh] overflow-y-auto">
           {errorMessage && (
-            <div className="p-3 rounded-xl bg-error-container/40 border border-error/20 text-error flex items-center gap-2 text-xs font-medium animate-in fade-in">
+            <Alert variant="destructive" className="bg-error-container/40 border-error/20 text-error p-3">
               <span className="material-symbols-outlined text-[18px]">
                 error
               </span>
-              <span>{errorMessage}</span>
-            </div>
+              <AlertDescription className="text-xs font-medium ml-2">
+                {errorMessage}
+              </AlertDescription>
+            </Alert>
           )}
           {successMessage && (
             <div className="p-3 rounded-xl bg-[#ECFDF5] border border-[#A7F3D0] text-[#065F46] flex items-center gap-2 text-xs font-medium animate-in fade-in">
@@ -142,7 +145,7 @@ export default function ManageDivisionModal({
           )}
 
           <form onSubmit={handleCreate} className="space-y-2">
-            <label
+            <Label
               htmlFor="new-division-input"
               className="text-xs font-semibold text-on-surface flex items-center gap-1.5"
             >
@@ -150,34 +153,34 @@ export default function ManageDivisionModal({
                 add_circle
               </span>
               Tambah Bidang Baru
-            </label>
+            </Label>
             <div className="flex gap-2">
-              <input
+              <Input
                 id="new-division-input"
                 type="text"
                 placeholder="Contoh: ZISWAF, Pendidikan, Dakwah..."
                 value={newDivisionInput}
                 onChange={(e) => setNewDivisionInput(e.target.value)}
-                className="flex-1 h-[42px] px-3.5 rounded-xl bg-surface-container-lowest border border-outline-variant text-on-surface text-sm focus:outline-none focus:border-secondary focus:ring-2 focus:ring-secondary/20"
+                className="flex-1 h-[42px] px-3.5 rounded-xl bg-surface-container-lowest border-outline-variant text-on-surface text-sm"
               />
-              <button
+              <Button
                 type="submit"
-                className="h-[42px] px-4 rounded-xl bg-secondary text-white font-medium text-xs sm:text-sm hover:bg-primary transition-colors flex items-center gap-1.5 shrink-0 shadow-sm cursor-pointer"
+                className="h-[42px] px-4 rounded-xl bg-secondary text-white font-medium text-xs sm:text-sm hover:bg-primary transition-colors flex items-center gap-1.5 shrink-0 shadow-sm"
               >
                 <span className="material-symbols-outlined text-[18px]">
                   add
                 </span>
                 <span>Tambah +</span>
-              </button>
+              </Button>
             </div>
           </form>
 
           <div className="space-y-2.5 pt-2">
             <div className="flex items-center justify-between text-xs font-semibold text-on-surface-variant px-0.5">
               <span>Daftar Bidang Terdaftar</span>
-              <span className="text-[11px] bg-surface-container px-2 py-0.5 rounded-full text-outline font-medium">
+              <Badge variant="secondary" className="text-[11px] bg-surface-container px-2 py-0.5 text-outline font-medium">
                 {divisions.length} Bidang
-              </span>
+              </Badge>
             </div>
 
             <div className="border border-outline-variant/60 rounded-xl overflow-hidden divide-y divide-outline-variant/40 bg-surface-container-lowest">
@@ -191,7 +194,7 @@ export default function ManageDivisionModal({
                       key={div}
                       className="p-2.5 bg-surface-container-low/60 flex items-center gap-2"
                     >
-                      <input
+                      <Input
                         type="text"
                         value={editValue}
                         onChange={(e) => setEditValue(e.target.value)}
@@ -200,28 +203,31 @@ export default function ManageDivisionModal({
                           if (e.key === "Enter") handleSaveEdit(div);
                           if (e.key === "Escape") setEditingName(null);
                         }}
-                        className="flex-1 h-9 px-3 rounded-lg bg-surface-container-lowest border border-secondary text-on-surface text-xs sm:text-sm focus:outline-none focus:ring-1 focus:ring-secondary"
+                        className="flex-1 h-9 px-3 rounded-lg bg-surface-container-lowest border-secondary text-on-surface text-xs sm:text-sm"
                       />
-                      <button
+                      <Button
                         type="button"
+                        size="icon"
                         onClick={() => handleSaveEdit(div)}
-                        className="p-1.5 rounded-lg bg-secondary text-white hover:bg-primary transition-colors cursor-pointer"
+                        className="h-8 w-8 bg-secondary text-white hover:bg-primary"
                         title="Simpan Perubahan"
                       >
                         <span className="material-symbols-outlined text-[18px]">
                           check
                         </span>
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         type="button"
+                        variant="ghost"
+                        size="icon"
                         onClick={() => setEditingName(null)}
-                        className="p-1.5 rounded-lg bg-surface-container text-outline hover:text-on-surface transition-colors cursor-pointer"
+                        className="h-8 w-8 bg-surface-container text-outline hover:text-on-surface"
                         title="Batal"
                       >
                         <span className="material-symbols-outlined text-[18px]">
                           close
                         </span>
-                      </button>
+                      </Button>
                     </div>
                   );
                 }
@@ -239,47 +245,53 @@ export default function ManageDivisionModal({
                         {div}
                       </span>
                       {isSelected && (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-secondary bg-secondary/10 px-2 py-0.5 rounded-md shrink-0">
+                        <Badge variant="secondary" className="inline-flex items-center gap-1 text-[11px] font-semibold text-secondary bg-secondary/10 px-2 py-0.5 rounded-md shrink-0 border-transparent">
                           <span className="w-1.5 h-1.5 rounded-full bg-secondary"></span>
                           Terpilih di Form
-                        </span>
+                        </Badge>
                       )}
                     </div>
 
                     <div className="flex items-center gap-1 shrink-0">
                       {!isSelected && (
-                        <button
+                        <Button
                           type="button"
+                          variant="ghost"
+                          size="sm"
                           onClick={() => {
                             onSelectDivision(div);
                             onClose();
                           }}
-                          className="px-2.5 py-1 text-xs font-semibold text-secondary hover:bg-secondary/10 rounded-lg transition-colors cursor-pointer"
+                          className="px-2.5 py-1 text-xs font-semibold text-secondary hover:bg-secondary/10 h-7"
                           title="Gunakan bidang ini pada formulir"
                         >
                           Pilih
-                        </button>
+                        </Button>
                       )}
-                      <button
+                      <Button
                         type="button"
+                        variant="ghost"
+                        size="icon"
                         onClick={() => startEdit(div)}
-                        className="p-1.5 text-outline hover:text-on-surface hover:bg-surface-container rounded-lg transition-colors cursor-pointer"
+                        className="h-7 w-7 text-outline hover:text-on-surface hover:bg-surface-container"
                         title="Ubah nama bidang"
                       >
                         <span className="material-symbols-outlined text-[16px]">
                           edit
                         </span>
-                      </button>
-                      <button
+                      </Button>
+                      <Button
                         type="button"
+                        variant="ghost"
+                        size="icon"
                         onClick={() => handleDelete(div)}
-                        className="p-1.5 text-outline hover:text-error hover:bg-error-container/30 rounded-lg transition-colors cursor-pointer"
+                        className="h-7 w-7 text-outline hover:text-error hover:bg-error-container/30"
                         title="Hapus bidang"
                       >
                         <span className="material-symbols-outlined text-[16px]">
                           delete
                         </span>
-                      </button>
+                      </Button>
                     </div>
                   </div>
                 );
@@ -292,15 +304,16 @@ export default function ManageDivisionModal({
           <span className="text-xs text-outline">
             Perubahan langsung aktif di dropdown
           </span>
-          <button
+          <Button
             type="button"
+            variant="secondary"
             onClick={onClose}
-            className="px-5 py-2 rounded-xl bg-surface-container hover:bg-surface-container-high text-on-surface text-xs sm:text-sm font-semibold transition-colors cursor-pointer"
+            className="px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold"
           >
             Selesai
-          </button>
+          </Button>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
