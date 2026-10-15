@@ -1,8 +1,17 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 
 interface UserProfile {
   name: string;
@@ -12,9 +21,7 @@ interface UserProfile {
 }
 
 export default function ProfileDropdown() {
-  const [isOpen, setIsOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
   const [user, setUser] = useState<UserProfile>({
@@ -47,29 +54,6 @@ export default function ProfileDropdown() {
     loadUserData();
   }, []);
 
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    }
-
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setIsOpen(false);
-      }
-    }
-
-    if (isOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-      document.addEventListener("keydown", handleKeyDown);
-    }
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-      document.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isOpen]);
-
   const handleLogout = async () => {
     setIsLoggingOut(true);
     try {
@@ -78,32 +62,19 @@ export default function ProfileDropdown() {
       console.error("Logout error:", error);
     } finally {
       setIsLoggingOut(false);
-      setIsOpen(false);
       router.push("/login");
       router.refresh();
     }
   };
 
   return (
-    <div className="relative" ref={dropdownRef}>
-      <button
-        onClick={() => setIsOpen((prev) => !prev)}
-        className={`flex items-center gap-2 sm:gap-2.5 p-1 sm:px-2 sm:py-1.5 rounded-xl transition-all duration-150 cursor-pointer select-none focus:outline-none focus:ring-2 focus:ring-primary/20 ${
-          isOpen
-            ? "bg-surface-container text-on-surface ring-1 ring-outline-variant"
-            : "hover:bg-surface-container text-on-surface-variant hover:text-on-surface"
-        }`}
-        aria-expanded={isOpen}
-        aria-haspopup="menu"
-        aria-label="Menu Profil Pengguna"
-        title="Menu Profil"
-      >
-        <div className="relative w-9 h-9 sm:w-10 sm:h-10 rounded-full overflow-hidden border border-outline-variant bg-surface-container-high shrink-0 transition-colors">
-          <img
-            className="w-full h-full object-cover"
-            alt={user.name}
-            src={user.avatar}
-          />
+    <DropdownMenu>
+      <DropdownMenuTrigger className="flex items-center gap-2 sm:gap-2.5 p-1 sm:px-2 sm:py-1.5 rounded-xl transition-all duration-150 cursor-pointer select-none focus:outline-none focus:ring-2 focus:ring-primary/20 hover:bg-surface-container text-on-surface-variant hover:text-on-surface">
+        <div className="relative shrink-0">
+          <Avatar className="w-9 h-9 sm:w-10 sm:h-10 border border-outline-variant">
+            <AvatarImage src={user.avatar} alt={user.name} />
+            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+          </Avatar>
           <span
             className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-500 ring-2 ring-surface-container-lowest"
             title="Amil Aktif"
@@ -115,139 +86,117 @@ export default function ProfileDropdown() {
             {user.name}
           </span>
           <div className="flex items-center gap-1.5 mt-0.5">
-            <span className="inline-flex items-center px-1.5 py-0.2 rounded text-[11px] font-semibold bg-primary-container/10 text-primary-container">
+            <Badge variant="secondary" className="px-1.5 py-0 text-[11px] font-semibold bg-primary-container/10 text-primary-container">
               {user.division || "Humas"}
-            </span>
+            </Badge>
           </div>
         </div>
 
-        <span
-          className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${
-            isOpen ? "rotate-180 text-primary" : "text-outline"
-          }`}
-        >
+        <span className="material-symbols-outlined text-[20px] text-outline">
           keyboard_arrow_down
         </span>
-      </button>
+      </DropdownMenuTrigger>
 
-      {isOpen && (
-        <div
-          role="menu"
-          aria-orientation="vertical"
-          className="absolute right-0 mt-2.5 w-72 sm:w-80 bg-surface-container-lowest border border-outline-variant rounded-2xl shadow-xl z-50 overflow-hidden transition-all duration-200 animate-in fade-in slide-in-from-top-2"
-        >
-          <div className="p-4 bg-surface-container-low/50 border-b border-surface-container">
-            <div className="flex items-center gap-3">
-              <div className="relative w-11 h-11 rounded-full overflow-hidden border border-outline-variant bg-surface-container-high shrink-0">
-                <img
-                  className="w-full h-full object-cover"
-                  alt={user.name}
-                  src={user.avatar}
-                />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center justify-between gap-1">
-                  <h4 className="text-sm font-bold text-on-surface truncate">
-                    {user.name}
-                  </h4>
-                </div>
-                <p className="text-xs text-on-surface-variant truncate">
-                  {user.email}
-                </p>
-                <div className="flex items-center gap-2 mt-1">
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-primary/10 text-primary">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                    Unit {user.division || "Humas"}
-                  </span>
-                  <span className="text-[10px] font-medium text-outline">
-                    Amil Aktif
-                  </span>
-                </div>
+      <DropdownMenuContent align="end" className="w-72 sm:w-80 bg-surface-container-lowest border-outline-variant p-0 overflow-hidden">
+        <div className="p-4 bg-surface-container-low/50 border-b border-surface-container">
+          <div className="flex items-center gap-3">
+            <Avatar className="w-11 h-11 border border-outline-variant shrink-0">
+              <AvatarImage src={user.avatar} alt={user.name} />
+              <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <h4 className="text-sm font-bold text-on-surface truncate">
+                {user.name}
+              </h4>
+              <p className="text-xs text-on-surface-variant truncate">
+                {user.email}
+              </p>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-primary/10 text-primary">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  Unit {user.division || "Humas"}
+                </span>
+                <span className="text-[10px] font-medium text-outline">
+                  Amil Aktif
+                </span>
               </div>
             </div>
           </div>
-
-          <div className="p-2 space-y-1">
-            <Link
-              href="/profil"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-on-surface hover:bg-surface-container hover:text-primary transition-colors duration-150 group"
-              role="menuitem"
-            >
-              <div className="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                <span className="material-symbols-outlined text-[18px]">person</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="font-semibold">Profil Saya</span>
-                <span className="text-[11px] text-outline font-normal">
-                  Lihat biodata dan info kepegawaian
-                </span>
-              </div>
-            </Link>
-
-            <Link
-              href="/daily-report"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-on-surface hover:bg-surface-container hover:text-primary transition-colors duration-150 group"
-              role="menuitem"
-            >
-              <div className="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                <span className="material-symbols-outlined text-[18px]">edit_document</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="font-semibold">Input Daily Report</span>
-                <span className="text-[11px] text-outline font-normal">
-                  Kirim pelaporan aktivitas kerja
-                </span>
-              </div>
-            </Link>
-
-            <Link
-              href="/rekap-report"
-              onClick={() => setIsOpen(false)}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-on-surface hover:bg-surface-container hover:text-primary transition-colors duration-150 group"
-              role="menuitem"
-            >
-              <div className="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant group-hover:bg-primary/10 group-hover:text-primary transition-colors">
-                <span className="material-symbols-outlined text-[18px]">table_chart</span>
-              </div>
-              <div className="flex flex-col">
-                <span className="font-semibold">Rekap Riwayat Laporan</span>
-                <span className="text-[11px] text-outline font-normal">
-                  Evaluasi dan histori kinerja Anda
-                </span>
-              </div>
-            </Link>
-          </div>
-
-          <div className="border-t border-surface-container"></div>
-
-          <div className="p-2">
-            <button
-              onClick={handleLogout}
-              disabled={isLoggingOut}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-error hover:bg-error/10 transition-colors duration-150 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed group text-left"
-              role="menuitem"
-            >
-              <div className="w-8 h-8 rounded-lg bg-error/10 flex items-center justify-center text-error group-hover:bg-error group-hover:text-white transition-colors">
-                {isLoggingOut ? (
-                  <span className="material-symbols-outlined text-[18px] animate-spin">
-                    progress_activity
-                  </span>
-                ) : (
-                  <span className="material-symbols-outlined text-[18px]">logout</span>
-                )}
-              </div>
-              <div className="flex flex-col">
-                <span>{isLoggingOut ? "Sedang Keluar..." : "Keluar (Logout)"}</span>
-                <span className="text-[10px] text-outline font-normal group-hover:text-error/80">
-                  Akhiri sesi amil di perangkat ini
-                </span>
-              </div>
-            </button>
-          </div>
         </div>
-      )}
-    </div>
+
+        <div className="p-2 space-y-1">
+          <DropdownMenuItem
+            render={<Link href="/profil" />}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-on-surface hover:bg-surface-container hover:text-primary transition-colors duration-150 group w-full cursor-pointer"
+          >
+            <div className="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant group-hover:bg-primary/10 group-hover:text-primary transition-colors shrink-0">
+              <span className="material-symbols-outlined text-[18px]">person</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="font-semibold">Profil Saya</span>
+              <span className="text-[11px] text-outline font-normal">
+                Lihat biodata dan info kepegawaian
+              </span>
+            </div>
+          </DropdownMenuItem>
+
+          <DropdownMenuItem
+            render={<Link href="/daily-report" />}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-on-surface hover:bg-surface-container hover:text-primary transition-colors duration-150 group w-full cursor-pointer"
+          >
+            <div className="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant group-hover:bg-primary/10 group-hover:text-primary transition-colors shrink-0">
+              <span className="material-symbols-outlined text-[18px]">edit_document</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="font-semibold">Input Daily Report</span>
+              <span className="text-[11px] text-outline font-normal">
+                Kirim pelaporan aktivitas kerja
+              </span>
+            </div>
+          </DropdownMenuItem>
+
+          <DropdownMenuItem
+            render={<Link href="/rekap-report" />}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-on-surface hover:bg-surface-container hover:text-primary transition-colors duration-150 group w-full cursor-pointer"
+          >
+            <div className="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center text-on-surface-variant group-hover:bg-primary/10 group-hover:text-primary transition-colors shrink-0">
+              <span className="material-symbols-outlined text-[18px]">table_chart</span>
+            </div>
+            <div className="flex flex-col">
+              <span className="font-semibold">Rekap Riwayat Laporan</span>
+              <span className="text-[11px] text-outline font-normal">
+                Evaluasi dan histori kinerja Anda
+              </span>
+            </div>
+          </DropdownMenuItem>
+        </div>
+
+        <DropdownMenuSeparator className="my-0 border-surface-container" />
+
+        <div className="p-2">
+          <DropdownMenuItem
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-error hover:bg-error/10 focus:bg-error/10 focus:text-error transition-colors duration-150 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed group text-left"
+          >
+            <div className="w-8 h-8 rounded-lg bg-error/10 flex items-center justify-center text-error group-hover:bg-error group-hover:text-white transition-colors shrink-0">
+              {isLoggingOut ? (
+                <span className="material-symbols-outlined text-[18px] animate-spin">
+                  progress_activity
+                </span>
+              ) : (
+                <span className="material-symbols-outlined text-[18px]">logout</span>
+              )}
+            </div>
+            <div className="flex flex-col">
+              <span>{isLoggingOut ? "Sedang Keluar..." : "Keluar (Logout)"}</span>
+              <span className="text-[10px] text-outline font-normal group-hover:text-error/80">
+                Akhiri sesi amil di perangkat ini
+              </span>
+            </div>
+          </DropdownMenuItem>
+        </div>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

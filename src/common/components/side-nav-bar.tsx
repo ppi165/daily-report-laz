@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 interface SideNavBarProps {
   isOpen?: boolean;
@@ -65,13 +66,15 @@ export default function SideNavBar({ isOpen = false, onClose }: SideNavBarProps)
                 <span className="text-xs text-on-surface-variant">Sistem Pelaporan Harian</span>
               </div>
             </div>
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={onClose}
-              className="lg:hidden p-1 rounded-lg text-outline hover:text-on-surface"
+              className="lg:hidden h-8 w-8 text-outline hover:text-on-surface"
               aria-label="Tutup Menu"
             >
               <span className="material-symbols-outlined text-[20px]">close</span>
-            </button>
+            </Button>
           </div>
 
           <div className="px-1">
