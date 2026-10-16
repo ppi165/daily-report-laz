@@ -99,7 +99,7 @@ export default function Home() {
           <div className="flex items-center gap-3">
             <button
               onClick={toggleDarkMode}
-              className={`w-10 h-10 rounded-full flex items-center justify-center transition-colors shrink-0 ${
+              className={`size-10 rounded-full flex items-center justify-center transition-colors shrink-0 ${
                 isScrolled 
                   ? (isDarkMode 
                       ? 'bg-white/10 text-yellow-300 hover:bg-white/20' 
@@ -269,7 +269,7 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Feature 1 */}
             <div className={`${isDarkMode ? 'bg-[#1e1e1e] border-white/10 hover:border-emerald-500/40 hover:bg-[#252525]' : 'bg-white border-gray-200 hover:border-primary/40 shadow-sm hover:shadow-md'} border p-8 rounded-2xl transition-all duration-300 group`}>
-              <div className={`w-14 h-14 ${isDarkMode ? 'bg-emerald-500/15 text-emerald-400 group-hover:bg-emerald-500 group-hover:text-black' : 'bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white'} rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-all duration-300 shadow-sm`}>
+              <div className={`size-14 ${isDarkMode ? 'bg-emerald-500/15 text-emerald-400 group-hover:bg-emerald-500 group-hover:text-black' : 'bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white'} rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-all duration-300 shadow-sm`}>
                 <span className="material-symbols-outlined text-[28px]">dashboard</span>
               </div>
               <h3 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'} mb-4`}>Dashboard Kinerja</h3>
@@ -277,7 +277,7 @@ export default function Home() {
             </div>
             {/* Feature 2 */}
             <div className={`${isDarkMode ? 'bg-[#1e1e1e] border-white/10 hover:border-emerald-500/40 hover:bg-[#252525]' : 'bg-white border-gray-200 hover:border-primary/40 shadow-sm hover:shadow-md'} border p-8 rounded-2xl transition-all duration-300 group`}>
-              <div className={`w-14 h-14 ${isDarkMode ? 'bg-emerald-500/15 text-emerald-400 group-hover:bg-emerald-500 group-hover:text-black' : 'bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white'} rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-all duration-300 shadow-sm`}>
+              <div className={`size-14 ${isDarkMode ? 'bg-emerald-500/15 text-emerald-400 group-hover:bg-emerald-500 group-hover:text-black' : 'bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white'} rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-all duration-300 shadow-sm`}>
                 <span className="material-symbols-outlined text-[28px]">edit_document</span>
               </div>
               <h3 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'} mb-4`}>Input Laporan</h3>
@@ -285,7 +285,7 @@ export default function Home() {
             </div>
             {/* Feature 3 */}
             <div className={`${isDarkMode ? 'bg-[#1e1e1e] border-white/10 hover:border-emerald-500/40 hover:bg-[#252525]' : 'bg-white border-gray-200 hover:border-primary/40 shadow-sm hover:shadow-md'} border p-8 rounded-2xl transition-all duration-300 group`}>
-              <div className={`w-14 h-14 ${isDarkMode ? 'bg-emerald-500/15 text-emerald-400 group-hover:bg-emerald-500 group-hover:text-black' : 'bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white'} rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-all duration-300 shadow-sm`}>
+              <div className={`size-14 ${isDarkMode ? 'bg-emerald-500/15 text-emerald-400 group-hover:bg-emerald-500 group-hover:text-black' : 'bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white'} rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-all duration-300 shadow-sm`}>
                 <span className="material-symbols-outlined text-[28px]">table_chart</span>
               </div>
               <h3 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'} mb-4`}>Rekap Laporan</h3>
@@ -293,7 +293,7 @@ export default function Home() {
             </div>
             {/* Feature 4 */}
             <div className={`${isDarkMode ? 'bg-[#1e1e1e] border-white/10 hover:border-emerald-500/40 hover:bg-[#252525]' : 'bg-white border-gray-200 hover:border-primary/40 shadow-sm hover:shadow-md'} border p-8 rounded-2xl transition-all duration-300 group`}>
-              <div className={`w-14 h-14 ${isDarkMode ? 'bg-emerald-500/15 text-emerald-400 group-hover:bg-emerald-500 group-hover:text-black' : 'bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white'} rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-all duration-300 shadow-sm`}>
+              <div className={`size-14 ${isDarkMode ? 'bg-emerald-500/15 text-emerald-400 group-hover:bg-emerald-500 group-hover:text-black' : 'bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white'} rounded-xl flex items-center justify-center mb-6 group-hover:scale-110 transition-all duration-300 shadow-sm`}>
                 <span className="material-symbols-outlined text-[28px]">person</span>
               </div>
               <h3 className={`text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-gray-900'} mb-4`}>Manajemen Profil</h3>
@@ -317,7 +317,7 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
               {socialLinks.map((social, index) => (
                 <div key={index} className="flex items-center gap-5 group">
-                  <div className={`w-14 h-14 rounded-full flex items-center justify-center transition-all shrink-0 shadow-sm ${
+                  <div className={`size-14 rounded-full flex items-center justify-center transition-all shrink-0 shadow-sm ${
                     isDarkMode 
                       ? 'bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 group-hover:bg-emerald-500 group-hover:text-black group-hover:border-emerald-500' 
                       : 'bg-primary/10 border border-primary/20 text-primary group-hover:bg-primary group-hover:text-white group-hover:border-primary'
@@ -356,7 +356,7 @@ export default function Home() {
       {/* FAB - Back to top */}
       <button
         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        className={`fixed bottom-8 right-8 w-14 h-14 rounded-full ${
+        className={`fixed bottom-8 right-8 size-14 rounded-full ${
           isDarkMode 
             ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-950/40 hover:scale-110' 
             : 'bg-primary hover:bg-primary-container text-white shadow-lg hover:scale-110'

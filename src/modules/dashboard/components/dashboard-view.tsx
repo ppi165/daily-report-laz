@@ -8,15 +8,15 @@ import TeamFeed from "./team-feed";
 export default function DashboardView() {
   return (
     <AppShell>
-      <main className="p-4 sm:p-6 lg:p-8 max-w-[1440px] w-full mx-auto space-y-6">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+      <main className="p-4 sm:p-6 lg:p-8 max-w-[1440px] w-full mx-auto flex flex-col gap-7 sm:gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6 items-stretch">
           <GreetingBanner />
           <TodayStatusCard />
         </div>
 
         <DashboardStats />
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 sm:gap-6">
           <RecentActivityCard />
           <TeamFeed />
         </div>

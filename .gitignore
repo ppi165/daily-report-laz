@@ -44,3 +44,5 @@ next-env.d.ts
 memori.md
 data-penting.md
 design/
+.agents/
+skills-lock.json

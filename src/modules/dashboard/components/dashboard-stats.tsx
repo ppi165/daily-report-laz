@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 export default function DashboardStats() {
   const [stats, setStats] = useState({
@@ -12,11 +12,12 @@ export default function DashboardStats() {
   });
 
   useEffect(() => {
+    let ignore = false;
     const fetchStats = async () => {
       try {
         const res = await fetch("/api/v1/dashboard/stats");
         const result = await res.json();
-        if (result.success && result.data) {
+        if (!ignore && result.success && result.data) {
           setStats(result.data);
         }
       } catch (error) {
@@ -24,79 +25,64 @@ export default function DashboardStats() {
       }
     };
     fetchStats();
+    return () => {
+      ignore = true;
+    };
   }, []);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <Card className="bg-surface-container-lowest p-5 rounded-2xl border-outline-variant shadow-sm relative overflow-hidden flex flex-col justify-between">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
+      <Card className="bg-surface-container-lowest/80 backdrop-blur-xs p-5 rounded-2xl border-outline-variant/50 shadow-none hover:shadow-xs transition-shadow relative overflow-hidden flex flex-col justify-between gap-3">
         <div className="h-1 w-full bg-primary-container absolute top-0 left-0"></div>
-        <CardContent className="p-0">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-on-surface-variant">
-              Presensi Kerja
+        <CardHeader className="p-0">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-outline">
+            Presensi Kerja
+          </span>
+        </CardHeader>
+        <CardContent className="p-0 flex flex-col gap-1">
+          <CardTitle className="text-3xl sm:text-4xl text-primary font-black tracking-tight tabular-nums">
+            {stats.activeUsers}{" "}
+            <span className="text-sm sm:text-base font-semibold text-outline">
+              / {stats.totalUsers}
             </span>
-            <div className="p-2 rounded-lg bg-surface-container text-primary-container">
-              <span className="material-symbols-outlined text-[20px]">
-                event_available
-              </span>
-            </div>
-          </div>
-          <div className="mt-3">
-            <div className="text-3xl text-on-surface font-bold tracking-tight">
-              {stats.activeUsers} <span className="text-xl">dari {stats.totalUsers}</span>
-            </div>
-            <p className="text-xs text-on-surface-variant mt-1">
-              Pegawai Aktif Melapor
-            </p>
-          </div>
+          </CardTitle>
+          <p className="text-xs text-on-surface-variant font-medium">
+            Pegawai Aktif Melapor
+          </p>
         </CardContent>
       </Card>
 
-      <Card className="bg-surface-container-lowest p-5 rounded-2xl border-outline-variant shadow-sm relative overflow-hidden flex flex-col justify-between">
+      <Card className="bg-surface-container-lowest/80 backdrop-blur-xs p-5 rounded-2xl border-outline-variant/50 shadow-none hover:shadow-xs transition-shadow relative overflow-hidden flex flex-col justify-between gap-3">
         <div className="h-1 w-full bg-secondary absolute top-0 left-0"></div>
-        <CardContent className="p-0">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-on-surface-variant">
-              Aktivitas Pelaporan
-            </span>
-            <div className="p-2 rounded-lg bg-surface-container text-secondary">
-              <span className="material-symbols-outlined text-[20px]">
-                task_alt
-              </span>
-            </div>
-          </div>
-          <div className="mt-3">
-            <div className="text-3xl text-on-surface font-bold tracking-tight">
-              {stats.totalReports}
-            </div>
-            <p className="text-xs text-on-surface-variant mt-1">
-              Total Laporan Terbit
-            </p>
-          </div>
+        <CardHeader className="p-0">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-outline">
+            Aktivitas Pelaporan
+          </span>
+        </CardHeader>
+        <CardContent className="p-0 flex flex-col gap-1">
+          <CardTitle className="text-3xl sm:text-4xl text-secondary font-black tracking-tight tabular-nums">
+            {stats.totalReports}
+          </CardTitle>
+          <p className="text-xs text-on-surface-variant font-medium">
+            Total Laporan Terbit
+          </p>
         </CardContent>
       </Card>
 
-      <Card className="bg-surface-container-lowest p-5 rounded-2xl border-outline-variant shadow-sm relative overflow-hidden flex flex-col justify-between">
+      <Card className="bg-surface-container-lowest/80 backdrop-blur-xs p-5 rounded-2xl border-outline-variant/50 shadow-none hover:shadow-xs transition-shadow relative overflow-hidden flex flex-col justify-between gap-3">
         <div className="h-1 w-full bg-primary absolute top-0 left-0"></div>
-        <CardContent className="p-0">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-on-surface-variant">
-              Tingkat Disiplin
-            </span>
-            <div className="p-2 rounded-lg bg-surface-container text-primary">
-              <span className="material-symbols-outlined text-[20px]">
-                percent
-              </span>
-            </div>
-          </div>
-          <div className="mt-3">
-            <div className="text-3xl text-on-surface font-bold tracking-tight">
-              {stats.completionRate}%
-            </div>
-            <p className="text-xs text-on-surface-variant mt-1">
-              Kelengkapan Pelaporan
-            </p>
-          </div>
+        <CardHeader className="p-0">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-outline">
+            Tingkat Disiplin
+          </span>
+        </CardHeader>
+        <CardContent className="p-0 flex flex-col gap-1">
+          <CardTitle className="text-3xl sm:text-4xl text-on-surface font-black tracking-tight tabular-nums">
+            {stats.completionRate}%
+          </CardTitle>
+          <p className="text-xs text-on-surface-variant font-medium">
+            Kelengkapan Pelaporan
+          </p>
         </CardContent>
       </Card>
     </div>

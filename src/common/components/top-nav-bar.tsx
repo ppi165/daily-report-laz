@@ -6,6 +6,7 @@ import ProfileDropdown from "./profile-dropdown";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 
 interface TopNavBarProps {
   onToggleSidebar?: () => void;
@@ -74,7 +75,7 @@ export default function TopNavBar({
 
         <NotificationDropdown />
 
-        <div className="h-6 w-px bg-outline-variant"></div>
+        <Separator orientation="vertical" className="h-6 bg-outline-variant" />
 
         <ProfileDropdown />
       </div>

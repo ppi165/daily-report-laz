@@ -19,24 +19,58 @@ model User {
   password  String
   name      String
   division  String   // Humas, Program, Keuangan, dll
+  role      String   @default("STAFF") // "ADMIN", "SUPERVISOR", "STAFF"
+  position  String?  @default("Staf Pelaksana")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
   reports   Report[]
+  approvals ReportApproval[] @relation("ApproverRelation")
+}
+
+model Division {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  leaderName  String?  // Nama Koordinator / PJ Bidang
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Report {
-  id          String   @id @default(uuid())
-  title       String?
-  content     String   // Apa yang dikerjakan hari ini
-  division    String   // Bidang/Divisi saat melapor
-  attachments String[] // Array URL gambar dari Supabase Storage
-  status      String   @default("PUBLISHED")
-  appreciations Int    @default(0)
+  id            String   @id @default(uuid())
+  title         String?
+  content       String   // Apa yang dikerjakan hari ini
+  division      String   // Bidang/Divisi saat melapor
+  attachments   String[] // Array URL gambar dari Supabase Storage
+  status        String   @default("PUBLISHED") // PUBLISHED, PENDING_APPROVAL, REJECTED
+  appreciations Int      @default(0)
+  isClockIn     Boolean  @default(false)
   
-  authorId    String
-  author      User     @relation(fields: [authorId], references: [id])
+  authorId      String
+  author        User     @relation(fields: [authorId], references: [id])
   
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  approvals     ReportApproval[]
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model ReportApproval {
+  id               String    @id @default(uuid())
+  reportId         String
+  report           Report    @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  
+  approverId       String?
+  approver         User?     @relation("ApproverRelation", fields: [approverId], references: [id])
+  
+  approverMockId   String?
+  approverName     String
+  approverDivision String?
+  status           String    @default("PENDING") // PENDING, APPROVED, REJECTED
+  note             String?
+  respondedAt      DateTime?
+  
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 }

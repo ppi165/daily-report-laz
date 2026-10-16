@@ -1,121 +1,134 @@
 import Link from "next/link";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+
+interface FeedItem {
+  id: string;
+  name: string;
+  avatar: string;
+  time: string;
+  division: string;
+  divisionColor: string;
+  text: string;
+  appreciation: number;
+  attachments: string;
+}
 
 export default function TeamFeed() {
-  const feeds = [
+  const feeds: FeedItem[] = [
     {
-      id: "feed-1",
+      id: "1",
       name: "Siti Rahma",
-      time: "14:20 WIB",
+      avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=256&auto=format&fit=crop",
+      time: "15:20 WIB",
       division: "Program",
-      divisionColor: "bg-secondary-container/40 text-on-secondary-container",
-      avatar:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuAf3vIPMWnL7kxZibcz-vtrIz2FtkisqAblRR5VDp8Heo4JLAJll4_N4iIuJjcDtjTRTgWijZvvHkB6sFdYmVDYuiD9SXzsy1IoNNSU6SI0CNL6jA7aVQNfXIJYRi4ry1cr8gmG0vGu_oJqmUoCmaeFpxiQcTVBbZoFXQqzmSHKoQEodhCdv_Wi1FmMSmt5UfAKSZzpUp2ilVNFVKDlSBa6f8Md_vxE5WH0Psq_PiIzoHsCuoxU2C8u4A",
-      text: "Penyaluran Paket Sembako Dhuafa Cianjur: Berhasil mendistribusikan 120 paket amanah pangan ke 3 desa terpencil.",
-      appreciation: 9,
-      attachments: "2 Lampiran Foto",
+      divisionColor: "bg-secondary-container/40 text-secondary border-transparent",
+      text: "Menyalurkan 50 paket sembako tanggap bencana untuk warga terdampak di wilayah Garut Selatan bersama tim relawan lokal.",
+      appreciation: 8,
+      attachments: "2 Foto Terlampir",
     },
     {
-      id: "feed-2",
+      id: "2",
       name: "Dedi Kurniawan",
-      time: "12:05 WIB",
+      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=256&auto=format&fit=crop",
+      time: "14:10 WIB",
       division: "Keuangan",
-      divisionColor: "bg-surface-container-highest text-on-surface-variant",
-      avatar:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuA_VJuuWL8gw-ci81zUKTIng7djX2tNyLJVZzEm1FH40KTctzk7JSG0sAZ4IxmxSmioHLMJzusUknwA0xzjF6FLfIDw_2Sa3Qt0D4R2kLNaL2PplPUBuJ8ftfVMwmRuV5RodECtnTzvjcuKPyGXmPG55VU7u02NBfjCFAjgDgG0EbfbWZ1YEB-dkEiElntfco2ipV8MFcvHENqNii2w7PtKvNIWsZ13OzLHt9oUA-pT8KrvyBhpoLLq-w",
-      text: "Rekonsiliasi Bank Rekening Infaq & Zakat Mal Q3: Penutupan neraca saldo harian dan verifikasi mutasi online gate.",
-      appreciation: 6,
-      attachments: "1 Lampiran Spreadsheet",
+      divisionColor: "bg-secondary-container/30 text-secondary border-transparent",
+      text: "Menyelesaikan rekonsiliasi penerimaan donasi online transfer bank dan QRIS periode pekan ketiga bulan September 2026.",
+      appreciation: 5,
+      attachments: "Dokumen Rekap",
     },
     {
-      id: "feed-3",
+      id: "3",
       name: "Nabila Putri",
-      time: "10:30 WIB",
+      avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=256&auto=format&fit=crop",
+      time: "11:30 WIB",
       division: "Humas",
-      divisionColor: "bg-primary-container/10 text-primary-container",
-      avatar:
-        "https://lh3.googleusercontent.com/aida-public/AB6AXuBxgg9tDRQ-R8zTmXydrusmZ24RJeP3qyk_k5RmINwSkMq9ZPNr_z949VM6EBxmADr4RqDTPHZopiq7vgxvA-dJDsE3b8Z_5aoHAkU8t_UsgpkLSeV2_OOpPccpb11zuzcC6tENDfqkCZwUaeuo-DMx3sezNTrcZHMytST9No8SE6I9kFkyIneT9-y1-qvhQvA_wesGllnkapKMVKD4XSX_hnjOSe6xWijpBKP-_CNqFN1vlKBdYvhxrg",
-      text: "Penyusunan Press Release Kampanye Qurban Berkelanjutan 1448 H untuk distribusi portal berita nasional.",
-      appreciation: 11,
-      attachments: "Rilis Dokumen",
+      divisionColor: "bg-primary/10 text-primary border-transparent",
+      text: "Take video wawancara penerima manfaat program beasiswa amil cerdas di kantor pusat untuk materi publikasi transparansi.",
+      appreciation: 14,
+      attachments: "3 Foto Terlampir",
     },
   ];
 
   return (
-    <Card className="lg:col-span-5 bg-surface-container-lowest rounded-2xl border-outline-variant p-6 shadow-sm flex flex-col justify-between">
-      <CardContent className="p-0 flex flex-col justify-between h-full">
-        <div>
-          <div className="flex items-center justify-between pb-4 border-b border-surface-container">
-            <h2 className="text-lg font-semibold text-on-surface">
-              Feed Laporan Rekan Tim
-            </h2>
-            <span className="text-xs text-on-surface-variant font-medium">
-              Hari ini
-            </span>
-          </div>
+    <Card className="lg:col-span-5 bg-surface-container-lowest rounded-2xl border-outline-variant/60 p-6 shadow-none flex flex-col justify-between gap-4">
+      <CardHeader className="p-0 flex flex-row items-center justify-between pb-1">
+        <CardTitle className="text-xl font-bold text-on-surface tracking-tight">
+          Feed Laporan Rekan Tim
+        </CardTitle>
+        <span className="text-xs text-outline font-medium">
+          Hari ini
+        </span>
+      </CardHeader>
 
-          <div className="mt-4 space-y-4">
-            {feeds.map((item) => (
-              <div
-                key={item.id}
-                className="p-3.5 rounded-xl border border-outline-variant bg-surface-container-low/40 hover:bg-surface-container-low transition-colors"
-              >
-                <div className="flex items-start gap-3">
-                  <Avatar className="w-10 h-10 border border-outline-variant bg-surface-variant shrink-0">
-                    <AvatarImage src={item.avatar} alt={item.name} />
-                    <AvatarFallback>{item.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between gap-1 mb-1">
-                      <span className="text-sm font-semibold text-on-surface truncate">
-                        {item.name}
-                      </span>
-                      <span className="text-xs text-outline">{item.time}</span>
-                    </div>
-                    <div className="mb-2">
-                      <Badge
-                        variant="secondary"
-                        className={`text-[11px] font-semibold ${item.divisionColor}`}
-                      >
-                        {item.division}
-                      </Badge>
-                    </div>
-                    <p className="text-xs sm:text-sm text-on-surface-variant line-clamp-2 leading-relaxed">
-                      {item.text}
-                    </p>
-                    <div className="mt-3 flex items-center gap-3 text-xs text-outline">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-auto p-0 hover:bg-transparent hover:text-primary-container flex items-center gap-1 text-xs text-outline transition-colors"
-                      >
-                        <span className="material-symbols-outlined text-[14px]">
-                          thumb_up
-                        </span>
-                        <span>Apresiasi ({item.appreciation})</span>
-                      </Button>
-                      <span>•</span>
-                      <span>{item.attachments}</span>
-                    </div>
-                  </div>
+      <Separator className="bg-surface-container/80" />
+
+      <CardContent className="p-0 flex flex-col gap-3">
+        {feeds.map((item) => (
+          <div
+            key={item.id}
+            className="p-4 rounded-2xl bg-surface-container-low/60 hover:bg-surface-container-low transition-colors"
+          >
+            <div className="flex items-start gap-3">
+              <Avatar className="size-10 ring-2 ring-surface-container-lowest shadow-xs shrink-0">
+                <AvatarImage src={item.avatar} alt={item.name} />
+                <AvatarFallback>{item.name.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-1 mb-1">
+                  <span className="text-sm font-bold text-on-surface truncate">
+                    {item.name}
+                  </span>
+                  <span className="text-xs text-outline font-mono">{item.time}</span>
+                </div>
+                <div className="mb-2">
+                  <Badge
+                    variant="secondary"
+                    className={`text-[10px] font-semibold border-transparent ${item.divisionColor}`}
+                  >
+                    {item.division}
+                  </Badge>
+                </div>
+                <p className="text-xs sm:text-sm text-on-surface line-clamp-2 leading-relaxed">
+                  {item.text}
+                </p>
+                <div className="mt-3 flex items-center gap-3 text-xs text-outline">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-auto p-0 hover:bg-transparent hover:text-secondary flex items-center gap-1 text-xs text-outline transition-colors cursor-pointer"
+                  >
+                    <span data-icon="inline-start" className="material-symbols-outlined text-[15px] text-secondary">
+                      thumb_up
+                    </span>
+                    <span>Apresiasi ({item.appreciation})</span>
+                  </Button>
+                  <span>•</span>
+                  <span>{item.attachments}</span>
                 </div>
               </div>
-            ))}
+            </div>
           </div>
-        </div>
-
-        <div className="pt-4 mt-4 border-t border-surface-container">
-          <Link
-            className="w-full py-2.5 rounded-xl border border-outline-variant text-sm font-medium text-on-surface hover:bg-surface text-center block transition-colors"
-            href="/rekap-report"
-          >
-            Jelajahi Semua Laporan Rekan
-          </Link>
-        </div>
+        ))}
       </CardContent>
+
+      <Separator className="bg-surface-container/80" />
+
+      <CardFooter className="p-0 bg-transparent border-0 justify-center">
+        <Link
+          className="group inline-flex items-center justify-center gap-1.5 text-xs sm:text-sm font-semibold text-on-surface-variant hover:text-primary transition-colors"
+          href="/rekap-report"
+        >
+          <span>Jelajahi Semua Laporan Rekan</span>
+          <span className="material-symbols-outlined text-[16px] transition-transform group-hover:translate-x-1">
+            arrow_forward
+          </span>
+        </Link>
+      </CardFooter>
     </Card>
   );
 }

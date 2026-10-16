@@ -10,6 +10,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 
 export interface NotificationItem {
   id: string;
@@ -103,7 +104,7 @@ export default function NotificationDropdown() {
       >
         <span className="material-symbols-outlined text-[22px]">notifications</span>
         {unreadCount > 0 && (
-          <span className="absolute top-1.5 right-1.5 min-w-[18px] h-[18px] px-1 bg-error text-white text-[10px] font-bold rounded-full flex items-center justify-center ring-2 ring-surface-container-lowest animate-pulse">
+          <span className="absolute top-1.5 right-1.5 size-[18px] px-1 bg-error text-white text-[10px] font-bold rounded-full flex items-center justify-center ring-2 ring-surface-container-lowest animate-pulse">
             {unreadCount}
           </span>
         )}
@@ -183,7 +184,7 @@ export default function NotificationDropdown() {
                   }`}
                 >
                   <div
-                    className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${notif.iconBg} ${notif.iconColor}`}
+                    className={`size-9 rounded-xl flex items-center justify-center shrink-0 ${notif.iconBg} ${notif.iconColor}`}
                   >
                     <span className="material-symbols-outlined text-[20px]">{notif.icon}</span>
                   </div>
@@ -198,7 +199,7 @@ export default function NotificationDropdown() {
                         {notif.title}
                       </h4>
                       {!notif.read && (
-                        <span className="w-2 h-2 rounded-full bg-primary shrink-0"></span>
+                        <span className="size-2 rounded-full bg-primary shrink-0"></span>
                       )}
                     </div>
                     <p className="text-xs text-on-surface-variant line-clamp-2 leading-relaxed">
@@ -214,7 +215,9 @@ export default function NotificationDropdown() {
           )}
         </ScrollArea>
 
-        <div className="p-2.5 border-t border-surface-container bg-surface-container-low/40 flex items-center justify-between text-xs">
+        <Separator className="bg-surface-container" />
+
+        <div className="p-2.5 bg-surface-container-low/40 flex items-center justify-between text-xs">
           <Link
             href="/daily-report"
             onClick={() => setOpen(false)}

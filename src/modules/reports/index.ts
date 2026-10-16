@@ -8,4 +8,3 @@ export * from './actions/create-report.action';
 export * from './actions/get-reports.action';
 export { default as ReportForm } from './components/report-form';
 export { default as RekapReport } from './components/rekap-report';
-export { default as ManageDivisionModal } from './components/manage-division-modal';

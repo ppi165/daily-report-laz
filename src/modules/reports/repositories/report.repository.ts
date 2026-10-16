@@ -13,6 +13,15 @@ export class ReportRepository {
         author: {
           select: { name: true, division: true },
         },
+        approvals: {
+          select: {
+            id: true,
+            approverName: true,
+            approverDivision: true,
+            status: true,
+            note: true,
+          },
+        },
       },
     });
   }

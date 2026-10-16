@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
 interface SideNavBarProps {
   isOpen?: boolean;
@@ -26,10 +27,22 @@ export default function SideNavBar({ isOpen = false, onClose }: SideNavBarProps)
       isActive: pathname === "/daily-report" || pathname.startsWith("/reports/new"),
     },
     {
+      label: "Verifikasi Clock-in",
+      href: "/verifikasi",
+      icon: "fact_check",
+      isActive: pathname === "/verifikasi",
+    },
+    {
       label: "Rekap Report",
       href: "/rekap-report",
       icon: "table_chart",
       isActive: pathname === "/rekap-report" || pathname === "/reports",
+    },
+    {
+      label: "Kelola Divisi",
+      href: "/admin/divisi",
+      icon: "account_tree",
+      isActive: pathname.startsWith("/admin/divisi"),
     },
     {
       label: "Profil",
@@ -70,7 +83,7 @@ export default function SideNavBar({ isOpen = false, onClose }: SideNavBarProps)
               variant="ghost"
               size="icon"
               onClick={onClose}
-              className="lg:hidden h-8 w-8 text-outline hover:text-on-surface"
+              className="lg:hidden size-8 text-outline hover:text-on-surface"
               aria-label="Tutup Menu"
             >
               <span className="material-symbols-outlined text-[20px]">close</span>
@@ -117,7 +130,8 @@ export default function SideNavBar({ isOpen = false, onClose }: SideNavBarProps)
           </nav>
         </div>
 
-        <div className="pt-4 border-t border-outline-variant px-2">
+        <div className="px-2 flex flex-col gap-4">
+          <Separator className="bg-outline-variant" />
           <div className="flex items-center justify-between text-xs text-outline">
             <span className="font-medium">LAZ Persis Daily</span>
             <span className="px-1.5 py-0.5 rounded text-[10px] bg-surface-container font-mono">v1.0</span>
