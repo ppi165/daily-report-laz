@@ -1,6 +1,7 @@
 import { reportRepository } from '../repositories/report.repository';
 import { CreateReportInput, CreateReportSchema } from '../schemas/create-report.schema';
 import { approvalRepository, MOCK_APPROVERS } from '@/src/modules/approvals';
+import { settingRepository } from '@/src/modules/settings';
 
 export class CreateReportUseCase {
   async execute(input: CreateReportInput, authorId: string) {
@@ -8,6 +9,12 @@ export class CreateReportUseCase {
 
     if (!authorId) {
       throw new Error('Unauthorized: Author ID wajib ada');
+    }
+
+    const settings = await settingRepository.findDefault();
+
+    if (settings.requirePhoto && (!validated.attachments || validated.attachments.length === 0)) {
+      throw new Error('Kebijakan sistem mewajibkan minimal 1 foto lampiran dokumentasi.');
     }
 
     const reportDate = validated.reportDate
@@ -29,23 +36,26 @@ export class CreateReportUseCase {
           throw new Error('Tanggal laporan susulan harus merupakan tanggal lampau sebelum hari ini.');
         }
 
-        if (diffDays > 3) {
-          throw new Error('Laporan susulan (Clock-in) hanya diizinkan maksimal hingga 3 hari ke belakang (H-3).');
+        if (diffDays > settings.clockInMaxDays) {
+          throw new Error(
+            `Laporan susulan (Clock-in) hanya diizinkan maksimal hingga ${settings.clockInMaxDays} hari ke belakang (H-${settings.clockInMaxDays}).`
+          );
         }
       }
 
       const approverIds = validated.approverMockIds || [];
-      if (approverIds.length !== 2) {
-        throw new Error('Clock-in daily report wajib memilih tepat 2 verifikator.');
-      }
-      if (approverIds[0] === approverIds[1]) {
-        throw new Error('Verifikator 1 dan Verifikator 2 tidak boleh orang yang sama.');
+      const requiredWitness = settings.clockInRequiredWitness;
+
+      if (approverIds.length !== requiredWitness) {
+        throw new Error(`Clock-in daily report wajib memilih tepat ${requiredWitness} verifikator.`);
       }
 
-      const approver1 = MOCK_APPROVERS.find((a) => a.id === approverIds[0]);
-      const approver2 = MOCK_APPROVERS.find((a) => a.id === approverIds[1]);
+      if (new Set(approverIds).size !== approverIds.length) {
+        throw new Error('Verifikator tidak boleh orang yang sama.');
+      }
 
-      if (!approver1 || !approver2) {
+      const selectedApprovers = approverIds.map((id) => MOCK_APPROVERS.find((a) => a.id === id));
+      if (selectedApprovers.some((a) => !a)) {
         throw new Error('Data verifikator yang dipilih tidak valid.');
       }
 
@@ -61,18 +71,14 @@ export class CreateReportUseCase {
         ...(reportDate ? { createdAt: reportDate } : {}),
       });
 
-      await approvalRepository.createManyForReport(report.id, [
-        {
-          approverMockId: approver1.id,
-          approverName: approver1.name,
-          approverDivision: approver1.division,
-        },
-        {
-          approverMockId: approver2.id,
-          approverName: approver2.name,
-          approverDivision: approver2.division,
-        },
-      ]);
+      await approvalRepository.createManyForReport(
+        report.id,
+        selectedApprovers.map((a) => ({
+          approverMockId: a!.id,
+          approverName: a!.name,
+          approverDivision: a!.division,
+        }))
+      );
 
       return report;
     }

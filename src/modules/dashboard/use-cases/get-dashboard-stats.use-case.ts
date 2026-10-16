@@ -1,16 +1,22 @@
 import { dashboardRepository } from '../repositories/dashboard.repository';
+import { settingRepository } from '@/src/modules/settings';
 
 export class GetDashboardStatsUseCase {
   async execute(userId?: string) {
-    const [totalReports, activeUsers, totalUsers, todayReport] = await Promise.all([
+    const [totalReports, activeUsers, totalUsers, todayReport, settings] = await Promise.all([
       dashboardRepository.countTotalReports(),
       dashboardRepository.countActiveUsers(),
       dashboardRepository.countTotalUsers(),
       userId ? dashboardRepository.findTodayReportByUserId(userId) : Promise.resolve(null),
+      settingRepository.findDefault(),
     ]);
 
     const completionRate =
       totalUsers > 0 ? Math.round((activeUsers / totalUsers) * 100) : 0;
+
+    const deadlineTime = settings.isRamadhanMode
+      ? settings.ramadhanDeadlineTime
+      : settings.dailyDeadlineTime;
 
     return {
       totalReports,
@@ -18,6 +24,8 @@ export class GetDashboardStatsUseCase {
       totalUsers,
       completionRate,
       hasReportedToday: !!todayReport,
+      deadlineTime,
+      isRamadhanMode: settings.isRamadhanMode,
       todayReport: todayReport
         ? {
             id: todayReport.id,

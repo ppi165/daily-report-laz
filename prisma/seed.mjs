@@ -58,6 +58,26 @@ async function main() {
     });
   }
   console.log('Default divisions seeded successfully.');
+
+  // Seed default system setting
+  await prisma.systemSetting.upsert({
+    where: { id: 'default' },
+    update: {},
+    create: {
+      id: 'default',
+      dailyDeadlineTime: '17:00',
+      reminderTime: '16:00',
+      clockInMaxDays: 3,
+      clockInRequiredWitness: 2,
+      clockInRequireReason: true,
+      workDays: ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY'],
+      isRamadhanMode: false,
+      ramadhanDeadlineTime: '15:30',
+      requirePhoto: false,
+      feedVisibility: 'ALL',
+    },
+  });
+  console.log('Default system setting seeded successfully.');
 }
 
 main()

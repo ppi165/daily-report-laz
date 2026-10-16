@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AppShell from "@/src/common/components/app-shell";
 import SuccessToast from "@/src/common/components/success-toast";
 import ClockInApproverSelect from "@/src/modules/approvals/components/clock-in-approver-select";
@@ -36,9 +36,9 @@ const getYesterdayString = () => {
   return `${year}-${month}-${day}`;
 };
 
-const getHMinus3String = () => {
+const getHMinusDaysString = (days: number) => {
   const d = new Date();
-  d.setDate(d.getDate() - 3);
+  d.setDate(d.getDate() - days);
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
@@ -64,6 +64,35 @@ export default function ReportForm() {
     }
     return getTodayString();
   });
+
+  const [settings, setSettings] = useState<{
+    clockInMaxDays: number;
+    clockInRequiredWitness: number;
+    requirePhoto: boolean;
+  }>({
+    clockInMaxDays: 3,
+    clockInRequiredWitness: 2,
+    requirePhoto: false,
+  });
+
+  useEffect(() => {
+    async function loadSettings() {
+      try {
+        const res = await fetch("/api/v1/settings");
+        const json = await res.json();
+        if (json.success && json.data) {
+          setSettings({
+            clockInMaxDays: json.data.clockInMaxDays ?? 3,
+            clockInRequiredWitness: json.data.clockInRequiredWitness ?? 2,
+            requirePhoto: Boolean(json.data.requirePhoto),
+          });
+        }
+      } catch {
+        // Fallback default
+      }
+    }
+    loadSettings();
+  }, []);
 
   const [approver1, setApprover1] = useState("");
   const [approver2, setApprover2] = useState("");
@@ -140,14 +169,26 @@ export default function ReportForm() {
       return;
     }
 
+    if (settings.requirePhoto && !uploadedPhoto) {
+      alert("Dokumentasi foto pekerjaan wajib diunggah sesuai kebijakan sistem!");
+      return;
+    }
+
     if (isClockIn) {
-      if (!approver1 || !approver2) {
-        alert("Pilih 2 orang saksi/atasan untuk memverifikasi clock-in daily report Anda!");
-        return;
-      }
-      if (approver1 === approver2) {
-        alert("Saksi verifikator 1 dan saksi verifikator 2 tidak boleh orang yang sama!");
-        return;
+      if (settings.clockInRequiredWitness === 1) {
+        if (!approver1) {
+          alert("Pilih 1 orang saksi/atasan untuk memverifikasi clock-in daily report Anda!");
+          return;
+        }
+      } else {
+        if (!approver1 || !approver2) {
+          alert("Pilih 2 orang saksi/atasan untuk memverifikasi clock-in daily report Anda!");
+          return;
+        }
+        if (approver1 === approver2) {
+          alert("Saksi verifikator 1 dan saksi verifikator 2 tidak boleh orang yang sama!");
+          return;
+        }
       }
     }
 
@@ -156,6 +197,12 @@ export default function ReportForm() {
     const fullContent = `[PEKERJAAN]\n${tasks.trim()}\n\n[HASIL / OUTPUT]\n${results.trim()}`;
 
     try {
+      const approverMockIds = isClockIn
+        ? settings.clockInRequiredWitness === 1
+          ? [approver1]
+          : [approver1, approver2]
+        : [];
+
       const res = await createReportAction({
         title: isClockIn ? "Clock-in Daily Report" : "Daily Report",
         content: fullContent,
@@ -163,14 +210,14 @@ export default function ReportForm() {
         attachments: uploadedPhoto ? [uploadedPhoto.url] : [],
         reportDate: isClockIn ? selectedDate : undefined,
         isClockIn,
-        approverMockIds: isClockIn ? [approver1, approver2] : [],
+        approverMockIds,
       });
 
       if (res.success) {
         setToastData({
           title: isClockIn ? "Pengajuan Clock-in Berhasil Terkirim" : "Laporan Berhasil Diterbitkan",
           description: isClockIn
-            ? "Laporan susulan tersimpan dengan status PENDING. Menunggu persetujuan 2 verifikator rekan kerja."
+            ? `Laporan susulan tersimpan dengan status PENDING. Menunggu persetujuan ${settings.clockInRequiredWitness} verifikator rekan kerja.`
             : "Laporan aktivitas kerja hari ini telah tersimpan dan terpublikasi.",
         });
 
@@ -242,7 +289,7 @@ export default function ReportForm() {
                           : "bg-surface-container-low/50 border-outline-variant/60 cursor-default focus-visible:ring-0 opacity-90"
                       }`}
                       type="date"
-                      min={isClockIn ? getHMinus3String() : undefined}
+                      min={isClockIn ? getHMinusDaysString(settings.clockInMaxDays) : undefined}
                       max={isClockIn ? getYesterdayString() : getTodayString()}
                       value={selectedDate}
                       readOnly={!isClockIn}
@@ -394,6 +441,7 @@ export default function ReportForm() {
                     approver2={approver2}
                     onChangeApprover1={setApprover1}
                     onChangeApprover2={setApprover2}
+                    requiredCount={settings.clockInRequiredWitness}
                   />
                 )}
 
@@ -412,7 +460,11 @@ export default function ReportForm() {
                     disabled={
                       loading ||
                       uploading ||
-                      (isClockIn && (!approver1 || !approver2 || approver1 === approver2))
+                      (settings.requirePhoto && !uploadedPhoto) ||
+                      (isClockIn &&
+                        (settings.clockInRequiredWitness === 1
+                          ? !approver1
+                          : !approver1 || !approver2 || approver1 === approver2))
                     }
                     className="w-full sm:w-auto font-semibold px-8 py-3 rounded-xl shadow-md flex items-center justify-center transition-transform duration-150 active:scale-[0.99] text-sm disabled:opacity-60 disabled:cursor-not-allowed h-auto bg-primary-container hover:bg-secondary text-white cursor-pointer"
                     type="submit"

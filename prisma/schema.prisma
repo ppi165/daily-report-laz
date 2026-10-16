@@ -74,3 +74,18 @@ model ReportApproval {
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
 }
+
+model SystemSetting {
+  id                     String   @id @default("default")
+  dailyDeadlineTime      String   @default("17:00")
+  reminderTime           String   @default("16:00")
+  clockInMaxDays         Int      @default(3)
+  clockInRequiredWitness Int      @default(2)
+  clockInRequireReason   Boolean  @default(true)
+  workDays               String[] @default(["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"])
+  isRamadhanMode         Boolean  @default(false)
+  ramadhanDeadlineTime   String   @default("15:30")
+  requirePhoto           Boolean  @default(false)
+  feedVisibility         String   @default("ALL")
+  updatedAt              DateTime @updatedAt
+}

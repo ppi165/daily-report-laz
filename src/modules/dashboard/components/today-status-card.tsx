@@ -17,6 +17,7 @@ interface TodayReportInfo {
 export default function TodayStatusCard() {
   const [hasReportedToday, setHasReportedToday] = useState<boolean | null>(null);
   const [reportInfo, setReportInfo] = useState<TodayReportInfo | null>(null);
+  const [deadlineTime, setDeadlineTime] = useState<string>("17:00");
 
   useEffect(() => {
     async function checkTodayStatus() {
@@ -26,6 +27,9 @@ export default function TodayStatusCard() {
         if (json.success && json.data) {
           setHasReportedToday(json.data.hasReportedToday);
           setReportInfo(json.data.todayReport);
+          if (json.data.deadlineTime) {
+            setDeadlineTime(json.data.deadlineTime);
+          }
         } else {
           setHasReportedToday(false);
         }
@@ -87,7 +91,7 @@ export default function TodayStatusCard() {
               Terkirim pukul {formattedTime}
             </span>
           ) : (
-            <span>Batas pengisian: 17:00 WIB</span>
+            <span>Batas pengisian: {deadlineTime} WIB</span>
           )}
         </div>
       </CardContent>

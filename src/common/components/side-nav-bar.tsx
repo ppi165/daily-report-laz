@@ -45,6 +45,12 @@ export default function SideNavBar({ isOpen = false, onClose }: SideNavBarProps)
       isActive: pathname.startsWith("/admin/divisi"),
     },
     {
+      label: "Pengaturan Sistem",
+      href: "/admin/pengaturan",
+      icon: "tune",
+      isActive: pathname.startsWith("/admin/pengaturan"),
+    },
+    {
       label: "Profil",
       href: "/profil",
       icon: "person",
