@@ -19,6 +19,10 @@ interface UploadedFile {
   savedPercentage?: string;
 }
 
+interface ReportFormProps {
+  initialMode?: "today" | "clock-in";
+}
+
 const getTodayString = () => {
   const now = new Date();
   const year = now.getFullYear();
@@ -45,25 +49,12 @@ const getHMinusDaysString = (days: number) => {
   return `${year}-${month}-${day}`;
 };
 
-export default function ReportForm() {
-  const [mode, setMode] = useState<"today" | "clock-in">(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      const urlMode = params.get("mode") || params.get("type");
-      if (urlMode === "clock-in") return "clock-in";
-    }
-    return "today";
-  });
-
+export default function ReportForm({ initialMode = "today" }: ReportFormProps) {
+  const [mode, setMode] = useState<"today" | "clock-in">(initialMode);
   const [division] = useState("Humas");
-  const [selectedDate, setSelectedDate] = useState<string>(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      const urlMode = params.get("mode") || params.get("type");
-      if (urlMode === "clock-in") return getYesterdayString();
-    }
-    return getTodayString();
-  });
+  const [selectedDate, setSelectedDate] = useState<string>(() =>
+    initialMode === "clock-in" ? getYesterdayString() : getTodayString()
+  );
 
   const [settings, setSettings] = useState<{
     clockInMaxDays: number;
@@ -74,6 +65,18 @@ export default function ReportForm() {
     clockInRequiredWitness: 2,
     requirePhoto: false,
   });
+
+  useEffect(() => {
+    // Sinkronisasi client-side URL param setelah hydration
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const urlMode = params.get("mode") || params.get("type");
+      if (urlMode === "clock-in" && mode !== "clock-in") {
+        setMode("clock-in");
+        setSelectedDate((prev) => (prev >= getTodayString() ? getYesterdayString() : prev));
+      }
+    }
+  }, [mode]);
 
   useEffect(() => {
     async function loadSettings() {

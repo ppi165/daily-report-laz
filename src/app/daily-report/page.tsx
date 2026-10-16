@@ -6,6 +6,14 @@ export const metadata: Metadata = {
   description: "Formulir Pelaporan Harian Pegawai LAZ Persis",
 };
 
-export default function DailyReportPage() {
-  return <ReportForm />;
+interface DailyReportPageProps {
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export default async function DailyReportPage({ searchParams }: DailyReportPageProps) {
+  const resolvedParams = searchParams ? await searchParams : {};
+  const urlMode = resolvedParams.mode || resolvedParams.type;
+  const initialMode = urlMode === "clock-in" ? "clock-in" : "today";
+
+  return <ReportForm initialMode={initialMode} />;
 }
