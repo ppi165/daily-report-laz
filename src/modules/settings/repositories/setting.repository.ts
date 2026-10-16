@@ -21,6 +21,8 @@ export class SettingRepository {
           ramadhanDeadlineTime: '15:30',
           requirePhoto: false,
           feedVisibility: 'ALL',
+          scheduleRetentionType: 'MONTH',
+          scheduleRetentionValue: 3,
         },
       });
     }
@@ -44,6 +46,8 @@ export class SettingRepository {
         ramadhanDeadlineTime: input.ramadhanDeadlineTime || '15:30',
         requirePhoto: input.requirePhoto ?? false,
         feedVisibility: input.feedVisibility || 'ALL',
+        scheduleRetentionType: input.scheduleRetentionType || 'MONTH',
+        scheduleRetentionValue: input.scheduleRetentionValue ?? 3,
       },
     });
   }

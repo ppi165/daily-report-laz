@@ -18,6 +18,7 @@ export default function TodayStatusCard() {
   const [hasReportedToday, setHasReportedToday] = useState<boolean | null>(null);
   const [reportInfo, setReportInfo] = useState<TodayReportInfo | null>(null);
   const [deadlineTime, setDeadlineTime] = useState<string>("17:00");
+  const [activeScheduleName, setActiveScheduleName] = useState<string | null>(null);
 
   useEffect(() => {
     async function checkTodayStatus() {
@@ -29,6 +30,9 @@ export default function TodayStatusCard() {
           setReportInfo(json.data.todayReport);
           if (json.data.deadlineTime) {
             setDeadlineTime(json.data.deadlineTime);
+          }
+          if (json.data.activeScheduleName) {
+            setActiveScheduleName(json.data.activeScheduleName);
           }
         } else {
           setHasReportedToday(false);
@@ -85,13 +89,20 @@ export default function TodayStatusCard() {
       </CardHeader>
 
       <CardContent className="p-0 flex flex-col gap-2">
-        <div className="flex items-center gap-2 text-xs sm:text-sm text-on-surface-variant">
+        <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-on-surface-variant">
           {hasReportedToday ? (
             <span>
               Terkirim pukul {formattedTime}
             </span>
           ) : (
-            <span>Batas pengisian: {deadlineTime} WIB</span>
+            <div className="flex flex-wrap items-center gap-2">
+              <span>Batas pengisian: {deadlineTime} WIB</span>
+              {activeScheduleName && (
+                <Badge variant="secondary" className="px-2 py-0.5 text-[11px] font-medium bg-secondary/10 text-secondary border-secondary/20">
+                  {activeScheduleName}
+                </Badge>
+              )}
+            </div>
           )}
         </div>
       </CardContent>

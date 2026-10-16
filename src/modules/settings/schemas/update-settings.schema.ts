@@ -13,6 +13,8 @@ export const UpdateSettingsSchema = z.object({
   ramadhanDeadlineTime: z.string().regex(timeRegex, 'Format jam harus HH:mm (cth: 15:30)').optional(),
   requirePhoto: z.boolean().optional(),
   feedVisibility: z.enum(['ALL', 'DIVISION']).optional(),
+  scheduleRetentionType: z.enum(['MONTH', 'YEAR', 'NEVER']).optional(),
+  scheduleRetentionValue: z.number().int().min(1).max(12).optional(),
 });
 
 export type UpdateSettingsInput = z.infer<typeof UpdateSettingsSchema>;

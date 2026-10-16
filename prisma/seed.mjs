@@ -75,6 +75,8 @@ async function main() {
       ramadhanDeadlineTime: '15:30',
       requirePhoto: false,
       feedVisibility: 'ALL',
+      scheduleRetentionType: 'MONTH',
+      scheduleRetentionValue: 3,
     },
   });
   console.log('Default system setting seeded successfully.');

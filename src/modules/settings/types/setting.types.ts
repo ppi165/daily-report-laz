@@ -10,5 +10,7 @@ export interface SystemSettingData {
   ramadhanDeadlineTime: string;
   requirePhoto: boolean;
   feedVisibility: string;
+  scheduleRetentionType: string;
+  scheduleRetentionValue: number;
   updatedAt: Date | string;
 }

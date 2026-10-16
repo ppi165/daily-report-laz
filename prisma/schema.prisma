@@ -87,5 +87,20 @@ model SystemSetting {
   ramadhanDeadlineTime   String   @default("15:30")
   requirePhoto           Boolean  @default(false)
   feedVisibility         String   @default("ALL")
+  scheduleRetentionType  String   @default("MONTH") // "MONTH", "YEAR", "NEVER"
+  scheduleRetentionValue Int      @default(3)
   updatedAt              DateTime @updatedAt
+}
+
+model SpecialSchedule {
+  id           String   @id @default(uuid())
+  name         String
+  startDate    DateTime
+  endDate      DateTime
+  deadlineTime String
+  reminderTime String?
+  description  String?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }

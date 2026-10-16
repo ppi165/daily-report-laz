@@ -3,8 +3,8 @@
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
+import { SpecialSchedulesCard } from "@/src/modules/schedules";
 import { SystemSettingData } from "../types/setting.types";
 
 interface GeneralSettingsTabProps {
@@ -83,47 +83,14 @@ export default function GeneralSettingsTab({ form, onChange }: GeneralSettingsTa
               </span>
             </div>
           </div>
-
-          <Separator className="bg-surface-container" />
-
-          {/* Mode Ramadhan */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl border border-secondary/20 bg-secondary/5">
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-secondary text-[18px]">
-                  bedtime
-                </span>
-                <span className="text-sm font-bold text-on-surface">
-                  Mode Jam Kerja Ramadhan
-                </span>
-              </div>
-              <p className="text-xs text-on-surface-variant leading-relaxed">
-                Aktifkan jika ada penyesuaian jam kerja lebih awal selama bulan suci Ramadhan.
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              {form.isRamadhanMode && (
-                <div className="flex items-center gap-1.5">
-                  <Label htmlFor="ramadhanTime" className="text-xs text-on-surface font-semibold">
-                    Jam:
-                  </Label>
-                  <Input
-                    id="ramadhanTime"
-                    type="time"
-                    value={form.ramadhanDeadlineTime || "15:30"}
-                    onChange={(e) => onChange("ramadhanDeadlineTime", e.target.value)}
-                    className="h-9 w-28 rounded-lg bg-surface-container-lowest border-outline-variant text-xs font-medium"
-                  />
-                </div>
-              )}
-              <Switch
-                checked={Boolean(form.isRamadhanMode)}
-                onCheckedChange={(val) => onChange("isRamadhanMode", val)}
-              />
-            </div>
-          </div>
         </CardContent>
       </Card>
+
+      {/* Card Jadwal Kerja Khusus / Event Dinamis */}
+      <SpecialSchedulesCard
+        retentionType={form.scheduleRetentionType}
+        retentionValue={form.scheduleRetentionValue}
+      />
 
       {/* Card Hari Kerja */}
       <Card className="bg-surface-container-lowest border border-outline-variant/60 rounded-2xl shadow-xs">
