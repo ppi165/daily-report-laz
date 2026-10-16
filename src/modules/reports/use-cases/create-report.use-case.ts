@@ -1,6 +1,7 @@
 import { reportRepository } from '../repositories/report.repository';
 import { CreateReportInput, CreateReportSchema } from '../schemas/create-report.schema';
-import { approvalRepository, MOCK_APPROVERS } from '@/src/modules/approvals';
+import { approvalRepository } from '@/src/modules/approvals';
+import { userRepository } from '@/src/modules/users';
 import { settingRepository } from '@/src/modules/settings';
 
 export class CreateReportUseCase {
@@ -13,8 +14,8 @@ export class CreateReportUseCase {
 
     const settings = await settingRepository.findDefault();
 
-    if (settings.requirePhoto && (!validated.attachments || validated.attachments.length === 0)) {
-      throw new Error('Kebijakan sistem mewajibkan minimal 1 foto lampiran dokumentasi.');
+    if (!validated.attachments || validated.attachments.length === 0) {
+      throw new Error('Dokumentasi foto pekerjaan wajib dilampirkan minimal 1 foto.');
     }
 
     const reportDate = validated.reportDate
@@ -43,19 +44,27 @@ export class CreateReportUseCase {
         }
       }
 
-      const approverIds = validated.approverMockIds || [];
+      const approverIds = (validated.approverMockIds || []).filter((id) => Boolean(id && id.trim()));
       const requiredWitness = settings.clockInRequiredWitness;
+
+      if (approverIds.length < requiredWitness) {
+        throw new Error(
+          requiredWitness === 1
+            ? 'Verifikator saksi wajib dipilih.'
+            : 'Verifikator tidak boleh kosong salah satu atau keduanya.'
+        );
+      }
 
       if (approverIds.length !== requiredWitness) {
         throw new Error(`Clock-in daily report wajib memilih tepat ${requiredWitness} verifikator.`);
       }
 
       if (new Set(approverIds).size !== approverIds.length) {
-        throw new Error('Verifikator tidak boleh orang yang sama.');
+        throw new Error('Verifikator 1 dan Verifikator 2 tidak boleh orang yang sama.');
       }
 
-      const selectedApprovers = approverIds.map((id) => MOCK_APPROVERS.find((a) => a.id === id));
-      if (selectedApprovers.some((a) => !a)) {
+      const selectedApprovers = await userRepository.findByIds(approverIds);
+      if (selectedApprovers.length !== approverIds.length) {
         throw new Error('Data verifikator yang dipilih tidak valid.');
       }
 
@@ -74,9 +83,10 @@ export class CreateReportUseCase {
       await approvalRepository.createManyForReport(
         report.id,
         selectedApprovers.map((a) => ({
-          approverMockId: a!.id,
-          approverName: a!.name,
-          approverDivision: a!.division,
+          approverId: a.id,
+          approverMockId: a.id,
+          approverName: a.name,
+          approverDivision: a.division,
         }))
       );
 

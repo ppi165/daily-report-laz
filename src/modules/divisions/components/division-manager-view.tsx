@@ -3,22 +3,10 @@
 import { useState, useEffect } from "react";
 import AppShell from "@/src/common/components/app-shell";
 import SuccessToast from "@/src/common/components/success-toast";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -33,8 +21,6 @@ import {
   createDivisionAction,
   updateDivisionAction,
   deleteDivisionAction,
-  getUsersForMutationAction,
-  moveUserDivisionAction,
 } from "../index";
 
 interface DivisionItem {
@@ -45,20 +31,9 @@ interface DivisionItem {
   memberCount: number;
 }
 
-interface UserItem {
-  id: string;
-  name: string;
-  email: string;
-  division: string;
-  role: string;
-  position: string | null;
-}
-
 export default function DivisionManagerView() {
   const [divisions, setDivisions] = useState<DivisionItem[]>([]);
-  const [users, setUsers] = useState<UserItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("divisions");
 
   // Dialog State: Tambah / Edit Divisi
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -66,29 +41,21 @@ export default function DivisionManagerView() {
   const [formName, setFormName] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  // Dialog State: Mutasi Pegawai
-  const [mutatingUser, setMutatingUser] = useState<UserItem | null>(null);
-  const [targetDivision, setTargetDivision] = useState("");
-  const [targetPosition, setTargetPosition] = useState("");
+  // Search State
+  const [searchDivision, setSearchDivision] = useState("");
 
-  // Search User
-  const [searchUser, setSearchUser] = useState("");
+  const filteredDivisions = divisions.filter((div) =>
+    div.name.toLowerCase().includes(searchDivision.toLowerCase())
+  );
 
   // Toast
   const [toastMessage, setToastMessage] = useState<{ title: string; desc: string } | null>(null);
 
   const loadData = async () => {
     try {
-      const [divRes, userRes] = await Promise.all([
-        getDivisionsAction(),
-        getUsersForMutationAction(),
-      ]);
-
+      const divRes = await getDivisionsAction();
       if (divRes.success && divRes.data) {
         setDivisions(divRes.data as DivisionItem[]);
-      }
-      if (userRes.success && userRes.data) {
-        setUsers(userRes.data as UserItem[]);
       }
     } catch {
       // Fallback
@@ -101,13 +68,9 @@ export default function DivisionManagerView() {
     let ignore = false;
     async function init() {
       try {
-        const [divRes, userRes] = await Promise.all([
-          getDivisionsAction(),
-          getUsersForMutationAction(),
-        ]);
-        if (!ignore) {
-          if (divRes.success && divRes.data) setDivisions(divRes.data as DivisionItem[]);
-          if (userRes.success && userRes.data) setUsers(userRes.data as UserItem[]);
+        const divRes = await getDivisionsAction();
+        if (!ignore && divRes.success && divRes.data) {
+          setDivisions(divRes.data as DivisionItem[]);
         }
       } catch {
         // Fallback
@@ -190,69 +153,18 @@ export default function DivisionManagerView() {
     }
   };
 
-  // Handler: Mutasi Pegawai
-  const openMutationDialog = (user: UserItem) => {
-    setMutatingUser(user);
-    setTargetDivision(user.division);
-    setTargetPosition(user.position || "");
-  };
-
-  const handleConfirmMutation = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!mutatingUser || !targetDivision) return;
-
-    if (targetDivision === mutatingUser.division && targetPosition === (mutatingUser.position || "")) {
-      alert("Pegawai sudah berada di divisi dan jabatan yang sama.");
-      return;
-    }
-
-    setSubmitting(true);
-    try {
-      const res = await moveUserDivisionAction({
-        userId: mutatingUser.id,
-        newDivision: targetDivision,
-        newPosition: targetPosition.trim() || undefined,
-      });
-
-      if (res.success) {
-        setToastMessage({
-          title: "Mutasi Berhasil",
-          desc: `${mutatingUser.name} kini ditugaskan pada unit ${targetDivision}.`,
-        });
-        setMutatingUser(null);
-        await loadData();
-      } else {
-        alert(res.message || "Gagal memutasikan pegawai.");
-      }
-    } catch {
-      alert("Terjadi kesalahan sistem saat mutasi.");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const filteredUsers = users.filter((u) => {
-    const q = searchUser.toLowerCase().trim();
-    if (!q) return true;
-    return (
-      u.name.toLowerCase().includes(q) ||
-      u.division.toLowerCase().includes(q) ||
-      u.email.toLowerCase().includes(q)
-    );
-  });
-
   return (
-    <AppShell headerTitle="Kelola Divisi & Pegawai" headerBadge="Akses Administrator">
+    <AppShell headerTitle="Master Bidang & Divisi" headerBadge="Akses Administrator">
       <main className="p-4 sm:p-6 lg:p-8 flex-1 flex flex-col items-center">
         <div className="w-full max-w-5xl flex flex-col gap-6">
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h1 className="text-2xl sm:text-3xl font-extrabold text-on-surface tracking-tight mb-1">
-                Manajemen Bidang &amp; Mutasi Pegawai
+                Master Bidang &amp; Divisi
               </h1>
               <p className="text-sm text-on-surface-variant">
-                Otoritas khusus administrator untuk mengelola struktur bidang, koordinator, dan penugasan divisi amil LAZ Persis.
+                Pengelolaan struktur bidang kerja dan unit operasional lembaga amil LAZ Persis.
               </p>
             </div>
 
@@ -260,157 +172,138 @@ export default function DivisionManagerView() {
               onClick={openCreateDialog}
               className="bg-primary-container hover:bg-secondary text-white font-semibold rounded-xl text-sm px-5 h-11 flex items-center justify-center shrink-0 cursor-pointer shadow-sm"
             >
+              <span className="material-symbols-outlined text-[20px] mr-1.5">add</span>
               <span>Tambah Bidang Baru</span>
             </Button>
           </div>
 
-          {/* Banner Otoritas Menggunakan shadcn Alert */}
+          {/* Banner Otoritas */}
           <Alert className="bg-surface-container-lowest border-outline-variant/60 rounded-2xl p-4 sm:p-5 shadow-xs">
             <AlertDescription className="text-xs sm:text-sm text-on-surface-variant leading-relaxed">
-              <span className="font-bold text-on-surface">Hak Akses Lembaga:</span> Pegawai biasa tidak dapat mengubah divisinya sendiri di halaman profil. Seluruh perubahan penugasan divisi dilakukan secara terpusat oleh Admin pada halaman ini untuk menjamin akurasi rekapitulasi pelaporan.
+              <span className="font-bold text-on-surface">Pemisahan Hak Akses:</span> Halaman ini khusus untuk mengatur master struktur divisi. Untuk mutasi amil, perubahan hak akses, identitas, atau reset kata sandi, silakan akses panel terpusat di menu <strong className="text-secondary font-semibold">Kelola Pengguna</strong>.
             </AlertDescription>
           </Alert>
 
-          {/* Tabs Menu */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="bg-surface-container rounded-xl p-1 h-auto flex flex-wrap gap-1">
-              <TabsTrigger value="divisions" className="rounded-lg text-xs font-semibold py-2 px-4 cursor-pointer">
-                <span>Master Bidang &amp; Divisi ({divisions.length})</span>
-              </TabsTrigger>
-              <TabsTrigger value="mutation" className="rounded-lg text-xs font-semibold py-2 px-4 cursor-pointer">
-                <span>Penugasan &amp; Mutasi Pegawai ({users.length})</span>
-              </TabsTrigger>
-            </TabsList>
+          {/* Search & Counter Bar */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+            <div className="relative flex-1 max-w-sm">
+              <span className="material-symbols-outlined absolute left-3 top-2.5 text-outline text-[18px]">
+                search
+              </span>
+              <Input
+                placeholder="Cari nama bidang atau divisi..."
+                value={searchDivision}
+                onChange={(e) => setSearchDivision(e.target.value)}
+                className="pl-9 h-10 text-xs sm:text-sm bg-surface-container-lowest border-outline-variant"
+              />
+            </div>
+            <span className="text-xs text-outline self-center sm:self-auto font-medium">
+              Total {filteredDivisions.length} bidang kerja terdata
+            </span>
+          </div>
 
-            {/* Content Tab 1: Master Divisi */}
-            <TabsContent value="divisions" className="mt-5 flex flex-col gap-4">
-              {loading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <Skeleton className="h-44 rounded-2xl" />
-                  <Skeleton className="h-44 rounded-2xl" />
-                  <Skeleton className="h-44 rounded-2xl" />
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {divisions.map((div) => (
-                    <Card
-                      key={div.id}
-                      className="bg-surface-container-lowest border-outline-variant/60 rounded-2xl p-5 shadow-xs flex flex-col justify-between hover:border-secondary/30 transition-colors gap-3"
-                    >
-                      <CardHeader className="p-0 flex flex-row items-center justify-between gap-2">
-                        <CardTitle className="text-base font-bold text-on-surface">{div.name}</CardTitle>
-                        <Badge variant="secondary" className="bg-surface-container text-on-surface font-semibold text-[11px] border-transparent">
-                          {div.memberCount} Amil
-                        </Badge>
-                      </CardHeader>
-
-                      <Separator className="bg-surface-container" />
-
-                      <CardFooter className="p-0 bg-transparent border-0 flex items-center justify-between">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => openEditDialog(div)}
-                          className="h-8 px-2.5 text-xs text-primary hover:text-secondary hover:bg-surface-container font-semibold flex items-center gap-1 cursor-pointer"
-                        >
-                          <span data-icon="inline-start" className="material-symbols-outlined text-[15px]">edit</span>
-                          <span>Edit</span>
-                        </Button>
-
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          disabled={submitting}
-                          onClick={() => handleDeleteDivision(div)}
-                          className="h-8 px-2.5 text-xs text-error hover:bg-error/10 font-semibold flex items-center gap-1 cursor-pointer"
-                        >
-                          <span data-icon="inline-start" className="material-symbols-outlined text-[15px]">delete</span>
-                          <span>Hapus</span>
-                        </Button>
-                      </CardFooter>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </TabsContent>
-
-            {/* Content Tab 2: Mutasi Pegawai */}
-            <TabsContent value="mutation" className="mt-5 flex flex-col gap-4">
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-                <div className="relative flex-1 max-w-sm">
-                  <span className="material-symbols-outlined absolute left-3 top-2.5 text-outline text-[18px]">
-                    search
-                  </span>
-                  <Input
-                    placeholder="Cari nama pegawai atau divisi..."
-                    value={searchUser}
-                    onChange={(e) => setSearchUser(e.target.value)}
-                    className="pl-9 h-10 text-xs sm:text-sm bg-surface-container-lowest border-outline-variant"
-                  />
-                </div>
-                <span className="text-xs text-outline self-center">
-                  Total {filteredUsers.length} pegawai terdaftar
-                </span>
-              </div>
-
-              {loading ? (
-                <Skeleton className="h-64 rounded-2xl" />
-              ) : (
-                <div className="bg-surface-container-lowest border border-outline-variant/60 rounded-2xl overflow-hidden shadow-xs">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs sm:text-sm">
-                      <thead className="bg-surface-container-low/50 border-b border-surface-container text-outline text-[11px] font-bold uppercase tracking-wider">
-                        <tr>
-                          <th className="py-3.5 px-4 sm:px-6">Nama Pegawai</th>
-                          <th className="py-3.5 px-4 sm:px-6">Divisi Saat Ini</th>
-                          <th className="py-3.5 px-4 sm:px-6">Jabatan / Role</th>
-                          <th className="py-3.5 px-4 sm:px-6 text-right">Aksi Mutasi</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-surface-container/60">
-                        {filteredUsers.map((user) => (
-                          <tr key={user.id} className="hover:bg-surface-container-low/30 transition-colors">
-                            <td className="py-3.5 px-4 sm:px-6">
-                              <div className="font-bold text-on-surface">{user.name}</div>
-                              <div className="text-[11px] text-outline font-mono">{user.email}</div>
+          {/* Tabel Master Divisi */}
+          {loading ? (
+            <Skeleton className="h-64 rounded-2xl" />
+          ) : (
+            <div className="bg-surface-container-lowest border border-outline-variant/60 rounded-2xl overflow-hidden shadow-xs">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs sm:text-sm">
+                  <thead className="bg-surface-container-low/50 border-b border-surface-container text-outline text-[11px] font-bold uppercase tracking-wider">
+                    <tr>
+                      <th className="py-3.5 px-4 sm:px-6 w-14 text-center">No</th>
+                      <th className="py-3.5 px-4 sm:px-6">Nama Bidang &amp; Divisi</th>
+                      <th className="py-3.5 px-4 sm:px-6">Total Personil</th>
+                      <th className="py-3.5 px-4 sm:px-6">Status Operasional</th>
+                      <th className="py-3.5 px-4 sm:px-6 text-right">Aksi Kelola</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-surface-container/60">
+                    {filteredDivisions.length === 0 ? (
+                      <tr>
+                        <td colSpan={5} className="py-10 text-center text-outline text-xs">
+                          Tidak ada data bidang / divisi yang ditemukan.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredDivisions.map((div, idx) => {
+                        const count = div.memberCount ?? 0;
+                        return (
+                          <tr key={div.id} className="hover:bg-surface-container-low/30 transition-colors">
+                            <td className="py-3.5 px-4 sm:px-6 text-center text-outline font-mono text-xs">
+                              {idx + 1}
                             </td>
                             <td className="py-3.5 px-4 sm:px-6">
-                              <Badge className="bg-secondary/15 text-secondary border-secondary/30 text-xs font-semibold">
-                                {user.division}
-                              </Badge>
+                              <div className="font-bold text-on-surface text-sm sm:text-base">
+                                {div.name}
+                              </div>
+                              <div className="text-[11px] text-outline font-mono">
+                                Unit Kerja Resmi LAZ Persis
+                              </div>
                             </td>
-                            <td className="py-3.5 px-4 sm:px-6 text-on-surface-variant font-medium">
-                              <div>{user.position || "Staf Pelaksana"}</div>
-                              <span className="text-[10px] text-outline uppercase font-mono">{user.role}</span>
+                            <td className="py-3.5 px-4 sm:px-6">
+                              <span className="font-bold text-on-surface text-sm">
+                                {count}
+                              </span>{" "}
+                              <span className="text-outline text-xs">Amil</span>
+                            </td>
+                            <td className="py-3.5 px-4 sm:px-6">
+                              {count > 0 ? (
+                                <span className="text-xs font-semibold text-secondary flex items-center gap-1.5">
+                                  <span className="size-1.5 rounded-full bg-secondary"></span>
+                                  Aktif Beroperasi
+                                </span>
+                              ) : (
+                                <span className="text-xs font-medium text-outline flex items-center gap-1.5">
+                                  <span className="size-1.5 rounded-full bg-outline/40"></span>
+                                  Belum Ada Amil
+                                </span>
+                              )}
                             </td>
                             <td className="py-3.5 px-4 sm:px-6 text-right">
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => openMutationDialog(user)}
-                                className="h-8 px-3 text-xs border-outline-variant hover:border-secondary hover:text-secondary rounded-lg font-semibold flex items-center gap-1.5 ml-auto cursor-pointer"
-                              >
-                                <span data-icon="inline-start" className="material-symbols-outlined text-[15px]">swap_horiz</span>
-                                <span>Pindahkan</span>
-                              </Button>
+                              <div className="flex items-center justify-end gap-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => openEditDialog(div)}
+                                  className="h-8 px-2.5 text-xs rounded-lg font-semibold flex items-center gap-1.5 border-outline-variant hover:border-secondary hover:text-secondary cursor-pointer"
+                                >
+                                  <span className="material-symbols-outlined text-[15px]">edit</span>
+                                  <span className="hidden sm:inline">Edit Nama</span>
+                                </Button>
+
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  disabled={submitting}
+                                  onClick={() => handleDeleteDivision(div)}
+                                  className="h-8 px-2.5 text-xs rounded-lg font-semibold flex items-center gap-1.5 border-outline-variant hover:border-error/50 hover:bg-error/10 hover:text-error text-on-surface-variant cursor-pointer"
+                                >
+                                  <span className="material-symbols-outlined text-[15px]">delete</span>
+                                  <span className="hidden sm:inline">Hapus</span>
+                                </Button>
+                              </div>
                             </td>
                           </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
-            </TabsContent>
-          </Tabs>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
 
           {/* Dialog Tambah / Edit Divisi */}
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogContent className="sm:max-w-md bg-surface-container-lowest border-outline-variant">
               <form onSubmit={handleSaveDivision}>
                 <DialogHeader>
-                  <DialogTitle className="text-base font-bold text-on-surface">
-                    {editingDivision ? "Edit Nama Bidang" : "Tambah Bidang Baru"}
+                  <DialogTitle className="text-base font-bold text-on-surface flex items-center gap-2">
+                    <span className="material-symbols-outlined text-secondary text-[22px]">
+                      account_tree
+                    </span>
+                    <span>{editingDivision ? "Edit Nama Bidang" : "Tambah Bidang Baru"}</span>
                   </DialogTitle>
                   <DialogDescription className="text-xs text-on-surface-variant">
                     Tentukan nama bidang atau divisi untuk pengelompokan pelaporan amil.
@@ -451,81 +344,7 @@ export default function DivisionManagerView() {
             </DialogContent>
           </Dialog>
 
-          {/* Dialog Mutasi Pegawai */}
-          <Dialog open={Boolean(mutatingUser)} onOpenChange={(open) => !open && setMutatingUser(null)}>
-            <DialogContent className="sm:max-w-md bg-surface-container-lowest border-outline-variant">
-              <form onSubmit={handleConfirmMutation}>
-                <DialogHeader>
-                  <DialogTitle className="text-base font-bold text-on-surface">
-                    Mutasikan Penugasan Pegawai
-                  </DialogTitle>
-                  <DialogDescription className="text-xs text-on-surface-variant">
-                    Pindahkan unit penugasan amil. Perubahan ini akan segera berlaku pada filter pelaporan harian.
-                  </DialogDescription>
-                </DialogHeader>
-
-                {mutatingUser && (
-                  <div className="flex flex-col gap-4 py-4">
-                    <div className="p-3.5 rounded-xl bg-surface-container border border-outline-variant/60 flex flex-col gap-1">
-                      <div className="text-xs text-outline font-medium">Pegawai yang dimutasikan:</div>
-                      <div className="text-sm font-bold text-on-surface">{mutatingUser.name}</div>
-                      <div className="text-xs text-on-surface-variant">
-                        Divisi Saat Ini: <span className="font-semibold text-secondary">{mutatingUser.division}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col gap-1.5">
-                      <Label className="text-xs font-semibold text-on-surface">Pilih Divisi Tujuan Baru</Label>
-                      <Select value={targetDivision} onValueChange={(val) => { if (val) setTargetDivision(val); }}>
-                        <SelectTrigger className="w-full h-11 text-xs sm:text-sm bg-surface-container-lowest border-outline-variant">
-                          <SelectValue placeholder="Pilih Divisi Baru" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-surface-container-lowest border-outline-variant">
-                          <SelectGroup>
-                            {divisions.map((d) => (
-                              <SelectItem key={d.id} value={d.name}>
-                                {d.name} {d.leaderName ? `(PJ: ${d.leaderName})` : ""}
-                              </SelectItem>
-                            ))}
-                          </SelectGroup>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="flex flex-col gap-1.5">
-                      <Label className="text-xs font-semibold text-on-surface">Jabatan / Posisi Penugasan</Label>
-                      <Input
-                        placeholder="cth: Staf Pelaksana, Koordinator Lapangan..."
-                        value={targetPosition}
-                        onChange={(e) => setTargetPosition(e.target.value)}
-                        className="text-xs sm:text-sm h-11 bg-surface-container-lowest border-outline-variant"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                <DialogFooter className="flex sm:justify-end gap-2 pt-2">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    onClick={() => setMutatingUser(null)}
-                    disabled={submitting}
-                    className="text-xs h-9 cursor-pointer"
-                  >
-                    Batal
-                  </Button>
-                  <Button
-                    type="submit"
-                    disabled={submitting || targetDivision === mutatingUser?.division}
-                    className="bg-primary-container hover:bg-secondary text-white text-xs h-9 font-semibold cursor-pointer"
-                  >
-                    {submitting ? "Memproses..." : "Konfirmasi Mutasi"}
-                  </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
-
+          {/* Toast Notification */}
           {toastMessage && (
             <SuccessToast
               title={toastMessage.title}

@@ -4,40 +4,9 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('Seeding database...');
-  
-  // Periksa apakah admin sudah ada
-  const existingAdmin = await prisma.user.findUnique({
-    where: { username: 'admin' }
-  });
-  
-  // Update atau buat admin user
-  if (!existingAdmin) {
-    const hashedPassword = await bcrypt.hash('admin123', 10);
-    await prisma.user.create({
-      data: {
-        email: 'admin@lazpersis.or.id',
-        username: 'admin',
-        password: hashedPassword,
-        name: 'Administrator',
-        division: 'Pusat',
-        role: 'ADMIN',
-        position: 'Super Admin',
-      }
-    });
-    console.log('Admin user created.');
-  } else {
-    await prisma.user.update({
-      where: { username: 'admin' },
-      data: {
-        role: 'ADMIN',
-        position: 'Super Admin',
-      }
-    });
-    console.log('Admin user updated with ADMIN role.');
-  }
+  console.log('Seeding database with 4 RBAC Roles and Divisions...');
 
-  // Seed default divisions
+  // 1. Seed Default Divisions
   const defaultDivisions = [
     { name: 'Pusat', description: 'Direksi dan Pimpinan Pusat Lembaga', leaderName: 'Ustadz H. Ahmad' },
     { name: 'Humas', description: 'Publikasi Media, Dokumentasi, & Kehumasan', leaderName: 'Nabila Putri' },
@@ -59,7 +28,72 @@ async function main() {
   }
   console.log('Default divisions seeded successfully.');
 
-  // Seed default system setting
+  // 2. Seed 4 Primary Accounts with distinct RBAC Roles
+  const primaryAccounts = [
+    {
+      username: 'superadmin',
+      email: 'superadmin@lazpersis.or.id',
+      plainPassword: 'superadmin123',
+      name: 'Admin Aplikasi',
+      division: 'IT',
+      role: 'SUPERADMIN',
+      position: 'System Administrator (Root)',
+    },
+    {
+      username: 'admin',
+      email: 'admin@lazpersis.or.id',
+      plainPassword: 'admin123',
+      name: 'Ustadz H. Ahmad',
+      division: 'Pusat',
+      role: 'ADMIN',
+      position: 'Pimpinan Pusat',
+    },
+    {
+      username: 'supervisor',
+      email: 'supervisor@lazpersis.or.id',
+      plainPassword: 'supervisor123',
+      name: 'Dedi Kurniawan',
+      division: 'Program',
+      role: 'SUPERVISOR',
+      position: 'Koordinator Program',
+    },
+    {
+      username: 'staff',
+      email: 'staff@lazpersis.or.id',
+      plainPassword: 'staff123',
+      name: 'Siti Rahma',
+      division: 'Humas',
+      role: 'STAFF',
+      position: 'Staf Humas & Media',
+    },
+  ];
+
+  for (const acc of primaryAccounts) {
+    const hashedPassword = await bcrypt.hash(acc.plainPassword, 10);
+    await prisma.user.upsert({
+      where: { username: acc.username },
+      update: {
+        email: acc.email,
+        name: acc.name,
+        division: acc.division,
+        role: acc.role,
+        position: acc.position,
+        password: hashedPassword,
+      },
+      create: {
+        username: acc.username,
+        email: acc.email,
+        name: acc.name,
+        division: acc.division,
+        role: acc.role,
+        position: acc.position,
+        password: hashedPassword,
+      },
+    });
+    console.log(`User [${acc.role}] ${acc.name} (${acc.username}) seeded successfully.`);
+  }
+
+  // 3. Seed Default System Setting
   await prisma.systemSetting.upsert({
     where: { id: 'default' },
     update: {},

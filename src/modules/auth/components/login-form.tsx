@@ -38,6 +38,10 @@ export default function LoginForm() {
         throw new Error(data.message || 'Gagal masuk. Periksa kembali kredensial Anda.');
       }
 
+      if (typeof window !== 'undefined' && data.data) {
+        localStorage.setItem('laz_user_profile', JSON.stringify(data.data));
+      }
+
       router.push('/dashboard');
     } catch (err: unknown) {
       if (err instanceof Error) {
@@ -197,7 +201,7 @@ export default function LoginForm() {
 
           <Separator className="bg-surface-container-high" />
 
-          <CardFooter className="p-0 bg-transparent border-0 justify-center">
+          <CardFooter className="p-0 pb-6 sm:pb-8 pt-1 bg-transparent border-0 justify-center">
             <span className="text-xs text-on-surface-variant tracking-normal">
               Internal Lazis Persis • Akses Terenkripsi
             </span>

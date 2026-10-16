@@ -1,16 +1,16 @@
 "use client";
 
-import { MOCK_APPROVERS } from "../constants/mock-approvers";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import ApproverSearchSelect from "./approver-search-select";
+
+export interface ApproverOption {
+  id: string;
+  name: string;
+  division: string;
+  role: string;
+  position?: string | null;
+}
 
 interface ClockInApproverSelectProps {
   approver1: string;
@@ -18,6 +18,7 @@ interface ClockInApproverSelectProps {
   onChangeApprover1: (id: string) => void;
   onChangeApprover2: (id: string) => void;
   requiredCount?: number;
+  approvers?: ApproverOption[];
 }
 
 export default function ClockInApproverSelect({
@@ -26,13 +27,16 @@ export default function ClockInApproverSelect({
   onChangeApprover1,
   onChangeApprover2,
   requiredCount = 2,
+  approvers = [],
 }: ClockInApproverSelectProps) {
   const isSingle = requiredCount === 1;
   const isSame = Boolean(!isSingle && approver1 && approver2 && approver1 === approver2);
   const isValid = isSingle ? Boolean(approver1) : Boolean(approver1 && approver2 && !isSame);
 
-  const selected1 = MOCK_APPROVERS.find((a) => a.id === approver1);
-  const selected2 = MOCK_APPROVERS.find((a) => a.id === approver2);
+  const approverList = approvers;
+
+  const selected1 = approverList.find((a) => a.id === approver1);
+  const selected2 = approverList.find((a) => a.id === approver2);
 
   return (
     <div className="flex flex-col gap-4 rounded-2xl p-5 border border-outline-variant/60 bg-surface-container-low/40">
@@ -47,50 +51,36 @@ export default function ClockInApproverSelect({
         </p>
       </div>
 
-      <div className={`grid grid-cols-1 ${isSingle ? "max-w-md" : "sm:grid-cols-2"} gap-4 pt-1`}>
+      <div className={`grid grid-cols-1 ${isSingle ? "w-full sm:max-w-md" : "sm:grid-cols-2"} gap-4 pt-1`}>
         {/* Verifikator 1 */}
         <div className="flex flex-col gap-1.5">
-          <Label className="text-xs font-semibold text-on-surface">
-            {isSingle ? "Verifikator" : "Verifikator 1"}
+          <Label className="text-xs font-semibold text-on-surface flex items-center gap-1">
+            <span>{isSingle ? "Verifikator" : "Verifikator 1"}</span>
+            <span className="text-error font-bold" title="Wajib dipilih">*</span>
           </Label>
-          <Select value={approver1} onValueChange={(val) => { if (val) onChangeApprover1(val); }}>
-            <SelectTrigger className="w-full h-11 px-3 rounded-xl bg-surface-container-lowest border-outline-variant text-on-surface text-sm">
-              <SelectValue placeholder={isSingle ? "Pilih Rekan / Atasan" : "Pilih Rekan / Atasan 1"} />
-            </SelectTrigger>
-            <SelectContent className="bg-surface-container-lowest border-outline-variant">
-              <SelectGroup>
-                {MOCK_APPROVERS.map((approver) => (
-                  <SelectItem key={approver.id} value={approver.id}>
-                    <span className="font-medium">{approver.name}</span>
-                    <span className="text-xs text-outline ml-1.5">({approver.role})</span>
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
+          <ApproverSearchSelect
+            value={approver1}
+            onChange={onChangeApprover1}
+            approvers={approverList}
+            placeholder={isSingle ? "Cari nama, divisi, jabatan..." : "Cari Verifikator 1..."}
+            disabledId={!isSingle ? approver2 : undefined}
+          />
         </div>
 
         {/* Verifikator 2 */}
         {!isSingle && (
           <div className="flex flex-col gap-1.5">
-            <Label className="text-xs font-semibold text-on-surface">
-              Verifikator 2
+            <Label className="text-xs font-semibold text-on-surface flex items-center gap-1">
+              <span>Verifikator 2</span>
+              <span className="text-error font-bold" title="Wajib dipilih">*</span>
             </Label>
-            <Select value={approver2} onValueChange={(val) => { if (val) onChangeApprover2(val); }}>
-              <SelectTrigger className="w-full h-11 px-3 rounded-xl bg-surface-container-lowest border-outline-variant text-on-surface text-sm">
-                <SelectValue placeholder="Pilih Rekan / Atasan 2" />
-              </SelectTrigger>
-              <SelectContent className="bg-surface-container-lowest border-outline-variant">
-                <SelectGroup>
-                  {MOCK_APPROVERS.map((approver) => (
-                    <SelectItem key={approver.id} value={approver.id}>
-                      <span className="font-medium">{approver.name}</span>
-                      <span className="text-xs text-outline ml-1.5">({approver.role})</span>
-                    </SelectItem>
-                  ))}
-                </SelectGroup>
-              </SelectContent>
-            </Select>
+            <ApproverSearchSelect
+              value={approver2}
+              onChange={onChangeApprover2}
+              approvers={approverList}
+              placeholder="Cari Verifikator 2..."
+              disabledId={approver1}
+            />
           </div>
         )}
       </div>
@@ -107,16 +97,21 @@ export default function ClockInApproverSelect({
       {/* Status ringkas verifikator terpilih */}
       {isValid && (
         <div className="flex flex-wrap items-center gap-2 pt-1 text-xs text-on-surface-variant">
-          <span className="font-semibold text-on-surface">Pihak Verifikator:</span>
+          <span className="font-semibold text-on-surface">Pihak Verifikator Terpilih:</span>
           {selected1 && (
-            <span className="px-2 py-0.5 rounded-lg bg-surface-container border border-outline-variant text-on-surface font-medium">
-              {isSingle ? "" : "1. "}
-              {selected1.name} ({selected1.division})
+            <span className="text-xs text-on-surface font-medium flex items-center gap-1">
+              <span className="material-symbols-outlined text-secondary text-[16px]">verified</span>
+              <span>{isSingle ? "" : "1. "}</span>
+              <strong className="text-secondary">{selected1.name}</strong>
+              <span className="text-outline">({selected1.division})</span>
             </span>
           )}
           {!isSingle && selected2 && (
-            <span className="px-2 py-0.5 rounded-lg bg-surface-container border border-outline-variant text-on-surface font-medium">
-              2. {selected2.name} ({selected2.division})
+            <span className="text-xs text-on-surface font-medium flex items-center gap-1">
+              <span className="material-symbols-outlined text-secondary text-[16px]">verified</span>
+              <span>2. </span>
+              <strong className="text-secondary">{selected2.name}</strong>
+              <span className="text-outline">({selected2.division})</span>
             </span>
           )}
         </div>

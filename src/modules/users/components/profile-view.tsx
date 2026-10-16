@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import AppShell from "@/src/common/components/app-shell";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,22 +12,29 @@ import { Separator } from "@/components/ui/separator";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
+import { useUser } from "@/src/common/context/user-context";
+
 interface UserProfile {
   name: string;
+  username: string;
   email: string;
   division: string;
+  role: string;
   joinDate: string;
   bio: string;
 }
 
 export default function ProfileView() {
-  const [formData, setFormData] = useState<UserProfile>({
-    name: "Ahmad Fauzi",
-    email: "fauzi@lazpersis.or.id",
-    division: "Humas",
+  const { user } = useUser();
+  const [formData, setFormData] = useState<UserProfile>(() => ({
+    name: user?.name || "Memuat...",
+    username: user?.username || "",
+    email: user?.email || "",
+    division: user?.division || "Lembaga",
+    role: user?.role || "STAFF",
     joinDate: "Januari 2024",
-    bio: "Bertanggung jawab pada pengelolaan publikasi online, media sosial, serta dokumentasi kegiatan penyaluran donasi dan zakat lembaga.",
-  });
+    bio: "Amil aktif pada Lembaga Amil Zakat Persatuan Islam (LAZ Persis).",
+  }));
 
   const [passwordData, setPasswordData] = useState({
     currentPassword: "",
@@ -39,28 +45,17 @@ export default function ProfileView() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    let ignore = false;
-    const fetchProfile = async () => {
-      try {
-        const res = await fetch("/api/v1/users/me");
-        const json = await res.json();
-        if (!ignore && json.success && json.data) {
-          setFormData((prev) => ({
-            ...prev,
-            name: json.data.name || prev.name,
-            email: json.data.email || prev.email,
-            division: json.data.division || prev.division,
-          }));
-        }
-      } catch (err) {
-        console.error("Failed to load user profile:", err);
-      }
-    };
-    fetchProfile();
-    return () => {
-      ignore = true;
-    };
-  }, []);
+    if (user) {
+      setFormData((prev) => ({
+        ...prev,
+        name: user.name || prev.name,
+        username: user.username || prev.username,
+        email: user.email || prev.email,
+        division: user.division || prev.division,
+        role: user.role || prev.role,
+      }));
+    }
+  }, [user]);
 
   const handleInputChange = (field: keyof UserProfile, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -153,9 +148,9 @@ export default function ProfileView() {
                   </p>
 
                   <div className="flex items-center gap-1.5 mt-2.5">
-                    <Badge variant="secondary" className="px-2.5 py-0.5 text-xs font-semibold bg-secondary/15 text-secondary border-transparent">
+                    <span className="text-xs font-semibold text-secondary">
                       Unit {formData.division}
-                    </Badge>
+                    </span>
                   </div>
 
                   <div className="w-full mt-6 flex flex-col gap-3 text-left">
@@ -166,11 +161,19 @@ export default function ProfileView() {
                     </div>
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-outline">Peran Akun</span>
-                      <span className="font-semibold text-on-surface">Staf Pelaksana</span>
+                      <span className="font-semibold text-on-surface uppercase font-mono">{formData.role}</span>
                     </div>
                     <div className="flex items-center justify-between text-xs">
                       <span className="text-outline">Tipe Hak Akses</span>
-                      <span className="font-semibold text-secondary">Amil Mandiri</span>
+                      <span className="font-semibold text-secondary">
+                        {formData.role === "SUPERADMIN"
+                          ? "Root IT Owner"
+                          : formData.role === "ADMIN"
+                          ? "Pimpinan Pusat"
+                          : formData.role === "SUPERVISOR"
+                          ? "Koordinator Bidang"
+                          : "Amil Pelaksana"}
+                      </span>
                     </div>
                   </div>
 
@@ -199,26 +202,29 @@ export default function ProfileView() {
 
             <div className="lg:col-span-2 flex flex-col gap-6">
               <Tabs defaultValue="biodata" className="w-full">
-                <TabsList className="bg-transparent border-b border-outline-variant/60 pb-1 rounded-none p-0 h-auto gap-2 flex-wrap justify-start">
+                <TabsList className="bg-surface-container-low/70 border border-outline-variant/60 p-1 rounded-xl h-auto grid grid-cols-3 w-full">
                   <TabsTrigger
                     value="biodata"
-                    className="flex items-center px-4 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer whitespace-nowrap data-[state=active]:bg-primary-container data-[state=active]:text-white data-[state=active]:shadow-sm text-on-surface-variant hover:text-on-surface"
+                    className="flex items-center justify-center py-2 sm:py-2.5 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer data-[state=active]:bg-surface-container-lowest data-[state=active]:text-secondary data-[state=active]:shadow-xs text-on-surface-variant hover:text-on-surface"
                   >
-                    <span>Data Diri &amp; Kepegawaian</span>
+                    <span className="hidden sm:inline">Data Diri &amp; Kepegawaian</span>
+                    <span className="sm:hidden">Data Diri</span>
                   </TabsTrigger>
 
                   <TabsTrigger
                     value="kinerja"
-                    className="flex items-center px-4 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer whitespace-nowrap data-[state=active]:bg-primary-container data-[state=active]:text-white data-[state=active]:shadow-sm text-on-surface-variant hover:text-on-surface"
+                    className="flex items-center justify-center py-2 sm:py-2.5 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer data-[state=active]:bg-surface-container-lowest data-[state=active]:text-secondary data-[state=active]:shadow-xs text-on-surface-variant hover:text-on-surface"
                   >
-                    <span>Kinerja &amp; Riwayat Laporan</span>
+                    <span className="hidden sm:inline">Kinerja &amp; Riwayat</span>
+                    <span className="sm:hidden">Kinerja</span>
                   </TabsTrigger>
 
                   <TabsTrigger
                     value="keamanan"
-                    className="flex items-center px-4 py-2.5 rounded-xl text-sm font-semibold transition-all cursor-pointer whitespace-nowrap data-[state=active]:bg-primary-container data-[state=active]:text-white data-[state=active]:shadow-sm text-on-surface-variant hover:text-on-surface"
+                    className="flex items-center justify-center py-2 sm:py-2.5 px-2 sm:px-3 rounded-lg text-xs sm:text-sm font-semibold transition-all cursor-pointer data-[state=active]:bg-surface-container-lowest data-[state=active]:text-secondary data-[state=active]:shadow-xs text-on-surface-variant hover:text-on-surface"
                   >
-                    <span>Keamanan Akun</span>
+                    <span className="hidden sm:inline">Keamanan Akun</span>
+                    <span className="sm:hidden">Keamanan</span>
                   </TabsTrigger>
                 </TabsList>
 
@@ -250,21 +256,7 @@ export default function ProfileView() {
 
                           <div className="flex flex-col gap-1.5">
                             <Label className="text-xs sm:text-sm font-semibold text-on-surface">
-                              Email
-                            </Label>
-                            <Input
-                              type="email"
-                              readOnly
-                              value={formData.email}
-                              className="w-full h-[42px] px-3.5 rounded-xl bg-surface-container border-outline-variant/60 text-outline text-sm cursor-not-allowed select-none"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                          <div className="flex flex-col gap-1.5">
-                            <Label className="text-xs sm:text-sm font-semibold text-on-surface">
-                              Bidang / Divisi
+                              Bidang / Divisi Penugasan
                             </Label>
                             <Input
                               type="text"
@@ -272,9 +264,45 @@ export default function ProfileView() {
                               value={`Unit ${formData.division}`}
                               className="w-full h-[42px] px-3.5 rounded-xl bg-surface-container border-outline-variant/60 text-outline text-sm cursor-not-allowed select-none font-medium"
                             />
-                            <p className="text-[11px] text-outline mt-0.5">
-                              Penetapan bidang hanya dapat diubah oleh Admin/SDM melalui sistem mutasi.
-                            </p>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-4 rounded-2xl bg-surface-container-low/40 border border-outline-variant/60">
+                          <div className="flex flex-col gap-1.5">
+                            <div className="flex items-center justify-between">
+                              <Label className="text-xs sm:text-sm font-semibold text-on-surface flex items-center gap-1.5">
+                                <span className="material-symbols-outlined text-[16px] text-outline">lock</span>
+                                <span>Username Login</span>
+                              </Label>
+                              <span className="text-[10px] font-semibold text-outline uppercase tracking-wider">Terkunci</span>
+                            </div>
+                            <Input
+                              type="text"
+                              readOnly
+                              value={formData.username}
+                              className="w-full h-[42px] px-3.5 rounded-xl bg-surface-container/70 border-outline-variant/60 text-outline text-sm cursor-not-allowed select-none font-mono"
+                            />
+                          </div>
+
+                          <div className="flex flex-col gap-1.5">
+                            <div className="flex items-center justify-between">
+                              <Label className="text-xs sm:text-sm font-semibold text-on-surface flex items-center gap-1.5">
+                                <span className="material-symbols-outlined text-[16px] text-outline">lock</span>
+                                <span>Email Terdaftar</span>
+                              </Label>
+                              <span className="text-[10px] font-semibold text-outline uppercase tracking-wider">Terkunci</span>
+                            </div>
+                            <Input
+                              type="email"
+                              readOnly
+                              value={formData.email}
+                              className="w-full h-[42px] px-3.5 rounded-xl bg-surface-container/70 border-outline-variant/60 text-outline text-sm cursor-not-allowed select-none font-mono"
+                            />
+                          </div>
+
+                          <div className="sm:col-span-2 text-[11px] text-outline flex items-center gap-1.5 pt-0.5">
+                            <span className="material-symbols-outlined text-[15px] text-amber-500">info</span>
+                            <span>Username dan Email dikunci permanen untuk amil demi integritas data dan riwayat pelaporan. Hanya Admin atau Superadmin yang berwenang mengubahnya.</span>
                           </div>
                         </div>
 
@@ -349,9 +377,9 @@ export default function ProfileView() {
                           <span className="text-xs font-semibold text-secondary">
                             Senin, 28 Sep 2026 • 15:30 WIB
                           </span>
-                          <Badge variant="secondary" className="px-2 py-0.5 text-[11px] font-bold bg-secondary/15 text-secondary border-transparent">
+                          <span className="text-xs font-bold font-mono uppercase text-secondary">
                             PUBLISHED
-                          </Badge>
+                          </span>
                         </div>
                         <p className="text-xs sm:text-sm text-on-surface line-clamp-2 leading-relaxed">
                           Membuat desain materi publikasi untuk kegiatan tabligh akbar dan distribusi logistik zakat produktif, serta mendokumentasikan liputan bersama relawan.
@@ -368,9 +396,9 @@ export default function ProfileView() {
                           <span className="text-xs font-semibold text-secondary">
                             Jumat, 25 Sep 2026 • 16:15 WIB
                           </span>
-                          <Badge variant="secondary" className="px-2 py-0.5 text-[11px] font-bold bg-secondary/15 text-secondary border-transparent">
+                          <span className="text-xs font-bold font-mono uppercase text-secondary">
                             PUBLISHED
-                          </Badge>
+                          </span>
                         </div>
                         <p className="text-xs sm:text-sm text-on-surface line-clamp-2 leading-relaxed">
                           Penyusunan press release hasil audit penyaluran zakat kuartal 3 dan koordinasi liputan media partner.

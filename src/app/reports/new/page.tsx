@@ -1,10 +1,4 @@
-import ReportForm from "@/src/modules/reports/components/report-form";
-import type { Metadata } from "next";
-
-export const metadata: Metadata = {
-  title: "Input Daily Report - LAZ Persis",
-  description: "Formulir Pelaporan Harian Pegawai LAZ Persis",
-};
+import { redirect } from "next/navigation";
 
 interface NewReportPageProps {
   searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -12,8 +6,18 @@ interface NewReportPageProps {
 
 export default async function NewReportPage({ searchParams }: NewReportPageProps) {
   const resolvedParams = searchParams ? await searchParams : {};
-  const urlMode = resolvedParams.mode || resolvedParams.type;
-  const initialMode = urlMode === "clock-in" ? "clock-in" : "today";
+  const query = new URLSearchParams();
 
-  return <ReportForm initialMode={initialMode} />;
+  for (const [key, val] of Object.entries(resolvedParams)) {
+    if (typeof val === "string") {
+      query.set(key, val);
+    } else if (Array.isArray(val) && val[0]) {
+      query.set(key, val[0]);
+    }
+  }
+
+  const queryString = query.toString();
+  const target = queryString ? `/daily-report?${queryString}` : "/daily-report";
+
+  redirect(target);
 }

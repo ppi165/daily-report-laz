@@ -89,25 +89,27 @@ export default function SettingsView({ initialSettings }: SettingsViewProps) {
 
       {/* Tabs Menu */}
       <Tabs value={activeTab} onValueChange={(val) => val && setActiveTab(val)}>
-        <TabsList className="bg-surface-container-low/70 border border-outline-variant/60 p-1 rounded-xl w-full sm:w-auto h-auto grid grid-cols-2">
+        <TabsList className="bg-surface-container-low/70 border border-outline-variant/60 p-1 rounded-xl w-full sm:w-fit h-auto grid grid-cols-2 sm:inline-flex gap-1">
           <TabsTrigger
             value="general"
-            className="flex items-center justify-center gap-2 py-2.5 px-4 text-xs sm:text-sm font-semibold rounded-lg data-[state=active]:bg-surface-container-lowest data-[state=active]:text-secondary data-[state=active]:shadow-xs transition-all cursor-pointer"
+            className="flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 px-3 sm:px-4 text-xs sm:text-sm font-semibold rounded-lg data-[state=active]:bg-surface-container-lowest data-[state=active]:text-secondary data-[state=active]:shadow-xs transition-all cursor-pointer"
           >
             <span className="material-symbols-outlined text-[18px]">
               schedule
             </span>
-            <span>Jadwal & Batas Pelaporan</span>
+            <span className="hidden sm:inline">Jadwal & Batas Pelaporan</span>
+            <span className="sm:hidden">Batas Pelaporan</span>
           </TabsTrigger>
 
           <TabsTrigger
             value="clock-in"
-            className="flex items-center justify-center gap-2 py-2.5 px-4 text-xs sm:text-sm font-semibold rounded-lg data-[state=active]:bg-surface-container-lowest data-[state=active]:text-secondary data-[state=active]:shadow-xs transition-all cursor-pointer"
+            className="flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 px-3 sm:px-4 text-xs sm:text-sm font-semibold rounded-lg data-[state=active]:bg-surface-container-lowest data-[state=active]:text-secondary data-[state=active]:shadow-xs transition-all cursor-pointer"
           >
             <span className="material-symbols-outlined text-[18px]">
               history_toggle_off
             </span>
-            <span>Kebijakan Clock-In & Privasi</span>
+            <span className="hidden sm:inline">Kebijakan Clock-In & Privasi</span>
+            <span className="sm:hidden">Clock-In & Privasi</span>
           </TabsTrigger>
         </TabsList>
 

@@ -3,15 +3,33 @@
 import { useEffect, useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
-export default function DashboardStats() {
-  const [stats, setStats] = useState({
-    totalReports: 0,
-    activeUsers: 0,
-    totalUsers: 0,
-    completionRate: 0,
+interface DashboardStatsProps {
+  initialData?: {
+    totalReports: number;
+    activeUsers: number;
+    totalUsers: number;
+    completionRate: number;
+  } | null;
+}
+
+export default function DashboardStats({ initialData }: DashboardStatsProps) {
+  const [stats, setStats] = useState(() => {
+    return (
+      initialData ?? {
+        totalReports: 0,
+        activeUsers: 0,
+        totalUsers: 0,
+        completionRate: 0,
+      }
+    );
   });
 
   useEffect(() => {
+    if (initialData !== undefined && initialData !== null) {
+      setStats(initialData);
+      return;
+    }
+
     let ignore = false;
     const fetchStats = async () => {
       try {
@@ -28,11 +46,11 @@ export default function DashboardStats() {
     return () => {
       ignore = true;
     };
-  }, []);
+  }, [initialData]);
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
-      <Card className="bg-surface-container-lowest/80 backdrop-blur-xs p-5 rounded-2xl border-outline-variant/50 shadow-none hover:shadow-xs transition-shadow relative overflow-hidden flex flex-col justify-between gap-3">
+      <Card className="bg-surface-container-lowest/80 backdrop-blur-xs p-5 rounded-2xl border-outline-variant/50 shadow-none hover:shadow-xs transition-shadow relative overflow-hidden flex flex-col gap-2.5">
         <div className="h-1 w-full bg-primary-container absolute top-0 left-0"></div>
         <CardHeader className="p-0">
           <span className="text-[11px] font-bold uppercase tracking-wider text-outline">
@@ -52,7 +70,7 @@ export default function DashboardStats() {
         </CardContent>
       </Card>
 
-      <Card className="bg-surface-container-lowest/80 backdrop-blur-xs p-5 rounded-2xl border-outline-variant/50 shadow-none hover:shadow-xs transition-shadow relative overflow-hidden flex flex-col justify-between gap-3">
+      <Card className="bg-surface-container-lowest/80 backdrop-blur-xs p-5 rounded-2xl border-outline-variant/50 shadow-none hover:shadow-xs transition-shadow relative overflow-hidden flex flex-col gap-2.5">
         <div className="h-1 w-full bg-secondary absolute top-0 left-0"></div>
         <CardHeader className="p-0">
           <span className="text-[11px] font-bold uppercase tracking-wider text-outline">
@@ -69,7 +87,7 @@ export default function DashboardStats() {
         </CardContent>
       </Card>
 
-      <Card className="bg-surface-container-lowest/80 backdrop-blur-xs p-5 rounded-2xl border-outline-variant/50 shadow-none hover:shadow-xs transition-shadow relative overflow-hidden flex flex-col justify-between gap-3">
+      <Card className="bg-surface-container-lowest/80 backdrop-blur-xs p-5 rounded-2xl border-outline-variant/50 shadow-none hover:shadow-xs transition-shadow relative overflow-hidden flex flex-col gap-2.5">
         <div className="h-1 w-full bg-primary absolute top-0 left-0"></div>
         <CardHeader className="p-0">
           <span className="text-[11px] font-bold uppercase tracking-wider text-outline">

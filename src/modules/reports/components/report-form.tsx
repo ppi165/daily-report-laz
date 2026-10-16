@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
+import { useUser } from "@/src/common/context/user-context";
 
 interface UploadedFile {
   url: string;
@@ -19,8 +20,22 @@ interface UploadedFile {
   savedPercentage?: string;
 }
 
+interface InitialSettingsProps {
+  clockInMaxDays?: number;
+  clockInRequiredWitness?: number;
+  requirePhoto?: boolean;
+}
+
 interface ReportFormProps {
   initialMode?: "today" | "clock-in";
+  initialSettings?: InitialSettingsProps;
+  availableApprovers?: Array<{
+    id: string;
+    name: string;
+    division: string;
+    role: string;
+    position?: string | null;
+  }>;
 }
 
 const getTodayString = () => {
@@ -49,9 +64,14 @@ const getHMinusDaysString = (days: number) => {
   return `${year}-${month}-${day}`;
 };
 
-export default function ReportForm({ initialMode = "today" }: ReportFormProps) {
+export default function ReportForm({
+  initialMode = "today",
+  initialSettings,
+  availableApprovers,
+}: ReportFormProps) {
+  const { user } = useUser();
   const [mode, setMode] = useState<"today" | "clock-in">(initialMode);
-  const [division] = useState("Humas");
+  const division = user?.division || "Lembaga";
   const [selectedDate, setSelectedDate] = useState<string>(() =>
     initialMode === "clock-in" ? getYesterdayString() : getTodayString()
   );
@@ -61,9 +81,9 @@ export default function ReportForm({ initialMode = "today" }: ReportFormProps) {
     clockInRequiredWitness: number;
     requirePhoto: boolean;
   }>({
-    clockInMaxDays: 3,
-    clockInRequiredWitness: 2,
-    requirePhoto: false,
+    clockInMaxDays: initialSettings?.clockInMaxDays ?? 3,
+    clockInRequiredWitness: initialSettings?.clockInRequiredWitness ?? 2,
+    requirePhoto: Boolean(initialSettings?.requirePhoto),
   });
 
   useEffect(() => {
@@ -79,6 +99,8 @@ export default function ReportForm({ initialMode = "today" }: ReportFormProps) {
   }, [mode]);
 
   useEffect(() => {
+    if (initialSettings) return;
+
     async function loadSettings() {
       try {
         const res = await fetch("/api/v1/settings");
@@ -95,7 +117,7 @@ export default function ReportForm({ initialMode = "today" }: ReportFormProps) {
       }
     }
     loadSettings();
-  }, []);
+  }, [initialSettings]);
 
   const [approver1, setApprover1] = useState("");
   const [approver2, setApprover2] = useState("");
@@ -107,6 +129,17 @@ export default function ReportForm({ initialMode = "today" }: ReportFormProps) {
   const [loading, setLoading] = useState(false);
 
   const isClockIn = mode === "clock-in";
+
+  const isFormIncomplete =
+    !tasks.trim() ||
+    !results.trim() ||
+    !uploadedPhoto ||
+    uploading ||
+    loading ||
+    (isClockIn &&
+      (settings.clockInRequiredWitness === 1
+        ? !approver1
+        : !approver1 || !approver2 || approver1 === approver2));
 
   const handleModeChange = (newMode: "today" | "clock-in") => {
     setMode(newMode);
@@ -172,8 +205,8 @@ export default function ReportForm({ initialMode = "today" }: ReportFormProps) {
       return;
     }
 
-    if (settings.requirePhoto && !uploadedPhoto) {
-      alert("Dokumentasi foto pekerjaan wajib diunggah sesuai kebijakan sistem!");
+    if (!uploadedPhoto) {
+      alert("Dokumentasi foto pekerjaan wajib diunggah!");
       return;
     }
 
@@ -185,7 +218,7 @@ export default function ReportForm({ initialMode = "today" }: ReportFormProps) {
         }
       } else {
         if (!approver1 || !approver2) {
-          alert("Pilih 2 orang saksi/atasan untuk memverifikasi clock-in daily report Anda!");
+          alert("Verifikator tidak boleh kosong salah satu atau keduanya! Pilih 2 orang saksi/atasan.");
           return;
         }
         if (approver1 === approver2) {
@@ -258,16 +291,16 @@ export default function ReportForm({ initialMode = "today" }: ReportFormProps) {
             onValueChange={(val) => handleModeChange(val as "today" | "clock-in")}
             className="w-full"
           >
-            <TabsList className="bg-surface-container rounded-xl p-1 h-auto flex flex-wrap gap-1">
+            <TabsList className="bg-surface-container-low/80 border border-outline-variant/60 rounded-xl p-1 h-auto inline-flex w-full sm:w-fit gap-1">
               <TabsTrigger
                 value="today"
-                className="rounded-lg text-xs sm:text-sm font-semibold py-2 px-4 cursor-pointer"
+                className="flex-1 sm:flex-initial rounded-lg text-xs sm:text-sm font-semibold py-2 px-4 cursor-pointer"
               >
                 Hari Ini
               </TabsTrigger>
               <TabsTrigger
                 value="clock-in"
-                className="rounded-lg text-xs sm:text-sm font-semibold py-2 px-4 cursor-pointer"
+                className="flex-1 sm:flex-initial rounded-lg text-xs sm:text-sm font-semibold py-2 px-4 cursor-pointer"
               >
                 Pengajuan Clock-In
               </TabsTrigger>
@@ -303,10 +336,11 @@ export default function ReportForm({ initialMode = "today" }: ReportFormProps) {
 
                 <div className="flex flex-col gap-1.5">
                   <Label
-                    className="text-sm font-semibold text-on-surface"
+                    className="text-sm font-semibold text-on-surface flex items-center gap-1"
                     htmlFor="pekerjaan-input"
                   >
-                    {isClockIn ? "Apa yang dikerjakan pada tanggal tersebut?" : "Apa yang dikerjakan hari ini?"}
+                    <span>{isClockIn ? "Apa yang dikerjakan pada tanggal tersebut?" : "Apa yang dikerjakan hari ini?"}</span>
+                    <span className="text-error font-bold" title="Wajib diisi">*</span>
                   </Label>
                   <Textarea
                     className="w-full p-3.5 rounded-xl bg-surface-container-lowest border border-outline-variant text-on-surface text-sm focus-visible:ring-secondary/20 transition-all leading-relaxed"
@@ -329,10 +363,11 @@ export default function ReportForm({ initialMode = "today" }: ReportFormProps) {
 
                 <div className="flex flex-col gap-1.5">
                   <Label
-                    className="text-sm font-semibold text-on-surface"
+                    className="text-sm font-semibold text-on-surface flex items-center gap-1"
                     htmlFor="hasil-input"
                   >
-                    {isClockIn ? "Hasil dari pengerjaan pada tanggal tersebut" : "Hasil dari pengerjaan hari ini"}
+                    <span>{isClockIn ? "Hasil dari pengerjaan pada tanggal tersebut" : "Hasil dari pengerjaan hari ini"}</span>
+                    <span className="text-error font-bold" title="Wajib diisi">*</span>
                   </Label>
                   <Textarea
                     className="w-full p-3.5 rounded-xl bg-surface-container-lowest border border-outline-variant text-on-surface text-sm focus-visible:ring-secondary/20 transition-all leading-relaxed"
@@ -355,11 +390,14 @@ export default function ReportForm({ initialMode = "today" }: ReportFormProps) {
 
                 <div className="flex flex-col gap-3 pt-2">
                   <div className="flex flex-col gap-1">
-                    <h2 className="text-sm font-semibold text-on-surface">
-                      Dokumentasi Pekerjaan
+                    <h2 className="text-sm font-semibold text-on-surface flex items-center gap-1.5">
+                      <span>Dokumentasi Pekerjaan</span>
+                      <span className="text-xs font-bold text-error">
+                        * Wajib
+                      </span>
                     </h2>
                     <p className="text-xs text-on-surface-variant">
-                      Upload 1 foto dokumentasi pekerjaan. Foto otomatis dikompresi ke format WebP untuk menghemat storage.
+                      Upload minimal 1 foto dokumentasi pekerjaan. Foto otomatis dikompresi ke format WebP untuk menghemat storage.
                     </p>
                   </div>
 
@@ -372,15 +410,15 @@ export default function ReportForm({ initialMode = "today" }: ReportFormProps) {
                         </p>
                       </div>
                     ) : uploadedPhoto ? (
-                      <div className="border-2 border-[#CBD5E1] rounded-xl p-4 bg-surface-container-lowest flex flex-col justify-between relative group hover:border-primary-container transition-colors duration-150">
-                        <div className="flex items-start justify-between mb-3">
-                          <span className="text-xs font-semibold bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded">
+                      <div className="border border-outline-variant/80 rounded-2xl p-4 bg-surface-container-lowest flex flex-col gap-3 relative group hover:border-secondary transition-colors duration-150">
+                        <div className="flex items-start justify-between">
+                          <span className="text-xs font-bold text-secondary">
                             Foto Dokumentasi (WebP)
                           </span>
                           <Button
                             variant="ghost"
                             size="sm"
-                            className="text-error hover:bg-error-container/30 px-2 py-1 rounded text-xs flex items-center gap-1 transition-colors cursor-pointer h-auto"
+                            className="text-error hover:bg-error/10 px-2.5 py-1 rounded-lg text-xs flex items-center gap-1 transition-colors cursor-pointer h-auto"
                             title="Hapus Foto"
                             type="button"
                             onClick={() => setUploadedPhoto(null)}
@@ -391,8 +429,8 @@ export default function ReportForm({ initialMode = "today" }: ReportFormProps) {
                             <span>Hapus Foto</span>
                           </Button>
                         </div>
-                        <div className="flex items-center gap-3 bg-surface-container p-3 rounded-lg border border-outline-variant/60">
-                          <div className="size-16 rounded-md overflow-hidden shrink-0 border border-outline-variant/40 bg-surface-variant">
+                        <div className="flex items-center gap-3 bg-surface-container-low/80 p-3 rounded-xl border border-outline-variant/60">
+                          <div className="size-16 rounded-lg overflow-hidden shrink-0 border border-outline-variant/40 bg-surface-variant">
                             <img
                               alt={uploadedPhoto.name}
                               className="w-full h-full object-cover"
@@ -407,25 +445,25 @@ export default function ReportForm({ initialMode = "today" }: ReportFormProps) {
                               Format WebP {uploadedPhoto.savedPercentage ? `• Hemat ${uploadedPhoto.savedPercentage}` : ""}
                             </p>
                             <div className="text-secondary text-xs mt-0.5 font-medium">
-                              <span>Tersimpan di Supabase</span>
+                              <span>Tersimpan di Supabase Storage</span>
                             </div>
                           </div>
                         </div>
                       </div>
                     ) : (
                       <label
-                        className="border-2 border-dashed border-[#CBD5E1] rounded-xl p-6 text-center hover:border-primary-container hover:bg-surface-container-low/40 transition-colors duration-150 flex flex-col items-center justify-center cursor-pointer min-h-[128px]"
+                        className="border-2 border-dashed border-outline-variant rounded-2xl p-6 text-center hover:border-secondary hover:bg-surface-container-low/40 transition-colors duration-150 flex flex-col items-center justify-center cursor-pointer min-h-[130px]"
                       >
-                        <div className="size-10 rounded-full bg-[#E6F4EA] flex items-center justify-center mb-2 text-primary-container">
+                        <div className="size-10 rounded-full bg-secondary/10 flex items-center justify-center mb-2 text-secondary">
                           <span className="material-symbols-outlined text-[24px]">
-                            add
+                            add_photo_alternate
                           </span>
                         </div>
                         <p className="text-xs font-semibold text-on-surface">
                           Pilih atau Tarik Foto ke sini
                         </p>
                         <p className="text-[11px] text-outline mt-0.5">
-                          PNG / JPG / WEBP (otomatis dikompresi)
+                          PNG / JPG / WEBP (otomatis dikompresi ke WebP)
                         </p>
                         <input
                           accept="image/png, image/jpeg, image/webp"
@@ -445,6 +483,7 @@ export default function ReportForm({ initialMode = "today" }: ReportFormProps) {
                     onChangeApprover1={setApprover1}
                     onChangeApprover2={setApprover2}
                     requiredCount={settings.clockInRequiredWitness}
+                    approvers={availableApprovers}
                   />
                 )}
 
@@ -460,16 +499,8 @@ export default function ReportForm({ initialMode = "today" }: ReportFormProps) {
                   </Button>
 
                   <Button
-                    disabled={
-                      loading ||
-                      uploading ||
-                      (settings.requirePhoto && !uploadedPhoto) ||
-                      (isClockIn &&
-                        (settings.clockInRequiredWitness === 1
-                          ? !approver1
-                          : !approver1 || !approver2 || approver1 === approver2))
-                    }
-                    className="w-full sm:w-auto font-semibold px-8 py-3 rounded-xl shadow-md flex items-center justify-center transition-transform duration-150 active:scale-[0.99] text-sm disabled:opacity-60 disabled:cursor-not-allowed h-auto bg-primary-container hover:bg-secondary text-white cursor-pointer"
+                    disabled={isFormIncomplete}
+                    className="w-full sm:w-auto font-semibold px-8 py-3 rounded-xl shadow-md flex items-center justify-center transition-transform duration-150 active:scale-[0.99] text-sm disabled:opacity-50 disabled:cursor-not-allowed h-auto bg-primary-container hover:bg-secondary text-white cursor-pointer"
                     type="submit"
                   >
                     {loading

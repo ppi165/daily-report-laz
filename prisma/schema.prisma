@@ -26,6 +26,8 @@ model User {
   
   reports   Report[]
   approvals ReportApproval[] @relation("ApproverRelation")
+  likes     ReportAppreciation[]
+  comments  ReportComment[]
 }
 
 model Division {
@@ -51,9 +53,33 @@ model Report {
   author        User     @relation(fields: [authorId], references: [id])
   
   approvals     ReportApproval[]
+  likes         ReportAppreciation[]
+  comments      ReportComment[]
   
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+}
+
+model ReportAppreciation {
+  id        String   @id @default(uuid())
+  reportId  String
+  report    Report   @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([reportId, userId])
+}
+
+model ReportComment {
+  id        String   @id @default(uuid())
+  reportId  String
+  report    Report   @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model ReportApproval {

@@ -40,6 +40,43 @@ export class DashboardRepository {
       },
     });
   }
+
+  async findRecentReportsByUserId(userId: string, limit = 5) {
+    return prisma.report.findMany({
+      where: { authorId: userId },
+      select: {
+        id: true,
+        title: true,
+        content: true,
+        createdAt: true,
+        status: true,
+        appreciations: true,
+        attachments: true,
+        division: true,
+      },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+    });
+  }
+
+  async findTeamFeeds(limit = 10) {
+    return prisma.report.findMany({
+      where: {
+        status: 'PUBLISHED',
+      },
+      include: {
+        author: {
+          select: {
+            name: true,
+            division: true,
+            role: true,
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+    });
+  }
 }
 
 export const dashboardRepository = new DashboardRepository();

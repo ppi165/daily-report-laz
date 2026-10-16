@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import CreateScheduleDialog from "./create-schedule-dialog";
 import ScheduleRetentionConfig from "./schedule-retention-config";
@@ -132,19 +131,21 @@ export default function SpecialSchedulesCard({
                         {item.name}
                       </span>
                       {item.status === "ACTIVE" && (
-                        <Badge variant="secondary" className="px-2 py-0.5 text-[10px] font-bold bg-secondary/15 text-secondary border-secondary/30">
+                        <span className="text-xs font-bold text-secondary flex items-center gap-1">
+                          <span className="size-1.5 rounded-full bg-secondary"></span>
                           Aktif (Berjalan)
-                        </Badge>
+                        </span>
                       )}
                       {item.status === "UPCOMING" && (
-                        <Badge variant="outline" className="px-2 py-0.5 text-[10px] font-medium bg-primary/5 text-primary border-primary/20">
+                        <span className="text-xs font-semibold text-primary flex items-center gap-1">
+                          <span className="size-1.5 rounded-full bg-primary"></span>
                           Akan Datang
-                        </Badge>
+                        </span>
                       )}
                       {item.status === "EXPIRED" && (
-                        <Badge variant="outline" className="px-2 py-0.5 text-[10px] font-normal text-outline border-outline-variant">
-                          Selesai
-                        </Badge>
+                        <span className="text-xs font-medium text-outline">
+                          • Selesai
+                        </span>
                       )}
                     </div>
 

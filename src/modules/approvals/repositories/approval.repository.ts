@@ -1,7 +1,8 @@
 import { prisma } from '@/src/infrastructure/prisma';
 
 export interface CreateApprovalItem {
-  approverMockId: string;
+  approverId?: string;
+  approverMockId?: string;
   approverName: string;
   approverDivision?: string;
 }
@@ -11,7 +12,8 @@ export class ApprovalRepository {
     return prisma.reportApproval.createMany({
       data: approvers.map((app) => ({
         reportId,
-        approverMockId: app.approverMockId,
+        approverId: app.approverId || app.approverMockId,
+        approverMockId: app.approverMockId || app.approverId,
         approverName: app.approverName,
         approverDivision: app.approverDivision || '',
         status: 'PENDING',

@@ -1,11 +1,10 @@
 "use client";
 
-import { useTheme } from "@/src/common/context/theme-context";
+import { useUser } from "@/src/common/context/user-context";
 import NotificationDropdown from "./notification-dropdown";
 import ProfileDropdown from "./profile-dropdown";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 
 interface TopNavBarProps {
@@ -17,9 +16,11 @@ interface TopNavBarProps {
 export default function TopNavBar({
   onToggleSidebar,
   title,
-  badge = "Unit Humas",
+  badge,
 }: TopNavBarProps) {
-  const { isDarkMode, toggleTheme } = useTheme();
+  const { user } = useUser();
+
+  const displayBadge = badge ?? (user?.division ? `Unit ${user.division}` : undefined);
 
   return (
     <header className="fixed top-0 right-0 left-0 lg:left-64 h-16 px-4 lg:px-8 flex items-center justify-between z-30 bg-surface-container-lowest border-b border-outline-variant shadow-sm transition-colors duration-300">
@@ -35,24 +36,24 @@ export default function TopNavBar({
         </Button>
 
         {title ? (
-          <div className="flex items-center gap-2">
-            <span className="text-base lg:text-lg text-primary font-semibold truncate">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-sm sm:text-base lg:text-lg text-primary font-bold truncate max-w-[160px] xs:max-w-[200px] sm:max-w-none">
               {title}
             </span>
-            {badge && (
-              <Badge variant="secondary" className="hidden sm:inline-flex bg-secondary-container text-on-secondary-container font-semibold">
-                {badge}
-              </Badge>
+            {displayBadge && (
+              <span suppressHydrationWarning className="hidden sm:inline-flex text-xs font-bold text-secondary tracking-wide shrink-0">
+                • {displayBadge}
+              </span>
             )}
           </div>
         ) : (
-          <div className="w-60 md:w-80 lg:w-96 relative">
-            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[20px] pointer-events-none">
+          <div className="w-full max-w-[150px] xs:max-w-[190px] sm:max-w-xs md:max-w-sm lg:w-96 relative">
+            <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-[18px] sm:text-[20px] pointer-events-none">
               search
             </span>
             <Input
-              className="w-full pl-10 pr-4 py-2 bg-surface border border-outline-variant text-sm text-on-surface placeholder:text-outline focus-visible:ring-secondary"
-              placeholder="Cari aktivitas atau rekan kerja..."
+              className="w-full h-9 sm:h-10 pl-9 sm:pl-10 pr-3 sm:pr-4 rounded-xl bg-surface-container-low/60 border border-outline-variant text-xs sm:text-sm text-on-surface placeholder:text-outline focus-visible:ring-secondary/20"
+              placeholder="Cari aktivitas..."
               type="text"
             />
           </div>
@@ -60,19 +61,6 @@ export default function TopNavBar({
       </div>
 
       <div className="flex items-center gap-2 sm:gap-3 lg:gap-4">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={toggleTheme}
-          className="text-on-surface-variant hover:bg-surface-container hover:text-on-surface"
-          title={isDarkMode ? "Ganti ke Mode Terang" : "Ganti ke Mode Gelap"}
-          aria-label="Toggle Dark Mode"
-        >
-          <span className="material-symbols-outlined text-[22px]">
-            {isDarkMode ? "light_mode" : "dark_mode"}
-          </span>
-        </Button>
-
         <NotificationDropdown />
 
         <Separator orientation="vertical" className="h-6 bg-outline-variant" />

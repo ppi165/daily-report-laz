@@ -1,9 +1,11 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { useUser } from "@/src/common/context/user-context";
 
 interface SideNavBarProps {
   isOpen?: boolean;
@@ -12,51 +14,77 @@ interface SideNavBarProps {
 
 export default function SideNavBar({ isOpen = false, onClose }: SideNavBarProps) {
   const pathname = usePathname();
+  const { user } = useUser();
+  const [mounted, setMounted] = useState(false);
 
-  const navItems = [
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const isAdminOrSuper = mounted
+    ? (user?.role === "ADMIN" || user?.role === "SUPERADMIN")
+    : pathname.startsWith("/admin");
+
+  const allNavItems = [
     {
       label: "Dashboard",
       href: "/dashboard",
       icon: "dashboard",
       isActive: pathname === "/dashboard" || pathname === "/",
+      show: true,
+    },
+    {
+      label: "Feed Laporan",
+      href: "/feed",
+      icon: "dynamic_feed",
+      isActive: pathname === "/feed",
+      show: true,
     },
     {
       label: "Daily Report",
       href: "/daily-report",
       icon: "edit_document",
       isActive: pathname === "/daily-report" || pathname.startsWith("/reports/new"),
+      show: true,
     },
     {
       label: "Verifikasi Clock-in",
       href: "/verifikasi",
       icon: "fact_check",
       isActive: pathname === "/verifikasi",
+      show: true,
     },
     {
       label: "Rekap Report",
       href: "/rekap-report",
       icon: "table_chart",
       isActive: pathname === "/rekap-report" || pathname === "/reports",
+      show: true,
+    },
+    {
+      label: "Kelola Pengguna",
+      href: "/admin/pengguna",
+      icon: "manage_accounts",
+      isActive: pathname.startsWith("/admin/pengguna"),
+      show: isAdminOrSuper,
     },
     {
       label: "Kelola Divisi",
       href: "/admin/divisi",
       icon: "account_tree",
       isActive: pathname.startsWith("/admin/divisi"),
+      show: isAdminOrSuper,
     },
     {
       label: "Pengaturan Sistem",
       href: "/admin/pengaturan",
       icon: "tune",
       isActive: pathname.startsWith("/admin/pengaturan"),
-    },
-    {
-      label: "Profil",
-      href: "/profil",
-      icon: "person",
-      isActive: pathname === "/profil",
+      show: isAdminOrSuper,
     },
   ];
+
+  const navItems = allNavItems.filter((item) => item.show);
 
   return (
     <>
@@ -96,18 +124,7 @@ export default function SideNavBar({ isOpen = false, onClose }: SideNavBarProps)
             </Button>
           </div>
 
-          <div className="px-1">
-            <Link
-              href="/daily-report"
-              onClick={onClose}
-              className="w-full bg-primary-container text-white text-sm font-medium py-2.5 px-4 rounded-lg flex items-center justify-center gap-2 shadow-sm hover:bg-secondary transition-colors duration-150"
-            >
-              <span className="material-symbols-outlined text-[20px]">add</span>
-              <span>Input Laporan</span>
-            </Link>
-          </div>
-
-          <nav className="flex flex-col gap-1.5 px-1" aria-label="Menu Utama">
+          <nav className="flex flex-col gap-1 px-1" aria-label="Menu Utama">
             {navItems.map((item) => {
               const active = item.isActive;
               return (
@@ -115,14 +132,14 @@ export default function SideNavBar({ isOpen = false, onClose }: SideNavBarProps)
                   key={item.label}
                   href={item.href}
                   onClick={onClose}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm transition-all duration-150 ${
+                  className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all duration-150 ${
                     active
-                      ? "bg-primary-container text-white font-medium shadow-sm"
-                      : "text-on-surface-variant font-normal hover:bg-surface-container-high hover:text-on-surface"
+                      ? "bg-secondary text-white font-semibold shadow-xs"
+                      : "text-on-surface-variant font-medium hover:bg-surface-container hover:text-on-surface"
                   }`}
                 >
                   <span
-                    className="material-symbols-outlined text-[22px]"
+                    className="material-symbols-outlined text-[20px]"
                     style={{
                       fontVariationSettings: active ? "'FILL' 1" : "'FILL' 0",
                     }}
@@ -140,7 +157,7 @@ export default function SideNavBar({ isOpen = false, onClose }: SideNavBarProps)
           <Separator className="bg-outline-variant" />
           <div className="flex items-center justify-between text-xs text-outline">
             <span className="font-medium">LAZ Persis Daily</span>
-            <span className="px-1.5 py-0.5 rounded text-[10px] bg-surface-container font-mono">v1.0</span>
+            <span className="text-[11px] font-mono text-outline font-semibold">v1.0</span>
           </div>
         </div>
       </aside>

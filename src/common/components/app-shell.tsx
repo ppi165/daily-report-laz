@@ -34,7 +34,7 @@ export default function AppShell({
 
         <div className="flex-1 mt-16 flex flex-col justify-between">
           <div className="flex-1">{children}</div>
-          <footer className="py-5 text-center px-4 mt-auto flex flex-col gap-4">
+          <footer className="py-5 pb-8 sm:pb-5 text-center px-4 mt-auto flex flex-col gap-4">
             <Separator className="bg-outline-variant/40" />
             <p className="text-xs text-outline font-medium tracking-wide">
               &copy; 2026 Daily Report LAZ Persis

@@ -7,7 +7,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -115,12 +114,12 @@ export default function NotificationDropdown() {
           <div className="flex items-center gap-2">
             <span className="font-bold text-sm text-on-surface">Notifikasi</span>
             {unreadCount > 0 ? (
-              <Badge variant="secondary" className="px-2 py-0.5 text-[11px] font-semibold bg-primary/10 text-primary">
-                {unreadCount} baru
-              </Badge>
+              <span className="text-[11px] font-bold text-primary font-mono">
+                • {unreadCount} baru
+              </span>
             ) : (
-              <span className="px-2 py-0.5 rounded-full text-[11px] font-medium text-outline">
-                Semua terbaca
+              <span className="text-[11px] font-medium text-outline">
+                • Semua terbaca
               </span>
             )}
           </div>

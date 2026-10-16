@@ -4,13 +4,24 @@ import { getActiveScheduleUseCase } from '@/src/modules/schedules';
 
 export class GetDashboardStatsUseCase {
   async execute(userId?: string) {
-    const [totalReports, activeUsers, totalUsers, todayReport, settings, activeSchedule] = await Promise.all([
+    const [
+      totalReports,
+      activeUsers,
+      totalUsers,
+      todayReport,
+      settings,
+      activeSchedule,
+      recentReports,
+      teamFeeds,
+    ] = await Promise.all([
       dashboardRepository.countTotalReports(),
       dashboardRepository.countActiveUsers(),
       dashboardRepository.countTotalUsers(),
       userId ? dashboardRepository.findTodayReportByUserId(userId) : Promise.resolve(null),
       settingRepository.findDefault(),
       getActiveScheduleUseCase.execute(),
+      userId ? dashboardRepository.findRecentReportsByUserId(userId, 3) : Promise.resolve([]),
+      dashboardRepository.findTeamFeeds(5),
     ]);
 
     const completionRate =
@@ -45,6 +56,8 @@ export class GetDashboardStatsUseCase {
             division: todayReport.division,
           }
         : null,
+      recentReports: recentReports || [],
+      teamFeeds: teamFeeds || [],
     };
   }
 }

@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import AppShell from "@/src/common/components/app-shell";
 import SuccessToast from "@/src/common/components/success-toast";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -142,9 +141,10 @@ export default function ApprovalView() {
             </div>
 
             {pendingCount > 0 && (
-              <Badge className="bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30 px-3 py-1.5 text-xs font-semibold self-start sm:self-auto">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-amber-600 dark:text-amber-400 self-start sm:self-auto">
+                <span className="size-2 rounded-full bg-amber-500 animate-pulse"></span>
                 <span>{pendingCount} Menunggu Persetujuan</span>
-              </Badge>
+              </div>
             )}
           </div>
 
@@ -157,17 +157,17 @@ export default function ApprovalView() {
 
           {/* Filter Tab */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="bg-surface-container rounded-xl p-1 h-auto flex flex-wrap gap-1">
-              <TabsTrigger value="all" className="rounded-lg text-xs font-semibold py-2 px-3.5 cursor-pointer">
+            <TabsList className="bg-surface-container-low/80 border border-outline-variant/60 rounded-xl p-1 h-auto flex flex-wrap sm:inline-flex items-center w-full sm:w-fit gap-1">
+              <TabsTrigger value="all" className="flex-1 sm:flex-initial rounded-lg text-xs font-semibold py-2 px-3.5 cursor-pointer">
                 Semua ({reports.length})
               </TabsTrigger>
-              <TabsTrigger value="pending" className="rounded-lg text-xs font-semibold py-2 px-3.5 cursor-pointer">
+              <TabsTrigger value="pending" className="flex-1 sm:flex-initial rounded-lg text-xs font-semibold py-2 px-3.5 cursor-pointer">
                 Menunggu ({pendingCount})
               </TabsTrigger>
-              <TabsTrigger value="published" className="rounded-lg text-xs font-semibold py-2 px-3.5 cursor-pointer">
+              <TabsTrigger value="published" className="flex-1 sm:flex-initial rounded-lg text-xs font-semibold py-2 px-3.5 cursor-pointer">
                 Disetujui ({reports.filter((r) => r.status === "PUBLISHED").length})
               </TabsTrigger>
-              <TabsTrigger value="rejected" className="rounded-lg text-xs font-semibold py-2 px-3.5 cursor-pointer">
+              <TabsTrigger value="rejected" className="flex-1 sm:flex-initial rounded-lg text-xs font-semibold py-2 px-3.5 cursor-pointer">
                 Ditolak ({reports.filter((r) => r.status === "REJECTED").length})
               </TabsTrigger>
             </TabsList>
@@ -207,9 +207,9 @@ export default function ApprovalView() {
                               <CardTitle className="text-sm sm:text-base font-bold text-on-surface">
                                 {report.author?.name || "Pegawai"}
                               </CardTitle>
-                              <Badge variant="secondary" className="bg-surface-container text-on-surface-variant text-[11px] font-semibold border-transparent">
-                                {report.division}
-                              </Badge>
+                              <span className="text-xs font-semibold text-secondary tracking-wide">
+                                • {report.division}
+                              </span>
                             </div>
                             <div className="flex flex-wrap items-center gap-2 text-xs text-outline mt-0.5">
                               <span className="font-mono">
@@ -219,20 +219,23 @@ export default function ApprovalView() {
                           </div>
                         </div>
 
-                        {/* Status Badge */}
-                        <div>
+                        {/* Status Label */}
+                        <div className="flex items-center">
                           {report.status === "PUBLISHED" ? (
-                            <Badge className="bg-secondary/15 text-secondary border-secondary/30 px-3 py-1 text-xs font-semibold">
-                              <span>Disetujui (2/2) • PUBLISHED</span>
-                            </Badge>
+                            <span className="flex items-center gap-1.5 text-xs font-bold text-secondary font-mono tracking-wide">
+                              <span className="size-1.5 rounded-full bg-secondary"></span>
+                              Disetujui (2/2) • PUBLISHED
+                            </span>
                           ) : report.status === "REJECTED" ? (
-                            <Badge className="bg-error/15 text-error border-error/30 px-3 py-1 text-xs font-semibold">
-                              <span>Ditolak • REJECTED</span>
-                            </Badge>
+                            <span className="flex items-center gap-1.5 text-xs font-bold text-error font-mono tracking-wide">
+                              <span className="size-1.5 rounded-full bg-error"></span>
+                              Ditolak • REJECTED
+                            </span>
                           ) : (
-                            <Badge className="bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30 px-3 py-1 text-xs font-semibold">
-                              <span>Menunggu Verifikasi ({approvedCount}/2)</span>
-                            </Badge>
+                            <span className="flex items-center gap-1.5 text-xs font-bold text-amber-600 dark:text-amber-400 font-mono tracking-wide">
+                              <span className="size-1.5 rounded-full bg-amber-500"></span>
+                              Menunggu Verifikasi ({approvedCount}/2)
+                            </span>
                           )}
                         </div>
                       </CardHeader>
@@ -263,7 +266,7 @@ export default function ApprovalView() {
                       </CardContent>
 
                       {/* Status Persetujuan Kedua Verifikator di CardFooter */}
-                      <CardFooter className="p-0 border-t-0 bg-transparent flex flex-col items-stretch gap-2.5">
+                      <CardFooter className="p-0 pb-5 sm:pb-6 pt-1 border-t-0 bg-transparent flex flex-col items-stretch gap-2.5">
                         <span className="text-xs font-bold uppercase tracking-wider text-outline block">
                           Status Persetujuan 2 Verifikator:
                         </span>
@@ -292,18 +295,21 @@ export default function ApprovalView() {
                                   </p>
                                 </div>
 
-                                {/* Status Pill */}
+                                {/* Status Label */}
                                 <div>
                                   {approval.status === "APPROVED" ? (
-                                    <span className="inline-flex items-center text-[11px] font-semibold text-secondary px-2 py-0.5 rounded bg-secondary/15">
+                                    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-secondary">
+                                      <span className="size-1.5 rounded-full bg-secondary"></span>
                                       Disetujui
                                     </span>
                                   ) : approval.status === "REJECTED" ? (
-                                    <span className="inline-flex items-center text-[11px] font-semibold text-error px-2 py-0.5 rounded bg-error/15">
+                                    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-error">
+                                      <span className="size-1.5 rounded-full bg-error"></span>
                                       Ditolak
                                     </span>
                                   ) : (
-                                    <span className="inline-flex items-center text-[11px] font-semibold text-amber-600 dark:text-amber-400 px-2 py-0.5 rounded bg-amber-500/15">
+                                    <span className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-600 dark:text-amber-400">
+                                      <span className="size-1.5 rounded-full bg-amber-500"></span>
                                       Menunggu
                                     </span>
                                   )}
@@ -326,9 +332,9 @@ export default function ApprovalView() {
                                       size="sm"
                                       disabled={submitting}
                                       onClick={() => handleApprove(approval.id)}
-                                      className="h-8 px-3 text-xs bg-secondary hover:bg-secondary/90 text-white rounded-lg flex items-center cursor-pointer font-semibold"
+                                      className="h-9 px-3.5 text-xs bg-secondary hover:bg-secondary/90 text-white rounded-xl flex items-center cursor-pointer font-semibold shadow-xs"
                                     >
-                                      <span data-icon="inline-start" className="material-symbols-outlined text-[15px]">check</span>
+                                      <span data-icon="inline-start" className="material-symbols-outlined text-[16px]">check</span>
                                       <span>Setujui</span>
                                     </Button>
                                     <Button
@@ -339,9 +345,9 @@ export default function ApprovalView() {
                                         setRejectingApprovalId(approval.id);
                                         setRejectionNote("");
                                       }}
-                                      className="h-8 px-3 text-xs border-error/40 text-error hover:bg-error/10 rounded-lg flex items-center cursor-pointer font-semibold"
+                                      className="h-9 px-3.5 text-xs border-error/40 text-error hover:bg-error/10 rounded-xl flex items-center cursor-pointer font-semibold"
                                     >
-                                      <span data-icon="inline-start" className="material-symbols-outlined text-[15px]">close</span>
+                                      <span data-icon="inline-start" className="material-symbols-outlined text-[16px]">close</span>
                                       <span>Tolak</span>
                                     </Button>
                                   </div>

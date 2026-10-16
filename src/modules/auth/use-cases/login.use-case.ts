@@ -25,6 +25,7 @@ export class LoginUseCase {
         username: user.username,
         name: user.name,
         division: user.division,
+        role: user.role,
       },
       expiresIn
     );

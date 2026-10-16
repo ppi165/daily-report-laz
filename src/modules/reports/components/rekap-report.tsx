@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import AppShell from "@/src/common/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
@@ -81,6 +80,21 @@ export default function RekapReport() {
 
   const activeReportersCount = new Set(filteredReports.map((r) => r.author?.name || "anon")).size;
 
+  const divisionStats = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const r of reports) {
+      const div = r.division || "Umum";
+      counts[div] = (counts[div] || 0) + 1;
+    }
+    const entries = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+    const max = entries[0]?.[1] || 1;
+    return entries.map(([div, count]) => ({
+      division: div,
+      count,
+      percentage: Math.max(10, Math.round((count / max) * 100)),
+    }));
+  }, [reports]);
+
   return (
     <AppShell headerTitle="Rekap Daily Report LAZ Persis" headerBadge={selectedDivision === "ALL" ? "Semua Bidang" : `Unit ${selectedDivision}`}>
       <main className="p-4 sm:p-6 lg:p-8 flex-1 flex flex-col items-center">
@@ -144,81 +158,44 @@ export default function RekapReport() {
                   </span>
                 </div>
                 <div className="flex flex-col gap-3.5">
-                  <div className="flex flex-col gap-1">
-                    <div className="flex justify-between text-xs">
-                      <span className="font-medium text-on-surface flex items-center gap-2">
-                        <span className="size-2 rounded-full bg-primary"></span>
-                        Humas
-                      </span>
-                      <span className="font-semibold text-primary">24 report</span>
+                  {divisionStats.length === 0 ? (
+                    <div className="py-4 text-center text-xs text-outline">
+                      Belum ada data distribusi laporan dari tiap bidang.
                     </div>
-                    <Progress value={100} className="h-2.5 bg-surface-container" />
-                  </div>
-
-                  <div className="flex flex-col gap-1">
-                    <div className="flex justify-between text-xs">
-                      <span className="font-medium text-on-surface flex items-center gap-2">
-                        <span className="size-2 rounded-full bg-secondary"></span>
-                        Program
-                      </span>
-                      <span className="font-semibold text-secondary">20 report</span>
-                    </div>
-                    <Progress value={83.3} className="h-2.5 bg-surface-container" />
-                  </div>
-
-                  <div className="flex flex-col gap-1">
-                    <div className="flex justify-between text-xs">
-                      <span className="font-medium text-on-surface flex items-center gap-2">
-                        <span className="size-2 rounded-full bg-primary-container"></span>
-                        Sekretariat
-                      </span>
-                      <span className="font-semibold text-on-surface">16 report</span>
-                    </div>
-                    <Progress value={66.6} className="h-2.5 bg-surface-container" />
-                  </div>
-
-                  <div className="flex flex-col gap-1">
-                    <div className="flex justify-between text-xs">
-                      <span className="font-medium text-on-surface flex items-center gap-2">
-                        <span className="size-2 rounded-full bg-secondary"></span>
-                        Keuangan
-                      </span>
-                      <span className="font-semibold text-on-surface">12 report</span>
-                    </div>
-                    <Progress value={50} className="h-2.5 bg-surface-container" />
-                  </div>
-
-                  <div className="flex flex-col gap-1">
-                    <div className="flex justify-between text-xs">
-                      <span className="font-medium text-on-surface flex items-center gap-2">
-                        <span className="size-2 rounded-full bg-primary"></span>
-                        SDM
-                      </span>
-                      <span className="font-semibold text-on-surface">10 report</span>
-                    </div>
-                    <Progress value={41.6} className="h-2.5 bg-surface-container" />
-                  </div>
-
-                  <div className="flex flex-col gap-1">
-                    <div className="flex justify-between text-xs">
-                      <span className="font-medium text-on-surface flex items-center gap-2">
-                        <span className="size-2 rounded-full bg-outline"></span>
-                        IT
-                      </span>
-                      <span className="font-semibold text-on-surface">4 report</span>
-                    </div>
-                    <Progress value={16.6} className="h-2.5 bg-surface-container" />
-                  </div>
+                  ) : (
+                    divisionStats.slice(0, 6).map((stat, idx) => {
+                      const colors = [
+                        "bg-primary",
+                        "bg-secondary",
+                        "bg-primary-container",
+                        "bg-secondary",
+                        "bg-primary",
+                        "bg-outline",
+                      ];
+                      return (
+                        <div key={stat.division} className="flex flex-col gap-1">
+                          <div className="flex justify-between text-xs">
+                            <span className="font-medium text-on-surface flex items-center gap-2">
+                              <span className={`size-2 rounded-full ${colors[idx % colors.length]}`}></span>
+                              {stat.division}
+                            </span>
+                            <span className="font-semibold text-primary">{stat.count} report</span>
+                          </div>
+                          <Progress value={stat.percentage} className="h-2.5 bg-surface-container" />
+                        </div>
+                      );
+                    })
+                  )}
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          <Card className="bg-surface-container-lowest rounded-xl p-4 border border-outline-variant custom-shadow-card flex flex-wrap items-center justify-between gap-4">
-            <CardContent className="p-0 w-full flex flex-wrap items-center justify-between gap-4">
-              <div className="flex flex-wrap items-center gap-3">
+          <Card className="bg-surface-container-lowest rounded-2xl p-4 sm:p-5 border border-outline-variant/60 shadow-xs">
+            <CardContent className="p-0 w-full flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-wrap items-center gap-2.5 flex-1">
                 <Select defaultValue="Hari Ini">
-                  <SelectTrigger className="w-[140px] bg-surface-container-lowest border-outline-variant text-on-surface rounded-xl text-sm h-10">
+                  <SelectTrigger className="w-full sm:w-[130px] bg-surface-container-lowest border-outline-variant text-on-surface rounded-xl text-sm h-10">
                     <SelectValue placeholder="Pilih Periode" />
                   </SelectTrigger>
                   <SelectContent className="bg-surface-container-lowest border-outline-variant">
@@ -232,20 +209,20 @@ export default function RekapReport() {
                 </Select>
 
                 <Select defaultValue="21 – 27 September 2026">
-                  <SelectTrigger className="w-[210px] bg-surface-container-lowest border-outline-variant text-on-surface rounded-xl text-sm h-10">
-                    <SelectValue placeholder="Pilih Rentang Tanggal" />
+                  <SelectTrigger className="w-full sm:w-[190px] bg-surface-container-lowest border-outline-variant text-on-surface rounded-xl text-sm h-10">
+                    <SelectValue placeholder="Pilih Rentang" />
                   </SelectTrigger>
                   <SelectContent className="bg-surface-container-lowest border-outline-variant">
                     <SelectGroup>
-                      <SelectItem value="21 – 27 September 2026">21 – 27 September 2026</SelectItem>
-                      <SelectItem value="14 – 20 September 2026">14 – 20 September 2026</SelectItem>
-                      <SelectItem value="07 – 13 September 2026">07 – 13 September 2026</SelectItem>
+                      <SelectItem value="21 – 27 September 2026">21 – 27 Sep 2026</SelectItem>
+                      <SelectItem value="14 – 20 September 2026">14 – 20 Sep 2026</SelectItem>
+                      <SelectItem value="07 – 13 September 2026">07 – 13 Sep 2026</SelectItem>
                     </SelectGroup>
                   </SelectContent>
                 </Select>
 
                 <Select value={selectedDivision} onValueChange={(val) => { if (val) setSelectedDivision(val); }}>
-                  <SelectTrigger className="w-[170px] bg-surface-container-lowest border-outline-variant text-on-surface rounded-xl text-sm h-10">
+                  <SelectTrigger className="w-full sm:w-[160px] bg-surface-container-lowest border-outline-variant text-on-surface rounded-xl text-sm h-10">
                     <SelectValue placeholder="Filter Bidang" />
                   </SelectTrigger>
                   <SelectContent className="bg-surface-container-lowest border-outline-variant">
@@ -260,13 +237,13 @@ export default function RekapReport() {
                   </SelectContent>
                 </Select>
 
-                <div className="relative min-w-[260px] w-full sm:w-auto mt-2 sm:mt-0">
-                  <span className="material-symbols-outlined absolute left-3 top-2.5 text-outline text-[20px] pointer-events-none">
+                <div className="relative w-full sm:col-span-2 lg:col-span-1 lg:flex-1 lg:min-w-[220px]">
+                  <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">
                     search
                   </span>
                   <Input
-                    className="w-full pl-9 pr-3 py-2 bg-surface-container-lowest border-outline-variant rounded-xl text-sm text-on-surface placeholder:text-outline h-10"
-                    placeholder="Cari nama pegawai atau isi report..."
+                    className="w-full pl-9 pr-3 py-2 bg-surface-container-lowest border-outline-variant rounded-xl text-xs sm:text-sm text-on-surface placeholder:text-outline h-10 focus-visible:ring-secondary/20"
+                    placeholder="Cari pegawai atau isi report..."
                     type="text"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -276,9 +253,10 @@ export default function RekapReport() {
 
               <Button
                 variant="outline"
-                className="w-full sm:w-auto border-primary-container text-primary-container hover:bg-primary-container/10 text-sm font-medium px-4 h-10 rounded-xl flex items-center justify-center cursor-pointer"
+                className="w-full lg:w-auto border-secondary/40 text-secondary hover:bg-secondary/10 text-xs sm:text-sm font-semibold px-4 h-10 rounded-xl flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
               >
-                Export Excel
+                <span className="material-symbols-outlined text-[18px]">download</span>
+                <span>Export Excel</span>
               </Button>
             </CardContent>
           </Card>
@@ -309,7 +287,7 @@ export default function RekapReport() {
               </>
             ) : filteredReports.length > 0 ? (
               filteredReports.map((report) => (
-                <Card key={report.id} className="bg-surface-container-lowest rounded-2xl p-6 border-outline-variant/60 shadow-none hover:shadow-xs hover:border-secondary/30 transition-all flex flex-col justify-between gap-4">
+                <Card key={report.id} className="bg-surface-container-lowest rounded-2xl p-6 border-outline-variant/60 shadow-none hover:shadow-xs hover:border-secondary/30 transition-all flex flex-col gap-4">
                   <CardHeader className="p-0 flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                     <div className="flex items-center gap-3">
                       <div className="size-11 rounded-2xl bg-primary-container/15 text-primary flex items-center justify-center font-bold text-lg shrink-0">
@@ -320,33 +298,36 @@ export default function RekapReport() {
                           <CardTitle className="text-base font-bold text-on-surface leading-tight">
                             {report.author?.name || "Anonim"}
                           </CardTitle>
-                          <Badge variant="secondary" className="px-2 py-0.5 text-[11px] font-semibold bg-surface-container-high text-on-surface-variant w-max border-transparent">
-                            {report.division}
-                          </Badge>
+                          <span className="text-xs font-semibold text-secondary">
+                            • {report.division}
+                          </span>
                         </div>
                         <span className="text-xs text-outline block mt-0.5 font-mono">
                           {new Date(report.createdAt).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })} • {new Date(report.createdAt).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })} WIB
                         </span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-1.5 flex-wrap justify-end">
+                    <div className="flex items-center gap-2 flex-wrap justify-end">
                       {Boolean(report.isClockIn) && (
-                        <Badge variant="outline" className="px-2 py-0.5 text-[10px] font-semibold border-amber-500/40 text-amber-600 dark:text-amber-400 bg-amber-500/10">
-                          Clock-in
-                        </Badge>
+                        <span className="text-xs font-bold font-mono text-amber-500">
+                          [Clock-in]
+                        </span>
                       )}
                       {report.status === "PENDING_APPROVAL" ? (
-                        <Badge variant="secondary" className="px-2.5 py-0.5 text-[11px] font-semibold bg-amber-500/15 text-amber-600 dark:text-amber-400 border-transparent">
+                        <span className="text-xs font-bold text-amber-500 flex items-center gap-1 font-mono uppercase">
+                          <span className="size-1.5 rounded-full bg-amber-500"></span>
                           Menunggu Verifikasi
-                        </Badge>
+                        </span>
                       ) : report.status === "REJECTED" ? (
-                        <Badge variant="secondary" className="px-2.5 py-0.5 text-[11px] font-semibold bg-error/15 text-error border-transparent">
+                        <span className="text-xs font-bold text-error flex items-center gap-1 font-mono uppercase">
+                          <span className="size-1.5 rounded-full bg-error"></span>
                           Ditolak
-                        </Badge>
+                        </span>
                       ) : (
-                        <Badge variant="secondary" className="px-2.5 py-0.5 text-[11px] font-semibold bg-secondary/10 text-secondary border-transparent">
+                        <span className="text-xs font-bold text-secondary flex items-center gap-1 font-mono uppercase">
+                          <span className="size-1.5 rounded-full bg-secondary"></span>
                           PUBLISHED
-                        </Badge>
+                        </span>
                       )}
                     </div>
                   </CardHeader>
@@ -357,7 +338,7 @@ export default function RekapReport() {
 
                   <Separator className="bg-surface-container" />
 
-                  <CardFooter className="p-0 bg-transparent border-0 flex items-center justify-between">
+                  <CardFooter className="p-0 pb-6 pt-1 bg-transparent border-0 flex items-center justify-between">
                     <Button
                       variant="outline"
                       size="sm"
