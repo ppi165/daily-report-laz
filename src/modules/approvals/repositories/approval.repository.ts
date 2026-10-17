@@ -28,7 +28,7 @@ export class ApprovalRepository {
         report: {
           include: {
             author: {
-              select: { name: true, division: true, email: true },
+              select: { name: true, division: true, email: true, avatar: true },
             },
             approvals: true,
           },
@@ -49,9 +49,14 @@ export class ApprovalRepository {
       where: { isClockIn: true },
       include: {
         author: {
-          select: { id: true, name: true, division: true },
+          select: { id: true, name: true, division: true, avatar: true },
         },
         approvals: {
+          include: {
+            approver: {
+              select: { id: true, name: true, avatar: true },
+            },
+          },
           orderBy: { createdAt: 'asc' },
         },
       },
@@ -70,9 +75,14 @@ export class ApprovalRepository {
       },
       include: {
         author: {
-          select: { id: true, name: true, division: true },
+          select: { id: true, name: true, division: true, avatar: true },
         },
         approvals: {
+          include: {
+            approver: {
+              select: { id: true, name: true, avatar: true },
+            },
+          },
           orderBy: { createdAt: 'asc' },
         },
       },
@@ -107,6 +117,39 @@ export class ApprovalRepository {
       where: { id: reportId },
       data: { status },
     });
+  }
+
+  async findReportById(reportId: string) {
+    return prisma.report.findUnique({
+      where: { id: reportId },
+      include: {
+        author: true,
+        approvals: true,
+      },
+    });
+  }
+
+  async reviseReport(reportId: string, content: string, attachments?: string[]) {
+    return prisma.$transaction([
+      prisma.report.update({
+        where: { id: reportId },
+        data: {
+          content,
+          status: 'PENDING_APPROVAL',
+          ...(attachments ? { attachments } : {}),
+        },
+      }),
+      prisma.reportApproval.updateMany({
+        where: { reportId },
+        data: {
+          status: 'PENDING',
+          note: null,
+          respondedAt: null,
+          isOverridden: false,
+          respondedByName: null,
+        },
+      }),
+    ]);
   }
 }
 

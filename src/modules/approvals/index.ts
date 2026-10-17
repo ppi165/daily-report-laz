@@ -1,10 +1,13 @@
 export * from './types/approval.types';
 export * from './schemas/respond-approval.schema';
+export * from './schemas/revise-clock-in.schema';
 export * from './repositories/approval.repository';
 export * from './use-cases/respond-approval.use-case';
 export * from './use-cases/get-clock-in-reports.use-case';
+export * from './use-cases/revise-clock-in.use-case';
 export * from './actions/respond-approval.action';
 export * from './actions/get-clock-in-reports.action';
+export * from './actions/revise-clock-in.action';
 export { default as ClockInApproverSelect } from './components/clock-in-approver-select';
 export { default as ApproverSearchSelect } from './components/approver-search-select';
 export { default as ApprovalView } from './components/approval-view';

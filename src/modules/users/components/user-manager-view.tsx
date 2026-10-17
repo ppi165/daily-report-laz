@@ -25,7 +25,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import UserAvatar from "@/src/common/components/user-avatar";
 import { useUser } from "@/src/common/context/user-context";
 import { getDivisionsAction } from "@/src/modules/divisions";
 import { getAllUsersAction } from "../actions/get-all-users.action";
@@ -292,11 +292,11 @@ export default function UserManagerView() {
                           <tr key={u.id} className="hover:bg-surface-container-low/30 transition-colors">
                             <td className="py-3.5 px-4 sm:px-6">
                               <div className="flex items-center gap-3">
-                                <Avatar className="size-8 border border-outline-variant shrink-0">
-                                  <AvatarFallback className="text-[11px] font-bold bg-secondary/15 text-secondary">
-                                    {u.name.charAt(0)}
-                                  </AvatarFallback>
-                                </Avatar>
+                                <UserAvatar
+                                  name={u.name}
+                                  avatarUrl={u.avatar}
+                                  size="md"
+                                />
                                 <div className="flex flex-col">
                                   <span className="font-bold text-on-surface leading-tight">
                                     {u.name}
@@ -387,6 +387,8 @@ export default function UserManagerView() {
             divisions={divisions}
             onClose={() => setEditingRoleUser(null)}
             actorRole={currentUser?.role}
+            actorId={currentUser?.id}
+            actorName={currentUser?.name}
             onSuccess={(msg) => {
               setToastMessage({ title: "Data Amil Diperbarui", desc: msg });
               loadData();

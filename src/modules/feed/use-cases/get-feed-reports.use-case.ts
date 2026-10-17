@@ -8,6 +8,15 @@ export interface ParsedFeedReport {
   division: string;
   attachments: string[];
   createdAt: Date;
+  isClockIn?: boolean;
+  status?: string;
+  approvals?: Array<{
+    id: string;
+    approverName: string;
+    approverDivision: string | null;
+    status: string;
+    respondedAt?: Date | null;
+  }>;
   author: {
     id: string;
     name: string;
@@ -15,6 +24,7 @@ export interface ParsedFeedReport {
     division: string;
     position: string | null;
     role: string;
+    avatar?: string | null;
   };
   appreciationsCount: number;
   hasLiked: boolean;
@@ -30,6 +40,7 @@ export interface ParsedFeedReport {
       division: string;
       role: string;
       position: string | null;
+      avatar?: string | null;
     };
   }>;
 }
@@ -66,6 +77,9 @@ export class GetFeedReportsUseCase {
         attachments: report.attachments,
         createdAt: report.createdAt,
         author: report.author,
+        isClockIn: Boolean(report.isClockIn),
+        status: report.status,
+        approvals: report.approvals,
         appreciationsCount: report.likes.length > 0 ? report.likes.length : report.appreciations,
         hasLiked,
         commentsCount: report.comments.length,

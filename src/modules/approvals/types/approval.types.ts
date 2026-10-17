@@ -9,6 +9,11 @@ export interface ApprovalItem {
   respondedAt: string | null;
   isOverridden?: boolean;
   respondedByName?: string | null;
+  approver?: {
+    id: string;
+    name: string;
+    avatar?: string | null;
+  } | null;
 }
 
 export interface ClockInReport {
@@ -25,6 +30,7 @@ export interface ClockInReport {
     id?: string;
     name: string;
     division: string;
+    avatar?: string | null;
   };
   approvals: ApprovalItem[];
 }

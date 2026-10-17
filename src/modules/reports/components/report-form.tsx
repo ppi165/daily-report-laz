@@ -35,6 +35,7 @@ interface ReportFormProps {
     division: string;
     role: string;
     position?: string | null;
+    avatar?: string | null;
   }>;
 }
 

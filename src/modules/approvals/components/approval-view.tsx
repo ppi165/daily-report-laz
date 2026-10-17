@@ -21,6 +21,8 @@ import {
 import { getClockInReportsAction } from "../actions/get-clock-in-reports.action";
 import { respondApprovalAction } from "../actions/respond-approval.action";
 import { getCurrentUserAction } from "@/src/modules/users/actions/get-current-user.action";
+import UserAvatar from "@/src/common/components/user-avatar";
+import ReviseClockInDialog from "./revise-clock-in-dialog";
 import { ClockInReport } from "../types/approval.types";
 
 export default function ApprovalView() {
@@ -35,6 +37,7 @@ export default function ApprovalView() {
   const [activeTab, setActiveTab] = useState("all");
   const [rejectingApprovalId, setRejectingApprovalId] = useState<string | null>(null);
   const [rejectionNote, setRejectionNote] = useState("");
+  const [revisingReport, setRevisingReport] = useState<ClockInReport | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [toastMessage, setToastMessage] = useState<{ title: string; desc: string } | null>(null);
 
@@ -264,9 +267,11 @@ export default function ApprovalView() {
                     >
                       <CardHeader className="p-0 flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                         <div className="flex items-center gap-3">
-                          <div className="size-11 rounded-2xl bg-primary/10 text-primary font-bold text-base flex items-center justify-center shrink-0">
-                            {report.author?.name ? report.author.name.charAt(0).toUpperCase() : "A"}
-                          </div>
+                          <UserAvatar
+                            name={report.author?.name}
+                            avatarUrl={report.author?.avatar}
+                            size="lg"
+                          />
                           <div>
                             <div className="flex items-center gap-2 flex-wrap">
                               <CardTitle className="text-sm sm:text-base font-bold text-on-surface">
@@ -289,18 +294,30 @@ export default function ApprovalView() {
                           </div>
                         </div>
 
-                        {/* Status Label */}
-                        <div className="flex items-center">
+                        {/* Status Label & Tombol Revisi */}
+                        <div className="flex items-center gap-2">
                           {report.status === "PUBLISHED" ? (
                             <span className="flex items-center gap-1.5 text-xs font-bold text-secondary font-mono tracking-wide">
                               <span className="size-1.5 rounded-full bg-secondary"></span>
                               Disetujui ({approvedCount}/2) • PUBLISHED
                             </span>
                           ) : report.status === "REJECTED" ? (
-                            <span className="flex items-center gap-1.5 text-xs font-bold text-error font-mono tracking-wide">
-                              <span className="size-1.5 rounded-full bg-error"></span>
-                              Ditolak • REJECTED
-                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="flex items-center gap-1.5 text-xs font-bold text-error font-mono tracking-wide">
+                                <span className="size-1.5 rounded-full bg-error"></span>
+                                Ditolak
+                              </span>
+                              {isMyReport && (
+                                <Button
+                                  size="sm"
+                                  onClick={() => setRevisingReport(report)}
+                                  className="h-7 px-2.5 text-[11px] font-bold bg-secondary hover:bg-secondary/90 text-white rounded-lg flex items-center gap-1 cursor-pointer shadow-xs"
+                                >
+                                  <span className="material-symbols-outlined text-[14px]">edit_note</span>
+                                  <span>Revisi</span>
+                                </Button>
+                              )}
+                            </div>
                           ) : (
                             <span className="flex items-center gap-1.5 text-xs font-bold text-amber-500 font-mono tracking-wide">
                               <span className="size-1.5 rounded-full bg-amber-500"></span>
@@ -314,6 +331,35 @@ export default function ApprovalView() {
 
                       {/* Isi Konten */}
                       <CardContent className="p-0 flex flex-col gap-4">
+                        {/* Banner Perlu Revisi jika ditolak */}
+                        {report.status === "REJECTED" && (
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-xl bg-error/10 border border-error/20">
+                            <div className="flex items-start gap-2.5">
+                              <span className="material-symbols-outlined text-error text-[20px] shrink-0 mt-0.5">
+                                error
+                              </span>
+                              <div className="flex flex-col gap-0.5">
+                                <span className="text-xs font-bold text-error">
+                                  Pengajuan Memerlukan Revisi
+                                </span>
+                                <span className="text-[11px] text-on-surface-variant leading-relaxed">
+                                  Verifikator belum dapat menyetujui pengajuan ini. Silakan periksa catatan alasan di bawah, perbaiki rincian laporan, dan ajukan kembali.
+                                </span>
+                              </div>
+                            </div>
+                            {isMyReport && (
+                              <Button
+                                size="sm"
+                                onClick={() => setRevisingReport(report)}
+                                className="h-8 px-3 text-xs font-bold bg-secondary hover:bg-secondary/90 text-white rounded-xl flex items-center gap-1 shrink-0 cursor-pointer shadow-xs"
+                              >
+                                <span className="material-symbols-outlined text-[15px]">edit_note</span>
+                                <span>Revisi Sekarang</span>
+                              </Button>
+                            )}
+                          </div>
+                        )}
+
                         <div className="text-xs sm:text-sm text-on-surface-variant whitespace-pre-line leading-relaxed bg-surface-container-low/40 p-4 rounded-xl border border-outline-variant/40">
                           {report.content}
                         </div>
@@ -336,7 +382,7 @@ export default function ApprovalView() {
                       </CardContent>
 
                       {/* Status Persetujuan Kedua Verifikator di CardFooter */}
-                      <CardFooter className="p-0 pb-1 border-t-0 bg-transparent flex flex-col items-stretch gap-2.5">
+                      <CardFooter className="p-0 pb-5 border-t-0 bg-transparent flex flex-col items-stretch gap-2.5">
                         <span className="text-xs font-bold uppercase tracking-wider text-outline block">
                           Status Persetujuan 2 Verifikator:
                         </span>
@@ -348,13 +394,7 @@ export default function ApprovalView() {
                                 (approval.approverId === currentUser.id ||
                                   approval.approverMockId === currentUser.id)
                             );
-                            const isPrivileged = Boolean(
-                              currentUser &&
-                                (currentUser.role === "ADMIN" ||
-                                  currentUser.role === "SUPER_ADMIN" ||
-                                  currentUser.role === "SUPERVISOR")
-                            );
-                            const canRespond = isDesignatedApprover || isPrivileged;
+                            const canRespond = isDesignatedApprover;
 
                             return (
                               <div
@@ -370,48 +410,41 @@ export default function ApprovalView() {
                                 }`}
                               >
                                 <div className="flex items-start justify-between gap-2">
-                                  <div className="flex flex-col gap-0.5">
-                                    <div className="flex items-center gap-1.5">
-                                      <span className="text-xs font-bold text-on-surface">
-                                        Verifikator {idx + 1}: {approval.approverName}
-                                      </span>
-                                      {isDesignatedApprover && (
-                                        <span className="text-[10px] font-bold text-amber-500 bg-amber-500/10 px-1.5 py-0.2 rounded border border-amber-500/20">
-                                          Anda
+                                  <div className="flex items-center gap-2.5 min-w-0">
+                                    <UserAvatar
+                                      name={approval.approverName}
+                                      avatarUrl={approval.approver?.avatar}
+                                      size="sm"
+                                    />
+                                    <div className="flex flex-col min-w-0">
+                                      <div className="flex items-center gap-1.5 flex-wrap">
+                                        <span className="text-xs font-bold text-on-surface truncate">
+                                          Verifikator {idx + 1}: {approval.approverName}
                                         </span>
-                                      )}
+                                        {isDesignatedApprover && (
+                                          <span className="text-[10px] font-bold text-amber-500 bg-amber-500/10 px-1.5 py-0.2 rounded border border-amber-500/20">
+                                            Anda
+                                          </span>
+                                        )}
+                                      </div>
+                                      <p className="text-[11px] text-outline truncate">
+                                        {approval.approverDivision ? `Divisi ${approval.approverDivision}` : "Rekan Kerja"}
+                                      </p>
                                     </div>
-                                    <p className="text-[11px] text-outline">
-                                      {approval.approverDivision ? `Divisi ${approval.approverDivision}` : "Rekan Kerja"}
-                                    </p>
                                   </div>
 
                                   {/* Status Label */}
-                                  <div>
+                                  <div className="shrink-0">
                                     {approval.status === "APPROVED" ? (
-                                      <div className="flex flex-col items-end gap-1">
-                                        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-secondary">
-                                          <span className="size-1.5 rounded-full bg-secondary"></span>
-                                          Disetujui
-                                        </span>
-                                        {approval.isOverridden && (
-                                          <span className="text-[10px] font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-md border border-amber-500/20 font-mono">
-                                            Disetujui oleh Admin: {approval.respondedByName || "Admin"}
-                                          </span>
-                                        )}
-                                      </div>
+                                      <span className="inline-flex items-center gap-1.5 text-xs font-bold text-secondary">
+                                        <span className="size-1.5 rounded-full bg-secondary"></span>
+                                        Disetujui
+                                      </span>
                                     ) : approval.status === "REJECTED" ? (
-                                      <div className="flex flex-col items-end gap-1">
-                                        <span className="inline-flex items-center gap-1.5 text-xs font-bold text-error">
-                                          <span className="size-1.5 rounded-full bg-error"></span>
-                                          Ditolak
-                                        </span>
-                                        {approval.isOverridden && (
-                                          <span className="text-[10px] font-bold text-error bg-error/10 px-2 py-0.5 rounded-md border border-error/20 font-mono">
-                                            Ditolak oleh Admin: {approval.respondedByName || "Admin"}
-                                          </span>
-                                        )}
-                                      </div>
+                                      <span className="inline-flex items-center gap-1.5 text-xs font-bold text-error">
+                                        <span className="size-1.5 rounded-full bg-error"></span>
+                                        Ditolak
+                                      </span>
                                     ) : (
                                       <span className="inline-flex items-center gap-1.5 text-xs font-bold text-amber-500">
                                         <span className="size-1.5 rounded-full bg-amber-500"></span>
@@ -455,11 +488,6 @@ export default function ApprovalView() {
                                           <span data-icon="inline-start" className="material-symbols-outlined text-[16px]">close</span>
                                           <span>Tolak</span>
                                         </Button>
-                                        {isPrivileged && !isDesignatedApprover && (
-                                          <span className="text-[10px] text-amber-500 font-bold bg-amber-500/10 px-2 py-1 rounded-lg border border-amber-500/20 font-mono">
-                                            Akses Admin Override
-                                          </span>
-                                        )}
                                       </div>
                                     ) : (
                                       <p className="text-[11px] text-outline italic">
@@ -545,6 +573,19 @@ export default function ApprovalView() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+
+          {/* Modal Revisi Laporan Clock-In */}
+          <ReviseClockInDialog
+            report={revisingReport}
+            onClose={() => setRevisingReport(null)}
+            onSuccess={(msg) => {
+              setToastMessage({
+                title: "Laporan Diajukan Ulang",
+                desc: msg,
+              });
+              loadData();
+            }}
+          />
         </div>
       </main>
     </AppShell>

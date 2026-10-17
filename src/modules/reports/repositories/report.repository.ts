@@ -11,7 +11,7 @@ export class ReportRepository {
       ...options,
       include: {
         author: {
-          select: { name: true, division: true },
+          select: { name: true, division: true, avatar: true },
         },
         approvals: {
           select: {
@@ -33,7 +33,7 @@ export class ReportRepository {
       where: { id },
       include: {
         author: {
-          select: { name: true, division: true },
+          select: { name: true, division: true, avatar: true },
         },
       },
     });

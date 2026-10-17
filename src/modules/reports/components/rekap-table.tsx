@@ -11,6 +11,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { parseReportContent } from "../utils/export-excel.util";
+import UserAvatar from "@/src/common/components/user-avatar";
 
 export interface ReportItemData {
   id: string;
@@ -21,7 +22,7 @@ export interface ReportItemData {
   isClockIn?: boolean;
   isLate?: boolean;
   createdAt: string | Date;
-  author?: { name: string };
+  author?: { name: string; avatar?: string | null };
   attachments?: string[];
   [key: string]: unknown;
 }
@@ -113,9 +114,16 @@ export default function RekapTable({ reports, loading }: RekapTableProps) {
                       </div>
                     </td>
                     <td className="py-3.5 px-4">
-                      <span className="font-bold text-on-surface text-xs sm:text-sm block">
-                        {report.author?.name || "Anonim"}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <UserAvatar
+                          name={report.author?.name}
+                          avatarUrl={report.author?.avatar}
+                          size="xs"
+                        />
+                        <span className="font-bold text-on-surface text-xs sm:text-sm block">
+                          {report.author?.name || "Anonim"}
+                        </span>
+                      </div>
                     </td>
                     <td className="py-3.5 px-4">
                       <span className="inline-block px-2.5 py-1 rounded-lg bg-surface-container text-xs font-semibold text-secondary">

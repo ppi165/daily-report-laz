@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { useUser } from "@/src/common/context/user-context";
 
 interface SideNavBarProps {
@@ -48,13 +47,6 @@ export default function SideNavBar({ isOpen = false, onClose }: SideNavBarProps)
       show: true,
     },
     {
-      label: "Verifikasi Clock-in",
-      href: "/verifikasi",
-      icon: "fact_check",
-      isActive: pathname === "/verifikasi",
-      show: true,
-    },
-    {
       label: "Rekap Report",
       href: "/rekap-report",
       icon: "table_chart",
@@ -62,17 +54,24 @@ export default function SideNavBar({ isOpen = false, onClose }: SideNavBarProps)
       show: true,
     },
     {
-      label: "Kelola Pengguna",
-      href: "/admin/pengguna",
-      icon: "manage_accounts",
-      isActive: pathname.startsWith("/admin/pengguna"),
-      show: isAdminOrSuper,
+      label: "Verif Clock-in",
+      href: "/verifikasi",
+      icon: "fact_check",
+      isActive: pathname === "/verifikasi",
+      show: true,
     },
     {
       label: "Kelola Divisi",
       href: "/admin/divisi",
       icon: "account_tree",
       isActive: pathname.startsWith("/admin/divisi"),
+      show: isAdminOrSuper,
+    },
+    {
+      label: "Kelola Pengguna",
+      href: "/admin/pengguna",
+      icon: "manage_accounts",
+      isActive: pathname.startsWith("/admin/pengguna"),
       show: isAdminOrSuper,
     },
     {
@@ -96,7 +95,7 @@ export default function SideNavBar({ isOpen = false, onClose }: SideNavBarProps)
       )}
 
       <aside
-        className={`fixed top-0 bottom-0 left-0 w-64 flex flex-col justify-between p-4 z-40 bg-surface-container-lowest border-r border-outline-variant shadow-sm transition-transform duration-200 lg:translate-x-0 ${
+        className={`fixed top-0 bottom-0 left-0 w-64 flex flex-col p-4 z-40 bg-surface-container-lowest border-r border-outline-variant shadow-sm transition-transform duration-200 lg:translate-x-0 ${
           isOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
@@ -151,14 +150,6 @@ export default function SideNavBar({ isOpen = false, onClose }: SideNavBarProps)
               );
             })}
           </nav>
-        </div>
-
-        <div className="px-2 flex flex-col gap-4">
-          <Separator className="bg-outline-variant" />
-          <div className="flex items-center justify-between text-xs text-outline">
-            <span className="font-medium">LAZ Persis Daily</span>
-            <span className="text-[11px] font-mono text-outline font-semibold">v1.0</span>
-          </div>
         </div>
       </aside>
     </>

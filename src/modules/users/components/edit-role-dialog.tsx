@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -31,6 +32,7 @@ export interface ManagedUserItem {
   division: string;
   position: string | null;
   role: string;
+  avatar?: string | null;
   createdAt: string | Date;
 }
 
@@ -40,7 +42,16 @@ interface EditRoleDialogProps {
   onClose: () => void;
   onSuccess: (message: string) => void;
   actorRole?: string;
+  actorId?: string;
+  actorName?: string;
 }
+
+const ROLE_LEVEL: Record<string, number> = {
+  SUPERADMIN: 4,
+  ADMIN: 3,
+  SUPERVISOR: 2,
+  STAFF: 1,
+};
 
 export default function EditRoleDialog({
   user,
@@ -48,6 +59,8 @@ export default function EditRoleDialog({
   onClose,
   onSuccess,
   actorRole,
+  actorId,
+  actorName,
 }: EditRoleDialogProps) {
   const [name, setName] = useState("");
   const [username, setUsername] = useState("");
@@ -55,6 +68,7 @@ export default function EditRoleDialog({
   const [division, setDivision] = useState("");
   const [role, setRole] = useState<"SUPERADMIN" | "ADMIN" | "SUPERVISOR" | "STAFF">("STAFF");
   const [position, setPosition] = useState("");
+  const [reason, setReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -72,6 +86,7 @@ export default function EditRoleDialog({
         setRole("STAFF");
       }
       setPosition(user.position || "Staf Pelaksana");
+      setReason("");
       setError(null);
     }
   }, [user]);
@@ -80,6 +95,12 @@ export default function EditRoleDialog({
 
   const isTargetSuperadmin = user.role === "SUPERADMIN";
   const isActorAdmin = actorRole === "ADMIN";
+  const isSelf = Boolean(actorId && user && actorId === user.id);
+  const isOtherAdmin = isActorAdmin && user.role === "ADMIN" && !isSelf;
+
+  const currentRoleLevel = ROLE_LEVEL[user.role] || 1;
+  const selectedRoleLevel = ROLE_LEVEL[role] || 1;
+  const isDemotion = selectedRoleLevel < currentRoleLevel;
 
   const handleUsernameChange = (val: string) => {
     const formatted = val.toLowerCase().replace(/[^a-z0-9_.-]/g, "");
@@ -91,6 +112,17 @@ export default function EditRoleDialog({
     if (!user) return;
     setError(null);
 
+    if (isDemotion) {
+      if (isSelf) {
+        setError("Anda tidak dapat menurunkan jabatan akun Anda sendiri. Perubahan ini minimal harus dilakukan oleh admin/superadmin lain.");
+        return;
+      }
+      if (!reason.trim() || reason.trim().length < 3) {
+        setError("Alasan penurunan jabatan wajib diisi (minimal 3 karakter, contoh: 'Reshuffle').");
+        return;
+      }
+    }
+
     setSubmitting(true);
     try {
       const res = await updateUserAction({
@@ -101,6 +133,7 @@ export default function EditRoleDialog({
         division,
         role,
         position,
+        reason: isDemotion ? reason.trim() : undefined,
       });
 
       if (res.success) {
@@ -227,7 +260,7 @@ export default function EditRoleDialog({
               <Select
                 value={role}
                 onValueChange={(val) => { if (val) setRole(val as "SUPERADMIN" | "ADMIN" | "SUPERVISOR" | "STAFF"); }}
-                disabled={isTargetSuperadmin}
+                disabled={isTargetSuperadmin || isOtherAdmin}
               >
                 <SelectTrigger className="w-full h-10 text-xs sm:text-sm bg-surface-container-lowest border-outline-variant">
                   <SelectValue placeholder="Pilih Role" />
@@ -242,19 +275,19 @@ export default function EditRoleDialog({
                         </div>
                       </SelectItem>
                     )}
-                    <SelectItem value="STAFF">
+                    <SelectItem value="STAFF" disabled={isSelf && currentRoleLevel > 1}>
                       <div className="flex flex-col text-left py-0.5">
                         <span className="font-bold text-xs text-on-surface">STAFF (Amil Pelaksana)</span>
                         <span className="text-[11px] text-outline">Input Daily Report & Pengajuan Clock-in</span>
                       </div>
                     </SelectItem>
-                    <SelectItem value="SUPERVISOR">
+                    <SelectItem value="SUPERVISOR" disabled={isSelf && currentRoleLevel > 2}>
                       <div className="flex flex-col text-left py-0.5">
                         <span className="font-bold text-xs text-secondary">SUPERVISOR (Koordinator Bidang)</span>
                         <span className="text-[11px] text-outline">Verifikator Clock-in susulan</span>
                       </div>
                     </SelectItem>
-                    <SelectItem value="ADMIN">
+                    <SelectItem value="ADMIN" disabled={isSelf && currentRoleLevel > 3}>
                       <div className="flex flex-col text-left py-0.5">
                         <span className="font-bold text-xs text-amber-500">ADMIN (Pimpinan Harian / BPH)</span>
                         <span className="text-[11px] text-outline">Akses manajerial penuh ke seluruh sistem</span>
@@ -269,7 +302,47 @@ export default function EditRoleDialog({
                   <span>Akun Superadmin adalah pemegang otoritas tertinggi sistem dan tidak dapat diturunkan.</span>
                 </p>
               )}
+              {isOtherAdmin && (
+                <p className="text-[11px] text-outline flex items-center gap-1 mt-0.5">
+                  <span className="material-symbols-outlined text-[14px] text-amber-500">lock</span>
+                  <span>Hanya Superadmin yang berwenang mengubah atau menurunkan jabatan sesama Admin.</span>
+                </p>
+              )}
+              {isSelf && !isTargetSuperadmin && (
+                <p className="text-[11px] text-amber-500 flex items-center gap-1 mt-0.5">
+                  <span className="material-symbols-outlined text-[14px]">shield</span>
+                  <span>Anda sedang mengedit akun sendiri. Penurunan jabatan mandiri dinonaktifkan demi keamanan.</span>
+                </p>
+              )}
             </div>
+
+            {/* Kolom Alasan Wajib Muncul Saat Penurunan Jabatan */}
+            {isDemotion && !isSelf && (
+              <div className="flex flex-col gap-2 p-3.5 rounded-xl border border-amber-500/30 bg-amber-500/5">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-semibold text-amber-500 flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-[16px]">history_edu</span>
+                    <span>Alasan Penurunan Jabatan</span>
+                    <span className="text-error">*</span>
+                  </Label>
+                  <span className="text-[10px] text-outline font-medium">Wajib diisi</span>
+                </div>
+                <Textarea
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  placeholder="Tuliskan pertimbangan atau alasan resmi (contoh: Reshuffle, Rotasi kepengurusan, dll)..."
+                  rows={2}
+                  className="text-xs bg-surface-container-lowest border-outline-variant focus-visible:border-amber-500 min-h-[64px]"
+                />
+                <div className="flex items-center gap-1.5 text-[11px] text-outline mt-0.5">
+                  <span className="material-symbols-outlined text-[14px] text-secondary">verified</span>
+                  <span>
+                    Aksi ini dicatat dalam riwayat audit atas nama:{" "}
+                    <strong className="text-on-surface">{actorName || "Admin"} ({actorRole || "ADMIN"})</strong>
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
 
           <DialogFooter className="flex sm:justify-end gap-2 pt-2 border-t border-surface-container">
@@ -284,7 +357,12 @@ export default function EditRoleDialog({
             </Button>
             <Button
               type="submit"
-              disabled={submitting || (isTargetSuperadmin && isActorAdmin)}
+              disabled={
+                submitting ||
+                (isTargetSuperadmin && isActorAdmin) ||
+                (isSelf && isDemotion) ||
+                (isDemotion && (!reason.trim() || reason.trim().length < 3))
+              }
               className="bg-primary-container hover:bg-secondary text-white text-xs h-9 font-semibold cursor-pointer"
             >
               {submitting ? "Menyimpan..." : "Simpan Perubahan"}

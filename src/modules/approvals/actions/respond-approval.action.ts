@@ -20,9 +20,7 @@ export async function respondApprovalAction(input: RespondApprovalInput) {
 
     const result = await respondApprovalUseCase.execute(
       input,
-      decoded.userId as string,
-      decoded.role as string | undefined,
-      decoded.name as string | undefined
+      decoded.userId as string
     );
     return result;
   } catch (error) {

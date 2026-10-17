@@ -42,6 +42,7 @@ export class UserRepository {
         division: true,
         role: true,
         position: true,
+        avatar: true,
       },
       orderBy: [
         { division: 'asc' },
@@ -61,7 +62,22 @@ export class UserRepository {
         division: true,
         role: true,
         position: true,
+        avatar: true,
       },
+    });
+  }
+
+  async findMentionUsers() {
+    return prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        username: true,
+        division: true,
+        role: true,
+        avatar: true,
+      },
+      orderBy: { name: 'asc' },
     });
   }
 
@@ -238,6 +254,7 @@ export class UserRepository {
         division: true,
         position: true,
         role: true,
+        avatar: true,
         createdAt: true,
       },
       orderBy: [
@@ -323,6 +340,30 @@ export class UserRepository {
       totalAppreciations,
       recentReports: formattedRecentReports,
     };
+  }
+
+  async createRoleAuditLog(data: {
+    targetId: string;
+    oldRole: string;
+    newRole: string;
+    actionType?: string;
+    reason: string;
+    actorId: string;
+    actorName: string;
+    actorRole: string;
+  }) {
+    return prisma.roleAuditLog.create({
+      data: {
+        targetId: data.targetId,
+        oldRole: data.oldRole,
+        newRole: data.newRole,
+        actionType: data.actionType || "DEMOTION",
+        reason: data.reason.trim(),
+        actorId: data.actorId,
+        actorName: data.actorName,
+        actorRole: data.actorRole,
+      },
+    });
   }
 }
 

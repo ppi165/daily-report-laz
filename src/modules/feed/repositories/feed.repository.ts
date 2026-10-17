@@ -4,6 +4,7 @@ export class FeedRepository {
   async getFeedReports(division?: string, search?: string) {
     return prisma.report.findMany({
       where: {
+        status: "PUBLISHED",
         AND: [
           // Filter divisi jika dipilih
           division && division !== "ALL" ? { division } : {},
@@ -27,6 +28,7 @@ export class FeedRepository {
             division: true,
             position: true,
             role: true,
+            avatar: true,
           },
         },
         likes: {
@@ -47,8 +49,18 @@ export class FeedRepository {
                 division: true,
                 role: true,
                 position: true,
+                avatar: true,
               },
             },
+          },
+        },
+        approvals: {
+          select: {
+            id: true,
+            approverName: true,
+            approverDivision: true,
+            status: true,
+            respondedAt: true,
           },
         },
       },
@@ -130,9 +142,48 @@ export class FeedRepository {
             division: true,
             role: true,
             position: true,
+            avatar: true,
           },
         },
       },
+    });
+  }
+  async findCommentById(commentId: string) {
+    return prisma.reportComment.findUnique({
+      where: { id: commentId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            role: true,
+          },
+        },
+      },
+    });
+  }
+
+  async updateComment(commentId: string, content: string) {
+    return prisma.reportComment.update({
+      where: { id: commentId },
+      data: { content },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            division: true,
+            role: true,
+            position: true,
+            avatar: true,
+          },
+        },
+      },
+    });
+  }
+
+  async deleteComment(commentId: string) {
+    return prisma.reportComment.delete({
+      where: { id: commentId },
     });
   }
 }

@@ -14,6 +14,7 @@ export const UpdateUserSchema = z.object({
   role: z.enum(['SUPERADMIN', 'ADMIN', 'SUPERVISOR', 'STAFF'], {
     message: 'Pilihan role hanya boleh SUPERADMIN, ADMIN, SUPERVISOR, atau STAFF',
   }),
+  reason: z.string().optional(),
 });
 
 export type UpdateUserInput = z.infer<typeof UpdateUserSchema>;

@@ -186,6 +186,8 @@ export default function FeedView() {
                           id: user.id,
                           name: user.name,
                           division: user.division,
+                          role: user.role,
+                          avatar: user.avatar,
                         }
                       : null
                   }

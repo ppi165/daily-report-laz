@@ -4,6 +4,7 @@ import { useState } from "react";
 import FeedMediaCarousel from "./feed-media-carousel";
 import FeedResultPanel from "./feed-result-panel";
 import FeedCommentSection from "./feed-comment-section";
+import UserAvatar from "@/src/common/components/user-avatar";
 import { toggleAppreciationAction } from "../index";
 import { ParsedFeedReport } from "../use-cases/get-feed-reports.use-case";
 
@@ -13,6 +14,8 @@ interface FeedCardProps {
     id: string;
     name: string;
     division: string;
+    role?: string;
+    avatar?: string | null;
   } | null;
 }
 
@@ -22,6 +25,21 @@ export default function FeedCard({ report, currentUser }: FeedCardProps) {
   const [isLiking, setIsLiking] = useState(false);
   const [showResult, setShowResult] = useState(false);
   const [commentsCount, setCommentsCount] = useState(report.commentsCount);
+
+  // Akses informasi audit verifikasi Clock-in (Khusus Superadmin, Admin, dan Pengaju sendiri)
+  const isAdminOrSuperadmin =
+    currentUser?.role === "ADMIN" ||
+    currentUser?.role === "SUPERADMIN" ||
+    currentUser?.role === "SUPER_ADMIN";
+  const isAuthor = Boolean(
+    currentUser?.id && report.author?.id && currentUser.id === report.author.id
+  );
+  const canSeeClockInAudit =
+    (isAdminOrSuperadmin || isAuthor) && Boolean(report.isClockIn);
+
+  const approvedVerifiers = (report.approvals || [])
+    .filter((a) => a.status === "APPROVED")
+    .map((a) => a.approverName);
 
   const handleToggleLike = async () => {
     if (isLiking) return;
@@ -65,9 +83,11 @@ export default function FeedCard({ report, currentUser }: FeedCardProps) {
       {/* 1. Header Postingan: Profil Amil + Tombol Lihat Hasil */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="size-10 rounded-full bg-primary-container/20 text-primary flex items-center justify-center font-bold text-sm shrink-0 border border-primary/25 shadow-2xs">
-            {initialLetter}
-          </div>
+          <UserAvatar
+            name={report.author?.name}
+            avatarUrl={report.author?.avatar}
+            size="lg"
+          />
           <div className="flex flex-col min-w-0">
             <span className="text-sm font-bold text-on-surface truncate leading-tight">
               {report.author?.name || "Amil LAZ Persis"}
@@ -87,6 +107,22 @@ export default function FeedCard({ report, currentUser }: FeedCardProps) {
           {showResult ? "Lihat Foto" : "Lihat Hasil"}
         </button>
       </div>
+
+      {/* Banner Informasi Clock-in Disetujui (Transparan untuk Admin, Superadmin, dan Pengaju) */}
+      {canSeeClockInAudit && approvedVerifiers.length > 0 && (
+        <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs text-amber-500">
+          <span className="material-symbols-outlined text-[17px] text-amber-500 shrink-0">
+            verified
+          </span>
+          <div className="flex items-center gap-1.5 flex-wrap leading-tight">
+            <span className="font-bold text-amber-400">Clock-in Disetujui</span>
+            <span className="text-outline/60">•</span>
+            <span className="text-on-surface-variant">
+              Saksi: <strong className="text-on-surface font-semibold">{approvedVerifiers.join(", ")}</strong>
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* 2. Isi Tugas & Aktivitas Pelaporan */}
       <div className="text-xs sm:text-sm text-on-surface leading-relaxed whitespace-pre-wrap font-sans">
@@ -160,6 +196,7 @@ export default function FeedCard({ report, currentUser }: FeedCardProps) {
         initialComments={report.comments}
         currentUser={currentUser}
         onCommentAdded={() => setCommentsCount((prev) => prev + 1)}
+        onCommentDeleted={(count = 1) => setCommentsCount((prev) => Math.max(0, prev - count))}
       />
     </article>
   );

@@ -10,6 +10,7 @@ export interface ApproverOption {
   division: string;
   role: string;
   position?: string | null;
+  avatar?: string | null;
 }
 
 interface ClockInApproverSelectProps {
@@ -92,29 +93,6 @@ export default function ClockInApproverSelect({
             Verifikator 1 dan Verifikator 2 tidak boleh orang yang sama. Harap pilih rekan yang berbeda.
           </AlertDescription>
         </Alert>
-      )}
-
-      {/* Status ringkas verifikator terpilih */}
-      {isValid && (
-        <div className="flex flex-wrap items-center gap-2 pt-1 text-xs text-on-surface-variant">
-          <span className="font-semibold text-on-surface">Pihak Verifikator Terpilih:</span>
-          {selected1 && (
-            <span className="text-xs text-on-surface font-medium flex items-center gap-1">
-              <span className="material-symbols-outlined text-secondary text-[16px]">verified</span>
-              <span>{isSingle ? "" : "1. "}</span>
-              <strong className="text-secondary">{selected1.name}</strong>
-              <span className="text-outline">({selected1.division})</span>
-            </span>
-          )}
-          {!isSingle && selected2 && (
-            <span className="text-xs text-on-surface font-medium flex items-center gap-1">
-              <span className="material-symbols-outlined text-secondary text-[16px]">verified</span>
-              <span>2. </span>
-              <strong className="text-secondary">{selected2.name}</strong>
-              <span className="text-outline">({selected2.division})</span>
-            </span>
-          )}
-        </div>
       )}
     </div>
   );

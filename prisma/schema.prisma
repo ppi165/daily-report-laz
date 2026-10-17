@@ -29,6 +29,7 @@ model User {
   approvals ReportApproval[] @relation("ApproverRelation")
   likes     ReportAppreciation[]
   comments  ReportComment[]
+  roleAudits RoleAuditLog[]  @relation("RoleAuditTarget")
 }
 
 model Division {
@@ -139,4 +140,18 @@ model SpecialSchedule {
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+}
+
+model RoleAuditLog {
+  id         String   @id @default(uuid())
+  targetId   String
+  target     User     @relation("RoleAuditTarget", fields: [targetId], references: [id], onDelete: Cascade)
+  oldRole    String
+  newRole    String
+  actionType String   @default("DEMOTION") // DEMOTION, PROMOTION, UPDATE
+  reason     String
+  actorId    String
+  actorName  String
+  actorRole  String
+  createdAt  DateTime @default(now())
 }

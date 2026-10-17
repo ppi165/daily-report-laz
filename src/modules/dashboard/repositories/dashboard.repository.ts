@@ -110,6 +110,7 @@ export class DashboardRepository {
             name: true,
             division: true,
             role: true,
+            avatar: true,
           },
         },
         _count: {

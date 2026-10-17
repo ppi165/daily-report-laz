@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import UserAvatar from "@/src/common/components/user-avatar";
 import { Separator } from "@/components/ui/separator";
 
 export interface TeamFeedItem {
@@ -9,6 +9,7 @@ export interface TeamFeedItem {
     name: string;
     division: string;
     role?: string;
+    avatar?: string | null;
   } | null;
   content: string;
   createdAt: string | Date;
@@ -65,11 +66,11 @@ export default function TeamFeed({ feeds = [] }: TeamFeedProps) {
               >
                 <div className="flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2.5">
-                    <Avatar className="size-7 border border-outline-variant/60">
-                      <AvatarFallback className="font-bold text-[10px] bg-secondary/15 text-secondary">
-                        {authorName.charAt(0)}
-                      </AvatarFallback>
-                    </Avatar>
+                    <UserAvatar
+                      name={authorName}
+                      avatarUrl={feed.author?.avatar}
+                      size="sm"
+                    />
                     <div className="flex flex-col">
                       <span className="text-xs font-bold text-on-surface leading-tight">
                         {authorName}

@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import UserAvatar from "@/src/common/components/user-avatar";
 
 export interface ApproverItem {
   id: string;
@@ -9,6 +10,7 @@ export interface ApproverItem {
   role: string;
   division: string;
   position?: string | null;
+  avatar?: string | null;
 }
 
 interface ApproverSearchSelectProps {
@@ -53,7 +55,12 @@ export default function ApproverSearchSelect({
         className="w-full h-11 px-3.5 rounded-xl bg-surface-container-lowest border border-outline-variant text-on-surface text-sm flex items-center justify-between gap-2 hover:border-secondary transition-colors text-left focus:outline-none focus:ring-2 focus:ring-secondary/20 cursor-pointer"
       >
         {selected ? (
-          <div className="flex items-center gap-2 overflow-hidden flex-1">
+          <div className="flex items-center gap-2.5 overflow-hidden flex-1">
+            <UserAvatar
+              name={selected.name}
+              avatarUrl={selected.avatar}
+              size="xs"
+            />
             <span className="font-semibold truncate text-on-surface">
               {selected.name}
             </span>
@@ -134,20 +141,27 @@ export default function ApproverSearchSelect({
                       : "hover:bg-surface-container text-on-surface cursor-pointer"
                   }`}
                 >
-                  <div className="flex flex-col gap-0.5 overflow-hidden flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-semibold text-on-surface text-xs truncate">
-                        {approver.name}
-                      </span>
-                      <span className="text-[11px] font-semibold text-secondary shrink-0">
-                        • {approver.division}
+                  <div className="flex items-center gap-2.5 overflow-hidden flex-1">
+                    <UserAvatar
+                      name={approver.name}
+                      avatarUrl={approver.avatar}
+                      size="xs"
+                    />
+                    <div className="flex flex-col gap-0.5 overflow-hidden flex-1">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-semibold text-on-surface text-xs truncate">
+                          {approver.name}
+                        </span>
+                        <span className="text-[11px] font-semibold text-secondary shrink-0">
+                          • {approver.division}
+                        </span>
+                      </div>
+                      <span className="text-[11px] text-outline truncate">
+                        {isOther
+                          ? "Sudah dipilih pada verifikator lain"
+                          : approver.role}
                       </span>
                     </div>
-                    <span className="text-[11px] text-outline truncate">
-                      {isOther
-                        ? "Sudah dipilih pada verifikator lain"
-                        : approver.role}
-                    </span>
                   </div>
 
                   {isSelected && (
