@@ -11,6 +11,7 @@ export interface ActivityReportItem {
   appreciations?: number;
   attachments?: string[];
   division?: string;
+  commentsCount?: number;
 }
 
 interface RecentActivityCardProps {
@@ -21,98 +22,88 @@ export default function RecentActivityCard({ activities = [] }: RecentActivityCa
   return (
     <Card className="lg:col-span-7 bg-surface-container-lowest rounded-2xl border-outline-variant/60 p-5 sm:p-6 shadow-xs flex flex-col gap-4">
       <CardHeader className="p-0 flex flex-row items-center justify-between pb-1">
-        <CardTitle className="text-lg sm:text-xl font-bold text-on-surface tracking-tight">
+        <CardTitle className="text-base sm:text-lg font-bold text-on-surface tracking-tight">
           Aktivitas Terbaru Anda
         </CardTitle>
         <Link
-          className="text-xs sm:text-sm text-primary font-semibold hover:text-secondary flex items-center gap-1 transition-colors"
+          className="text-xs text-secondary font-semibold hover:underline transition-colors"
           href="/rekap-report"
         >
-          <span>Lihat Rekap</span>
-          <span className="material-symbols-outlined text-[16px]">
-            arrow_forward
-          </span>
+          Lihat Rekap Lengkap
         </Link>
       </CardHeader>
 
-      <Separator className="bg-surface-container/80" />
+      <Separator className="bg-outline-variant/40" />
 
       <CardContent className="p-0 flex flex-col gap-3">
         {activities.length === 0 ? (
-          <div className="p-8 rounded-2xl bg-surface-container-low/40 border border-dashed border-outline-variant flex flex-col items-center justify-center text-center gap-2">
-            <span className="material-symbols-outlined text-[32px] text-outline">
-              history_edu
-            </span>
+          <div className="py-8 px-4 rounded-xl bg-surface-container-low/40 border border-dashed border-outline-variant/60 flex flex-col items-center justify-center text-center gap-1.5">
             <p className="text-xs font-semibold text-on-surface">
-              Belum ada riwayat laporan terbaru
+              Belum ada riwayat laporan
             </p>
             <p className="text-[11px] text-outline max-w-xs">
               Laporan kerja yang Anda kirimkan akan otomatis terdata dan ditampilkan di sini.
             </p>
           </div>
         ) : (
-          activities.map((act) => {
+          activities.slice(0, 3).map((act) => {
             const dateObj = new Date(act.createdAt);
             const dateStr = dateObj.toLocaleDateString("id-ID", {
               day: "numeric",
               month: "short",
-              year: "numeric",
             });
             const timeStr = dateObj.toLocaleTimeString("id-ID", {
               hour: "2-digit",
               minute: "2-digit",
             });
 
+            const isPending = act.status === "PENDING_APPROVAL";
+            const isRejected = act.status === "REJECTED";
+
             return (
               <div
                 key={act.id}
-                className="p-4 sm:p-4.5 rounded-2xl bg-surface-container-low/70 hover:bg-surface-container-low transition-colors flex flex-col gap-2.5"
+                className="p-3.5 rounded-xl bg-surface-container-low/50 hover:bg-surface-container-low transition-colors flex flex-col gap-2"
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="text-xs sm:text-sm font-bold text-on-surface">
+                    <span className="text-xs font-bold text-on-surface">
                       {dateStr}
                     </span>
-                    <span className="text-xs text-outline font-mono">
+                    <span className="text-[11px] text-outline font-mono">
                       • {timeStr} WIB
                     </span>
                   </div>
                   <span
-                    className={`text-xs font-bold font-mono tracking-wider uppercase ${
-                      act.status === "PUBLISHED"
-                        ? "text-secondary"
-                        : "text-primary"
+                    className={`text-[11px] font-bold ${
+                      isPending
+                        ? "text-amber-500"
+                        : isRejected
+                        ? "text-rose-500"
+                        : "text-secondary"
                     }`}
                   >
-                    {act.status}
+                    {isPending
+                      ? "Menunggu Saksi"
+                      : isRejected
+                      ? "Ditolak"
+                      : "Diterbitkan"}
                   </span>
                 </div>
 
-                <div>
-                  <h3 className="text-xs sm:text-sm font-bold text-on-surface mb-0.5">
-                    {act.title || "Laporan Aktivitas Harian"}
-                  </h3>
-                  <p className="text-xs text-on-surface-variant line-clamp-2 leading-relaxed">
-                    {act.content}
-                  </p>
-                </div>
+                <p className="text-xs text-on-surface-variant line-clamp-2 leading-relaxed">
+                  {act.content}
+                </p>
 
-                <Separator className="bg-surface-container/60" />
-
-                <div className="flex items-center justify-between text-xs text-outline pt-0.5">
-                  <div className="flex items-center gap-1.5 text-secondary font-medium">
-                    <span className="material-symbols-outlined text-[15px]">
-                      thumb_up
-                    </span>
-                    <span>{act.appreciations || 0} Apresiasi</span>
-                  </div>
-                  <div className="text-on-surface-variant font-medium">
-                    <span>
-                      {act.attachments && act.attachments.length > 0
-                        ? `${act.attachments.length} Foto Lampiran`
-                        : "Tidak ada lampiran"}
-                    </span>
-                  </div>
+                <div className="flex items-center justify-between text-[11px] text-outline pt-1 border-t border-outline-variant/30">
+                  <span className="font-medium text-secondary">
+                    {act.appreciations || 0} Apresiasi
+                  </span>
+                  <span>
+                    {act.attachments && act.attachments.length > 0
+                      ? `${act.attachments.length} Foto Lampiran`
+                      : "Tanpa lampiran"}
+                  </span>
                 </div>
               </div>
             );

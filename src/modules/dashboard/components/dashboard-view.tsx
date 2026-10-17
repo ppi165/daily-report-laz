@@ -17,6 +17,7 @@ interface DashboardViewProps {
     hasReportedToday: boolean;
     deadlineTime?: string;
     activeScheduleName?: string | null;
+    monthlyReportsCount?: number;
     todayReport?: {
       id: string;
       title: string | null;
@@ -85,6 +86,7 @@ export default function DashboardView({ user, stats }: DashboardViewProps) {
                   activeUsers: stats.activeUsers,
                   totalUsers: stats.totalUsers,
                   completionRate: stats.completionRate,
+                  monthlyReportsCount: stats.monthlyReportsCount,
                 }
               : undefined
           }

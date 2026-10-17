@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 
 interface TodayReportInfo {
   id: string;
@@ -37,6 +36,7 @@ export default function TodayStatusCard({ initialData }: TodayStatusCardProps) {
   const [activeScheduleName, setActiveScheduleName] = useState<string | null>(() => {
     return initialData?.activeScheduleName ?? null;
   });
+  const [timeRemaining, setTimeRemaining] = useState<string>("");
 
   useEffect(() => {
     if (initialData !== undefined && initialData !== null) {
@@ -72,7 +72,37 @@ export default function TodayStatusCard({ initialData }: TodayStatusCardProps) {
     checkTodayStatus();
   }, [initialData]);
 
-  // Format waktu laporan dikirim
+  // Hitung sisa waktu mundur menuju deadline
+  useEffect(() => {
+    if (hasReportedToday) return;
+
+    function updateRemaining() {
+      const now = new Date();
+      const [h, m] = deadlineTime.split(":").map(Number);
+      if (isNaN(h) || isNaN(m)) return;
+
+      const deadline = new Date();
+      deadline.setHours(h, m, 0, 0);
+
+      const diffMs = deadline.getTime() - now.getTime();
+      if (diffMs <= 0) {
+        setTimeRemaining("Batas waktu reguler telah lewat");
+      } else {
+        const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+        const diffMins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+        if (diffHrs > 0) {
+          setTimeRemaining(`Sisa ${diffHrs} jam ${diffMins} menit`);
+        } else {
+          setTimeRemaining(`Sisa ${diffMins} menit`);
+        }
+      }
+    }
+
+    updateRemaining();
+    const timer = setInterval(updateRemaining, 60000);
+    return () => clearInterval(timer);
+  }, [deadlineTime, hasReportedToday]);
+
   const formattedTime = reportInfo?.createdAt
     ? new Date(reportInfo.createdAt).toLocaleTimeString("id-ID", {
         hour: "2-digit",
@@ -80,32 +110,25 @@ export default function TodayStatusCard({ initialData }: TodayStatusCardProps) {
       }) + " WIB"
     : "";
 
-  const cardBorderClass =
-    hasReportedToday === null
-      ? "border-outline-variant/60"
-      : hasReportedToday
-      ? "border-secondary/40 shadow-xs"
-      : "border-error/30 shadow-xs";
+  const isPending = reportInfo?.status === "PENDING_APPROVAL";
 
   return (
-    <Card className={`lg:col-span-4 bg-surface-container-lowest p-5 sm:p-6 rounded-2xl ${cardBorderClass} flex flex-col gap-4 relative overflow-hidden transition-colors`}>
-      <CardHeader className="p-0 flex flex-col gap-2.5">
+    <Card className="lg:col-span-4 bg-surface-container-lowest p-5 sm:p-6 rounded-2xl border-outline-variant/60 shadow-xs flex flex-col justify-between gap-4">
+      <CardHeader className="p-0 flex flex-col gap-2">
         <div className="flex items-center justify-between">
           <span className="text-[11px] font-bold uppercase tracking-wider text-outline">
             Status Hari Ini
           </span>
           {hasReportedToday === null ? (
-            <span className="text-xs font-semibold text-outline">
-              Memeriksa...
-            </span>
+            <span className="text-xs font-medium text-outline">Memeriksa...</span>
           ) : hasReportedToday ? (
             <span className="text-xs font-bold text-secondary flex items-center gap-1.5">
-              <span className="size-1.5 rounded-full bg-secondary"></span>
+              <span className="size-2 rounded-full bg-secondary"></span>
               Sudah Lapor
             </span>
           ) : (
-            <span className="text-xs font-bold text-error flex items-center gap-1.5">
-              <span className="size-1.5 rounded-full bg-error"></span>
+            <span className="text-xs font-bold text-amber-500 flex items-center gap-1.5">
+              <span className="size-2 rounded-full bg-amber-500"></span>
               Belum Lapor
             </span>
           )}
@@ -113,62 +136,64 @@ export default function TodayStatusCard({ initialData }: TodayStatusCardProps) {
 
         <CardTitle className="text-lg sm:text-xl font-bold text-on-surface tracking-tight leading-snug">
           {hasReportedToday
-            ? "Laporan Anda Telah Terkirim"
-            : "Laporan Hari Ini Belum Dikirim"}
+            ? isPending
+              ? "Laporan Sedang Diverifikasi"
+              : "Laporan Hari Ini Selesai"
+            : "Belum Melapor Hari Ini"}
         </CardTitle>
       </CardHeader>
 
       <CardContent className="p-0 flex flex-col gap-3">
-        <p className="text-xs sm:text-sm text-on-surface-variant leading-relaxed">
-          {hasReportedToday
-            ? "Alhamdulillah, seluruh aktivitas dan laporan amil Anda untuk hari ini telah berhasil terdata dalam sistem."
-            : "Pastikan laporan aktivitas kerja harian Anda diserahkan sebelum batas waktu agar presensi terekap tepat waktu."}
-        </p>
-
         {hasReportedToday ? (
-          <div className="flex items-center justify-between p-3 rounded-xl bg-secondary/10 border border-secondary/20 text-xs sm:text-sm">
-            <div className="flex items-center gap-2 text-secondary font-medium">
-              <span className="material-symbols-outlined text-[18px]">check_circle</span>
-              <span>Terkirim: <strong className="text-on-surface">{formattedTime}</strong></span>
+          <div className="flex flex-col gap-1.5 p-3 rounded-xl bg-surface-container-low/60 border border-outline-variant/40 text-xs sm:text-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-on-surface-variant font-medium">Jam Kirim</span>
+              <span className="font-semibold text-on-surface">{formattedTime}</span>
             </div>
-            <span className="text-[11px] font-bold text-secondary">
-              Tepat Waktu
-            </span>
+            <div className="flex items-center justify-between">
+              <span className="text-on-surface-variant font-medium">Status</span>
+              <span
+                className={`font-bold ${
+                  isPending ? "text-amber-500" : "text-secondary"
+                }`}
+              >
+                {isPending ? "Menunggu Saksi" : "Diterbitkan"}
+              </span>
+            </div>
           </div>
         ) : (
-          <div className="flex items-center justify-between p-3 rounded-xl bg-surface-container-low/80 border border-outline-variant/60 text-xs sm:text-sm">
-            <div className="flex items-center gap-2 text-on-surface-variant font-medium">
-              <span className="material-symbols-outlined text-[18px] text-primary">schedule</span>
-              <span>Batas: <strong className="text-on-surface">{deadlineTime} WIB</strong></span>
-            </div>
-            {activeScheduleName && (
-              <span className="text-[11px] font-semibold text-secondary font-mono">
-                {activeScheduleName}
+          <div className="flex flex-col gap-1.5 p-3 rounded-xl bg-surface-container-low/60 border border-outline-variant/40 text-xs sm:text-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-on-surface-variant font-medium">Batas Waktu</span>
+              <span className="font-semibold text-on-surface font-mono">
+                {deadlineTime} WIB
               </span>
-            )}
+            </div>
+            <div className="flex items-center justify-between">
+              <span className="text-on-surface-variant font-medium">Keterangan</span>
+              <span className="text-xs text-secondary font-medium">
+                {timeRemaining || activeScheduleName || "Hari Kerja Normal"}
+              </span>
+            </div>
           </div>
         )}
       </CardContent>
 
-      <CardFooter className="p-0 pb-5 sm:pb-6 pt-2 bg-transparent border-0 mt-auto">
+      <CardFooter className="p-0 pt-1 mt-auto">
         {hasReportedToday ? (
-          <Button
-            render={<Link href="/rekap-report" />}
-            nativeButton={false}
-            className="w-full h-11 bg-secondary hover:bg-secondary/90 text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-1.5 shadow-xs transition-all cursor-pointer"
+          <Link
+            href="/rekap-report"
+            className="w-full h-10 rounded-xl bg-surface-container-low hover:bg-surface-container text-on-surface text-xs sm:text-sm font-semibold flex items-center justify-center transition-colors border border-outline-variant/50"
           >
-            <span data-icon="inline-start" className="material-symbols-outlined text-[18px]">visibility</span>
-            <span>Lihat Rekap Laporan</span>
-          </Button>
+            Lihat Rekap Laporan
+          </Link>
         ) : (
-          <Button
-            render={<Link href="/daily-report" />}
-            nativeButton={false}
-            className="w-full h-11 bg-primary-container hover:bg-secondary text-white rounded-xl text-sm font-semibold flex items-center justify-center gap-1.5 shadow-xs transition-all cursor-pointer"
+          <Link
+            href="/daily-report"
+            className="w-full h-10 rounded-xl bg-secondary hover:bg-secondary/90 text-white text-xs sm:text-sm font-semibold flex items-center justify-center transition-colors shadow-xs"
           >
-            <span data-icon="inline-start" className="material-symbols-outlined text-[18px]">edit_note</span>
-            <span>Tulis Laporan Hari Ini</span>
-          </Button>
+            Tulis Laporan Sekarang
+          </Link>
         )}
       </CardFooter>
     </Card>

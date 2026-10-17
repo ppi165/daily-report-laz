@@ -9,6 +9,7 @@ interface DashboardStatsProps {
     activeUsers: number;
     totalUsers: number;
     completionRate: number;
+    monthlyReportsCount?: number;
   } | null;
 }
 
@@ -20,6 +21,7 @@ export default function DashboardStats({ initialData }: DashboardStatsProps) {
         activeUsers: 0,
         totalUsers: 0,
         completionRate: 0,
+        monthlyReportsCount: 0,
       }
     );
   });
@@ -49,57 +51,60 @@ export default function DashboardStats({ initialData }: DashboardStatsProps) {
   }, [initialData]);
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
-      <Card className="bg-surface-container-lowest/80 backdrop-blur-xs p-5 rounded-2xl border-outline-variant/50 shadow-none hover:shadow-xs transition-shadow relative overflow-hidden flex flex-col gap-2.5">
-        <div className="h-1 w-full bg-primary-container absolute top-0 left-0"></div>
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-5">
+      {/* 1. Presensi Kerja Hari Ini */}
+      <Card className="bg-surface-container-lowest p-5 rounded-2xl border-outline-variant/60 shadow-xs flex flex-col gap-2">
         <CardHeader className="p-0">
           <span className="text-[11px] font-bold uppercase tracking-wider text-outline">
-            Presensi Kerja
+            Presensi Hari Ini
           </span>
         </CardHeader>
-        <CardContent className="p-0 flex flex-col gap-1">
-          <CardTitle className="text-3xl sm:text-4xl text-primary font-black tracking-tight tabular-nums">
+        <CardContent className="p-0 flex flex-col gap-0.5">
+          <CardTitle className="text-2xl sm:text-3xl text-on-surface font-extrabold tracking-tight tabular-nums">
             {stats.activeUsers}{" "}
-            <span className="text-sm sm:text-base font-semibold text-outline">
-              / {stats.totalUsers}
+            <span className="text-sm font-semibold text-outline">
+              / {stats.totalUsers} Amil
             </span>
           </CardTitle>
-          <p className="text-xs text-on-surface-variant font-medium">
-            Pegawai Aktif Melapor
+          <p className="text-xs text-on-surface-variant">
+            Pegawai telah mengirim laporan
           </p>
         </CardContent>
       </Card>
 
-      <Card className="bg-surface-container-lowest/80 backdrop-blur-xs p-5 rounded-2xl border-outline-variant/50 shadow-none hover:shadow-xs transition-shadow relative overflow-hidden flex flex-col gap-2.5">
-        <div className="h-1 w-full bg-secondary absolute top-0 left-0"></div>
+      {/* 2. Tingkat Kelengkapan Hari Ini */}
+      <Card className="bg-surface-container-lowest p-5 rounded-2xl border-outline-variant/60 shadow-xs flex flex-col gap-2">
         <CardHeader className="p-0">
           <span className="text-[11px] font-bold uppercase tracking-wider text-outline">
-            Aktivitas Pelaporan
+            Tingkat Kelengkapan
           </span>
         </CardHeader>
-        <CardContent className="p-0 flex flex-col gap-1">
-          <CardTitle className="text-3xl sm:text-4xl text-secondary font-black tracking-tight tabular-nums">
-            {stats.totalReports}
-          </CardTitle>
-          <p className="text-xs text-on-surface-variant font-medium">
-            Total Laporan Terbit
-          </p>
-        </CardContent>
-      </Card>
-
-      <Card className="bg-surface-container-lowest/80 backdrop-blur-xs p-5 rounded-2xl border-outline-variant/50 shadow-none hover:shadow-xs transition-shadow relative overflow-hidden flex flex-col gap-2.5">
-        <div className="h-1 w-full bg-primary absolute top-0 left-0"></div>
-        <CardHeader className="p-0">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-outline">
-            Tingkat Disiplin
-          </span>
-        </CardHeader>
-        <CardContent className="p-0 flex flex-col gap-1">
-          <CardTitle className="text-3xl sm:text-4xl text-on-surface font-black tracking-tight tabular-nums">
+        <CardContent className="p-0 flex flex-col gap-0.5">
+          <CardTitle className="text-2xl sm:text-3xl text-secondary font-extrabold tracking-tight tabular-nums">
             {stats.completionRate}%
           </CardTitle>
-          <p className="text-xs text-on-surface-variant font-medium">
-            Kelengkapan Pelaporan
+          <p className="text-xs text-on-surface-variant">
+            Rasio kepatuhan seluruh unit
+          </p>
+        </CardContent>
+      </Card>
+
+      {/* 3. Laporan Saya Bulan Ini */}
+      <Card className="bg-surface-container-lowest p-5 rounded-2xl border-outline-variant/60 shadow-xs flex flex-col gap-2">
+        <CardHeader className="p-0">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-outline">
+            Laporan Anda Bulan Ini
+          </span>
+        </CardHeader>
+        <CardContent className="p-0 flex flex-col gap-0.5">
+          <CardTitle className="text-2xl sm:text-3xl text-on-surface font-extrabold tracking-tight tabular-nums">
+            {stats.monthlyReportsCount !== undefined
+              ? stats.monthlyReportsCount
+              : stats.totalReports}{" "}
+            <span className="text-sm font-semibold text-outline">Laporan</span>
+          </CardTitle>
+          <p className="text-xs text-on-surface-variant">
+            Tercatat di periode berjalan
           </p>
         </CardContent>
       </Card>
