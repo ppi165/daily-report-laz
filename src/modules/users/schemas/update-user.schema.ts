@@ -11,8 +11,8 @@ export const UpdateUserSchema = z.object({
   email: z.string().email('Alamat email tidak valid'),
   division: z.string().min(1, 'Divisi penugasan wajib dipilih'),
   position: z.string().min(1, 'Jabatan / Posisi wajib diisi'),
-  role: z.enum(['ADMIN', 'SUPERVISOR', 'STAFF'], {
-    message: 'Pilihan role hanya boleh ADMIN, SUPERVISOR, atau STAFF',
+  role: z.enum(['SUPERADMIN', 'ADMIN', 'SUPERVISOR', 'STAFF'], {
+    message: 'Pilihan role hanya boleh SUPERADMIN, ADMIN, SUPERVISOR, atau STAFF',
   }),
 });
 

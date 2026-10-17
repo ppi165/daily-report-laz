@@ -49,13 +49,16 @@ export class UpdateUserUseCase {
       }
     }
 
+    // Proteksi Absolut Akun Superadmin: Role Superadmin tidak boleh di-downgrade secara tidak sengaja
+    const finalRole = targetUser.role === 'SUPERADMIN' ? 'SUPERADMIN' : validated.role;
+
     const updated = await userRepository.updateUser(targetUser.id, {
       name: validated.name.trim(),
       username: validated.username.toLowerCase().trim(),
       email: validated.email.toLowerCase().trim(),
       division: validated.division,
       position: validated.position.trim(),
-      role: validated.role,
+      role: finalRole,
     });
 
     return {

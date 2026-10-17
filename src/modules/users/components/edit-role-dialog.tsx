@@ -53,7 +53,7 @@ export default function EditRoleDialog({
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [division, setDivision] = useState("");
-  const [role, setRole] = useState<"ADMIN" | "SUPERVISOR" | "STAFF">("STAFF");
+  const [role, setRole] = useState<"SUPERADMIN" | "ADMIN" | "SUPERVISOR" | "STAFF">("STAFF");
   const [position, setPosition] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -64,7 +64,13 @@ export default function EditRoleDialog({
       setUsername(user.username);
       setEmail(user.email);
       setDivision(user.division);
-      setRole((user.role === "ADMIN" || user.role === "SUPERVISOR" || user.role === "STAFF") ? user.role : "STAFF");
+      if (user.role === "SUPERADMIN") {
+        setRole("SUPERADMIN");
+      } else if (user.role === "ADMIN" || user.role === "SUPERVISOR" || user.role === "STAFF") {
+        setRole(user.role);
+      } else {
+        setRole("STAFF");
+      }
       setPosition(user.position || "Staf Pelaksana");
       setError(null);
     }
@@ -220,14 +226,22 @@ export default function EditRoleDialog({
               <Label className="text-xs font-semibold text-on-surface">Tingkatan Hak Akses (Role)</Label>
               <Select
                 value={role}
-                onValueChange={(val) => { if (val) setRole(val as "ADMIN" | "SUPERVISOR" | "STAFF"); }}
-                disabled={isTargetSuperadmin && isActorAdmin}
+                onValueChange={(val) => { if (val) setRole(val as "SUPERADMIN" | "ADMIN" | "SUPERVISOR" | "STAFF"); }}
+                disabled={isTargetSuperadmin}
               >
                 <SelectTrigger className="w-full h-10 text-xs sm:text-sm bg-surface-container-lowest border-outline-variant">
                   <SelectValue placeholder="Pilih Role" />
                 </SelectTrigger>
                 <SelectContent className="bg-surface-container-lowest border-outline-variant">
                   <SelectGroup>
+                    {isTargetSuperadmin && (
+                      <SelectItem value="SUPERADMIN">
+                        <div className="flex flex-col text-left py-0.5">
+                          <span className="font-bold text-xs text-primary">SUPERADMIN (Akses Tertinggi Aplikasi)</span>
+                          <span className="text-[11px] text-outline">Pemegang kendali root mutlak aplikasi (permanen)</span>
+                        </div>
+                      </SelectItem>
+                    )}
                     <SelectItem value="STAFF">
                       <div className="flex flex-col text-left py-0.5">
                         <span className="font-bold text-xs text-on-surface">STAFF (Amil Pelaksana)</span>
@@ -249,6 +263,12 @@ export default function EditRoleDialog({
                   </SelectGroup>
                 </SelectContent>
               </Select>
+              {isTargetSuperadmin && (
+                <p className="text-[11px] text-outline flex items-center gap-1 mt-0.5">
+                  <span className="material-symbols-outlined text-[14px] text-primary">verified_user</span>
+                  <span>Akun Superadmin adalah pemegang otoritas tertinggi sistem dan tidak dapat diturunkan.</span>
+                </p>
+              )}
             </div>
           </div>
 

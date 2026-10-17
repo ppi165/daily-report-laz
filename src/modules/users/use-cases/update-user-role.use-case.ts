@@ -24,13 +24,13 @@ export class UpdateUserRoleUseCase {
     }
 
     // Aturan Hierarki Proteksi Role:
-    if (actor.role === 'ADMIN') {
-      // 1. Admin dilarang menyentuh akun Superadmin
-      if (targetUser.role === 'SUPERADMIN') {
-        throw new Error('Pelanggaran hak akses: Akun Superadmin dilindungi dan tidak dapat diubah oleh Admin.');
-      }
+    // 1. Akun Superadmin adalah pemegang otoritas tertinggi mutlak dan tidak dapat diturunkan posisinya
+    if (targetUser.role === 'SUPERADMIN') {
+      throw new Error('Pelanggaran hak akses: Akun Superadmin adalah pemegang otoritas tertinggi sistem dan tidak dapat diturunkan rolenya.');
+    }
 
-      // 2. Admin dilarang mendemosikan/mengubah role sesama Admin
+    if (actor.role === 'ADMIN') {
+      // Admin dilarang mendemosikan/mengubah role sesama Admin
       if (targetUser.role === 'ADMIN' && targetUser.id !== actor.id && validated.role !== 'ADMIN') {
         throw new Error('Pelanggaran hak akses: Hanya Superadmin yang berwenang mencabut status Admin pimpinan lain.');
       }

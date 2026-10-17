@@ -76,7 +76,7 @@ export default function SideNavBar({ isOpen = false, onClose }: SideNavBarProps)
       show: isAdminOrSuper,
     },
     {
-      label: "Pengaturan Sistem",
+      label: "Pengaturan Umum",
       href: "/admin/pengaturan",
       icon: "tune",
       isActive: pathname.startsWith("/admin/pengaturan"),
