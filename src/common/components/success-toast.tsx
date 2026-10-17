@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { toast } from "@/src/common/context/toast-context";
+import { toast } from "@/components/ui/toast";
 
 interface SuccessToastProps {
   title: string;

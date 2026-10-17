@@ -13,7 +13,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { useUser } from "@/src/common/context/user-context";
-import { toast } from "@/src/common/context/toast-context";
+import { toast } from "@/components/ui/toast";
 import { changePasswordAction } from "../actions/change-password.action";
 import { updateAvatarAction } from "../actions/update-avatar.action";
 import { updateProfileNameAction } from "../actions/update-profile-name.action";
