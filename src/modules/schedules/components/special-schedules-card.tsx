@@ -8,6 +8,7 @@ import CreateScheduleDialog from "./create-schedule-dialog";
 import ScheduleRetentionConfig from "./schedule-retention-config";
 import { deleteScheduleAction } from "../actions/delete-schedule.action";
 import { SpecialScheduleData, ScheduleStatus } from "../types/schedule.types";
+import { useDialog } from "@/src/common/context/dialog-context";
 
 interface ExtendedScheduleData extends SpecialScheduleData {
   status: ScheduleStatus;
@@ -22,6 +23,7 @@ export default function SpecialSchedulesCard({
   retentionType,
   retentionValue,
 }: SpecialSchedulesCardProps) {
+  const { confirm } = useDialog();
   const [schedules, setSchedules] = useState<ExtendedScheduleData[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -47,7 +49,13 @@ export default function SpecialSchedulesCard({
   }, [fetchSchedules]);
 
   const handleDelete = async (id: string, name: string) => {
-    if (!confirm(`Hapus jadwal khusus "${name}"?`)) return;
+    const isConfirmed = await confirm({
+      title: "Hapus Jadwal Khusus",
+      description: `Yakin ingin menghapus jadwal khusus "${name}"? Aturan jam batas pelaporan pada rentang tanggal tersebut akan kembali mengikuti jadwal kerja normal.`,
+      confirmText: "Hapus Jadwal",
+      variant: "destructive",
+    });
+    if (!isConfirmed) return;
 
     setDeletingId(id);
     try {

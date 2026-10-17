@@ -22,6 +22,7 @@ import {
   updateDivisionAction,
   deleteDivisionAction,
 } from "../index";
+import { useDialog } from "@/src/common/context/dialog-context";
 
 interface DivisionItem {
   id: string;
@@ -32,6 +33,7 @@ interface DivisionItem {
 }
 
 export default function DivisionManagerView() {
+  const { confirm } = useDialog();
   const [divisions, setDivisions] = useState<DivisionItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -135,7 +137,13 @@ export default function DivisionManagerView() {
   };
 
   const handleDeleteDivision = async (div: DivisionItem) => {
-    if (!confirm(`Yakin ingin menghapus divisi "${div.name}"?`)) return;
+    const isConfirmed = await confirm({
+      title: "Hapus Divisi",
+      description: `Yakin ingin menghapus divisi "${div.name}"? Amil yang berada di divisi ini tidak akan memiliki bidang terdaftar.`,
+      confirmText: "Hapus Divisi",
+      variant: "destructive",
+    });
+    if (!isConfirmed) return;
 
     setSubmitting(true);
     try {

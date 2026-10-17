@@ -157,7 +157,7 @@ export default function RekapTable({ reports, loading }: RekapTableProps) {
                         onClick={() => setSelectedReport(report)}
                         className="h-8 px-2.5 rounded-lg text-xs font-semibold text-secondary hover:bg-secondary/10 cursor-pointer flex items-center gap-1 ml-auto"
                       >
-                        <span className="material-symbols-outlined text-[16px]">visibility</span>
+                        <span className="material-symbols-outlined text-[16px] text-amber-500">lightbulb</span>
                         <span>Detail</span>
                       </Button>
                     </td>

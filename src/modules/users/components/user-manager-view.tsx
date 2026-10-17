@@ -60,6 +60,7 @@ export default function UserManagerView() {
   const [resettingUser, setResettingUser] = useState<ManagedUserItem | null>(null);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [showResetPassword, setShowResetPassword] = useState(false);
   const [resetSubmitting, setResetSubmitting] = useState(false);
   const [resetError, setResetError] = useState<string | null>(null);
 
@@ -430,26 +431,39 @@ export default function UserManagerView() {
                     )}
 
                     <div className="flex flex-col gap-1.5">
-                      <Label className="text-xs font-semibold text-on-surface">Password Baru</Label>
+                      <div className="flex items-center justify-between">
+                        <Label className="text-xs font-semibold text-on-surface">Password Baru</Label>
+                        <button
+                          type="button"
+                          onClick={() => setShowResetPassword(!showResetPassword)}
+                          className="flex items-center gap-1 text-[11px] text-outline hover:text-amber-500 transition-colors cursor-pointer"
+                          title={showResetPassword ? "Sembunyikan Password (Lampu Mati)" : "Lihat Password (Lampu Bersinar)"}
+                        >
+                          <span className={`material-symbols-outlined text-[16px] ${showResetPassword ? "text-amber-500" : "text-outline"}`}>
+                            {showResetPassword ? "lightbulb" : "light_off"}
+                          </span>
+                          <span>{showResetPassword ? "Sembunyikan" : "Tampilkan"}</span>
+                        </button>
+                      </div>
                       <Input
-                        type="password"
+                        type={showResetPassword ? "text" : "password"}
                         placeholder="Minimal 6 karakter..."
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
                         required
-                        className="text-xs sm:text-sm h-10 bg-surface-container-lowest border-outline-variant"
+                        className="text-xs sm:text-sm h-10 bg-surface-container-lowest border-outline-variant font-mono"
                       />
                     </div>
 
                     <div className="flex flex-col gap-1.5">
                       <Label className="text-xs font-semibold text-on-surface">Konfirmasi Password Baru</Label>
                       <Input
-                        type="password"
+                        type={showResetPassword ? "text" : "password"}
                         placeholder="Ketik ulang password baru..."
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         required
-                        className="text-xs sm:text-sm h-10 bg-surface-container-lowest border-outline-variant"
+                        className="text-xs sm:text-sm h-10 bg-surface-container-lowest border-outline-variant font-mono"
                       />
                     </div>
 

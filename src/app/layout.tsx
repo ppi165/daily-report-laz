@@ -3,6 +3,7 @@ import { Inter, Geist } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/src/common/context/theme-context";
 import { UserProvider } from "@/src/common/context/user-context";
+import { DialogProvider } from "@/src/common/context/dialog-context";
 import { cn } from "@/lib/utils";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
@@ -35,7 +36,9 @@ export default function RootLayout({
       <body className="antialiased min-h-screen bg-background text-on-surface transition-colors duration-200">
         <UserProvider>
           <ThemeProvider>
-            {children}
+            <DialogProvider>
+              {children}
+            </DialogProvider>
           </ThemeProvider>
         </UserProvider>
       </body>

@@ -13,6 +13,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 import { useUser } from "@/src/common/context/user-context";
+import { changePasswordAction } from "../actions/change-password.action";
 
 interface UserProfile {
   name: string;
@@ -41,6 +42,11 @@ export default function ProfileView() {
     newPassword: "",
     confirmPassword: "",
   });
+  const [passwordLoading, setPasswordLoading] = useState(false);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -67,15 +73,40 @@ export default function ProfileView() {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  const handlePasswordSubmit = (e: React.FormEvent) => {
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      alert("Password baru dan konfirmasi password tidak cocok!");
+    setPasswordError(null);
+
+    if (passwordData.newPassword.length < 6) {
+      setPasswordError("Password baru minimal 6 karakter.");
       return;
     }
-    setToastMessage("Kata sandi akun Anda berhasil diganti!");
-    setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
-    setTimeout(() => setToastMessage(null), 3000);
+
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
+      setPasswordError("Password baru dan konfirmasi password tidak cocok!");
+      return;
+    }
+
+    setPasswordLoading(true);
+    try {
+      const res = await changePasswordAction({
+        currentPassword: passwordData.currentPassword,
+        newPassword: passwordData.newPassword,
+        confirmPassword: passwordData.confirmPassword,
+      });
+
+      if (res.success) {
+        setToastMessage("Kata sandi akun Anda berhasil diperbarui!");
+        setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+        setTimeout(() => setToastMessage(null), 4000);
+      } else {
+        setPasswordError(res.message || "Gagal memperbarui kata sandi.");
+      }
+    } catch {
+      setPasswordError("Terjadi kesalahan jaringan saat memperbarui kata sandi.");
+    } finally {
+      setPasswordLoading(false);
+    }
   };
 
   return (
@@ -427,72 +458,119 @@ export default function ProfileView() {
 
                     <CardContent className="p-0">
                       <form onSubmit={handlePasswordSubmit} className="flex flex-col gap-5 max-w-md">
-                      <div className="flex flex-col gap-1.5">
-                        <Label className="text-xs sm:text-sm font-semibold text-on-surface">
-                          Password Saat Ini
-                        </Label>
-                        <Input
-                          type="password"
-                          required
-                          value={passwordData.currentPassword}
-                          onChange={(e) =>
-                            setPasswordData((prev) => ({
-                              ...prev,
-                              currentPassword: e.target.value,
-                            }))
-                          }
-                          placeholder="••••••••••••"
-                          className="w-full h-[42px] px-3.5 rounded-xl bg-surface-container-lowest border-outline-variant text-on-surface text-sm"
-                        />
-                      </div>
+                        {passwordError && (
+                          <Alert className="bg-error/15 border-error/30 text-error rounded-xl p-3.5 flex items-center gap-2">
+                            <span className="material-symbols-outlined text-[18px]">error</span>
+                            <AlertDescription className="text-xs font-semibold">{passwordError}</AlertDescription>
+                          </Alert>
+                        )}
 
-                      <div className="flex flex-col gap-1.5">
-                        <Label className="text-xs sm:text-sm font-semibold text-on-surface">
-                          Password Baru
-                        </Label>
-                        <Input
-                          type="password"
-                          required
-                          value={passwordData.newPassword}
-                          onChange={(e) =>
-                            setPasswordData((prev) => ({
-                              ...prev,
-                              newPassword: e.target.value,
-                            }))
-                          }
-                          placeholder="Minimal 8 karakter"
-                          className="w-full h-[42px] px-3.5 rounded-xl bg-surface-container-lowest border-outline-variant text-on-surface text-sm"
-                        />
-                      </div>
+                        <div className="flex flex-col gap-1.5">
+                          <div className="flex items-center justify-between">
+                            <Label className="text-xs sm:text-sm font-semibold text-on-surface">
+                              Password Saat Ini
+                            </Label>
+                            <button
+                              type="button"
+                              onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                              className="flex items-center gap-1 text-[11px] text-outline hover:text-amber-500 transition-colors cursor-pointer"
+                              title={showCurrentPassword ? "Sembunyikan Password (Lampu Mati)" : "Lihat Password (Lampu Bersinar)"}
+                            >
+                              <span className={`material-symbols-outlined text-[16px] ${showCurrentPassword ? "text-amber-500" : "text-outline"}`}>
+                                {showCurrentPassword ? "lightbulb" : "light_off"}
+                              </span>
+                              <span>{showCurrentPassword ? "Sembunyikan" : "Tampilkan"}</span>
+                            </button>
+                          </div>
+                          <Input
+                            type={showCurrentPassword ? "text" : "password"}
+                            required
+                            value={passwordData.currentPassword}
+                            onChange={(e) =>
+                              setPasswordData((prev) => ({
+                                ...prev,
+                                currentPassword: e.target.value,
+                              }))
+                            }
+                            placeholder="••••••••••••"
+                            className="w-full h-[42px] px-3.5 rounded-xl bg-surface-container-lowest border-outline-variant text-on-surface text-sm font-mono"
+                          />
+                        </div>
 
-                      <div className="flex flex-col gap-1.5">
-                        <Label className="text-xs sm:text-sm font-semibold text-on-surface">
-                          Konfirmasi Password Baru
-                        </Label>
-                        <Input
-                          type="password"
-                          required
-                          value={passwordData.confirmPassword}
-                          onChange={(e) =>
-                            setPasswordData((prev) => ({
-                              ...prev,
-                              confirmPassword: e.target.value,
-                            }))
-                          }
-                          placeholder="Ulangi password baru"
-                          className="w-full h-[42px] px-3.5 rounded-xl bg-surface-container-lowest border-outline-variant text-on-surface text-sm"
-                        />
-                      </div>
+                        <div className="flex flex-col gap-1.5">
+                          <div className="flex items-center justify-between">
+                            <Label className="text-xs sm:text-sm font-semibold text-on-surface">
+                              Password Baru
+                            </Label>
+                            <button
+                              type="button"
+                              onClick={() => setShowNewPassword(!showNewPassword)}
+                              className="flex items-center gap-1 text-[11px] text-outline hover:text-amber-500 transition-colors cursor-pointer"
+                              title={showNewPassword ? "Sembunyikan Password (Lampu Mati)" : "Lihat Password (Lampu Bersinar)"}
+                            >
+                              <span className={`material-symbols-outlined text-[16px] ${showNewPassword ? "text-amber-500" : "text-outline"}`}>
+                                {showNewPassword ? "lightbulb" : "light_off"}
+                              </span>
+                              <span>{showNewPassword ? "Sembunyikan" : "Tampilkan"}</span>
+                            </button>
+                          </div>
+                          <Input
+                            type={showNewPassword ? "text" : "password"}
+                            required
+                            value={passwordData.newPassword}
+                            onChange={(e) =>
+                              setPasswordData((prev) => ({
+                                ...prev,
+                                newPassword: e.target.value,
+                              }))
+                            }
+                            placeholder="Minimal 6 karakter"
+                            className="w-full h-[42px] px-3.5 rounded-xl bg-surface-container-lowest border-outline-variant text-on-surface text-sm font-mono"
+                          />
+                        </div>
 
-                      <div className="pt-2">
-                        <Button
-                          type="submit"
-                          className="w-full sm:w-auto bg-primary-container hover:bg-secondary text-white text-sm font-semibold px-6 py-2.5 rounded-xl shadow-sm flex items-center justify-center h-auto cursor-pointer"
-                        >
-                          Perbarui Kata Sandi
-                        </Button>
-                      </div>
-                    </form>
+                        <div className="flex flex-col gap-1.5">
+                          <div className="flex items-center justify-between">
+                            <Label className="text-xs sm:text-sm font-semibold text-on-surface">
+                              Konfirmasi Password Baru
+                            </Label>
+                            <button
+                              type="button"
+                              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                              className="flex items-center gap-1 text-[11px] text-outline hover:text-amber-500 transition-colors cursor-pointer"
+                              title={showConfirmPassword ? "Sembunyikan Password (Lampu Mati)" : "Lihat Password (Lampu Bersinar)"}
+                            >
+                              <span className={`material-symbols-outlined text-[16px] ${showConfirmPassword ? "text-amber-500" : "text-outline"}`}>
+                                {showConfirmPassword ? "lightbulb" : "light_off"}
+                              </span>
+                              <span>{showConfirmPassword ? "Sembunyikan" : "Tampilkan"}</span>
+                            </button>
+                          </div>
+                          <Input
+                            type={showConfirmPassword ? "text" : "password"}
+                            required
+                            value={passwordData.confirmPassword}
+                            onChange={(e) =>
+                              setPasswordData((prev) => ({
+                                ...prev,
+                                confirmPassword: e.target.value,
+                              }))
+                            }
+                            placeholder="Ulangi password baru"
+                            className="w-full h-[42px] px-3.5 rounded-xl bg-surface-container-lowest border-outline-variant text-on-surface text-sm font-mono"
+                          />
+                        </div>
+
+                        <div className="pt-2">
+                          <Button
+                            type="submit"
+                            disabled={passwordLoading}
+                            className="w-full sm:w-auto bg-primary-container hover:bg-secondary text-white text-sm font-semibold px-6 py-2.5 rounded-xl shadow-sm flex items-center justify-center h-auto cursor-pointer disabled:opacity-50"
+                          >
+                            {passwordLoading ? "Memperbarui..." : "Perbarui Kata Sandi"}
+                          </Button>
+                        </div>
+                      </form>
                   </CardContent>
                 </Card>
               </TabsContent>

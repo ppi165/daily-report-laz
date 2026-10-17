@@ -153,15 +153,15 @@ export default function LoginForm() {
                     onChange={(e) => setPassword(e.target.value)}
                   />
                   <button
-                    aria-label="Toggle password visibility"
-                    className="absolute right-3.5 text-outline hover:text-primary transition-colors flex items-center justify-center p-0.5 rounded focus:outline-none cursor-pointer"
+                    aria-label="Lihat atau sembunyikan password"
+                    className="absolute right-3.5 text-outline hover:text-amber-500 transition-colors flex items-center justify-center p-0.5 rounded focus:outline-none cursor-pointer"
                     id="togglePassword"
-                    title={showPassword ? "Sembunyikan Password" : "Lihat Password"}
+                    title={showPassword ? "Sembunyikan Password (Lampu Mati)" : "Lihat Password (Lampu Bersinar)"}
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
                   >
-                    <span className="material-symbols-outlined text-[20px]">
-                      {showPassword ? "visibility_off" : "visibility"}
+                    <span className={`material-symbols-outlined text-[20px] transition-colors ${showPassword ? "text-amber-500" : "text-outline"}`}>
+                      {showPassword ? "lightbulb" : "light_off"}
                     </span>
                   </button>
                 </div>

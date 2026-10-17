@@ -17,6 +17,18 @@ export class UserRepository {
     });
   }
 
+  async findWithPasswordById(id: string) {
+    return prisma.user.findUnique({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        password: true,
+        role: true,
+      },
+    });
+  }
+
   async findEligibleApprovers(excludeUserId?: string) {
     return prisma.user.findMany({
       where: {
