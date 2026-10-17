@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { exportReportsToExcel } from "../utils/export-excel.util";
 
 interface ReportData {
   id: string;
@@ -255,7 +256,10 @@ export default function RekapReport() {
 
               <Button
                 variant="outline"
-                className="w-full lg:w-auto border-secondary/40 text-secondary hover:bg-secondary/10 text-xs sm:text-sm font-semibold px-4 h-10 rounded-xl flex items-center justify-center gap-1.5 shrink-0 cursor-pointer"
+                type="button"
+                onClick={() => exportReportsToExcel(filteredReports, selectedDivision)}
+                disabled={loading || filteredReports.length === 0}
+                className="w-full lg:w-auto border-secondary/40 text-secondary hover:bg-secondary/10 text-xs sm:text-sm font-semibold px-4 h-10 rounded-xl flex items-center justify-center gap-1.5 shrink-0 cursor-pointer disabled:opacity-50"
               >
                 <span className="material-symbols-outlined text-[18px]">download</span>
                 <span>Export Excel</span>
