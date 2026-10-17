@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 
 interface TodayReportInfo {
   id: string;
@@ -179,23 +179,24 @@ export default function TodayStatusCard({ initialData }: TodayStatusCardProps) {
         )}
       </CardContent>
 
-      <CardFooter className="p-0 pt-1 mt-auto">
+      {/* Bagian Tombol Aksi (Diberi padding atas dan breathing room bawah alami) */}
+      <div className="pt-2 mt-auto">
         {hasReportedToday ? (
           <Link
             href="/rekap-report"
-            className="w-full h-10 rounded-xl bg-surface-container-low hover:bg-surface-container text-on-surface text-xs sm:text-sm font-semibold flex items-center justify-center transition-colors border border-outline-variant/50"
+            className="w-full h-11 rounded-xl bg-surface-container-low hover:bg-surface-container text-on-surface text-xs sm:text-sm font-semibold flex items-center justify-center transition-colors border border-outline-variant/50"
           >
             Lihat Rekap Laporan
           </Link>
         ) : (
           <Link
             href="/daily-report"
-            className="w-full h-10 rounded-xl bg-secondary hover:bg-secondary/90 text-white text-xs sm:text-sm font-semibold flex items-center justify-center transition-colors shadow-xs"
+            className="w-full h-11 rounded-xl bg-secondary hover:bg-secondary/90 text-white text-xs sm:text-sm font-semibold flex items-center justify-center transition-colors shadow-xs"
           >
             Tulis Laporan Sekarang
           </Link>
         )}
-      </CardFooter>
+      </div>
     </Card>
   );
 }
