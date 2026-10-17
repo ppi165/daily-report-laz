@@ -48,6 +48,23 @@ export class ReportRepository {
     });
   }
 
+  async findTodayRegularReportByAuthor(authorId: string, startOfDay: Date, endOfDay?: Date) {
+    return prisma.report.findFirst({
+      where: {
+        authorId,
+        isClockIn: false,
+        createdAt: {
+          gte: startOfDay,
+          ...(endOfDay ? { lte: endOfDay } : {}),
+        },
+      },
+      select: {
+        id: true,
+        createdAt: true,
+      },
+    });
+  }
+
   async count(options?: Prisma.ReportCountArgs) {
     return prisma.report.count(options);
   }

@@ -145,6 +145,27 @@ export class CreateReportUseCase {
       return report;
     }
 
+    const wibFormatter = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Jakarta',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+    const todayWibStr = wibFormatter.format(now);
+    const startOfTodayWib = new Date(`${todayWibStr}T00:00:00.000+07:00`);
+    const endOfTodayWib = new Date(`${todayWibStr}T23:59:59.999+07:00`);
+
+    // Validasi pencegahan duplikasi: 1 hari hanya boleh 1 daily report reguler
+    const existingReportToday = await reportRepository.findTodayRegularReportByAuthor(
+      authorId,
+      startOfTodayWib,
+      endOfTodayWib
+    );
+
+    if (existingReportToday) {
+      throw new Error('Anda sudah membuat daily report hari ini.');
+    }
+
     const createdReport = await reportRepository.create({
       title: validated.title || 'Daily Report',
       content: validated.content,

@@ -51,12 +51,20 @@ export class DashboardRepository {
 
   async findTodayReportByUserId(userId: string) {
     const now = new Date();
-    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
-    const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+    const wibFormatter = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Jakarta',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+    const todayWibStr = wibFormatter.format(now);
+    const startOfDay = new Date(`${todayWibStr}T00:00:00.000+07:00`);
+    const endOfDay = new Date(`${todayWibStr}T23:59:59.999+07:00`);
 
     return prisma.report.findFirst({
       where: {
         authorId: userId,
+        isClockIn: false,
         createdAt: {
           gte: startOfDay,
           lte: endOfDay,

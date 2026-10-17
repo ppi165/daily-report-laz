@@ -16,9 +16,16 @@ export class ScheduleRepository {
   }
 
   async findActiveForDate(date: Date) {
-    // Mulai dari 00:00:00 dan berakhir 23:59:59 di hari yang bersangkutan
-    const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 0, 0, 0, 0);
-    const dayEnd = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 23, 59, 59, 999);
+    // Tentukan rentang hari aktif berdasarkan zona waktu WIB (Asia/Jakarta)
+    const wibFormatter = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Jakarta",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+    const wibDateStr = wibFormatter.format(date);
+    const dayStart = new Date(`${wibDateStr}T00:00:00.000+07:00`);
+    const dayEnd = new Date(`${wibDateStr}T23:59:59.999+07:00`);
 
     return prisma.specialSchedule.findFirst({
       where: {

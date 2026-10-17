@@ -29,6 +29,7 @@ interface InitialSettingsProps {
 
 interface ReportFormProps {
   initialMode?: "today" | "clock-in";
+  hasReportedToday?: boolean;
   initialSettings?: InitialSettingsProps;
   availableApprovers?: Array<{
     id: string;
@@ -68,11 +69,13 @@ const getHMinusDaysString = (days: number) => {
 
 export default function ReportForm({
   initialMode = "today",
+  hasReportedToday = false,
   initialSettings,
   availableApprovers,
 }: ReportFormProps) {
   const { user } = useUser();
   const [mode, setMode] = useState<"today" | "clock-in">(initialMode);
+  const [reportedToday, setReportedToday] = useState(hasReportedToday);
   const division = user?.division || "Lembaga";
   const [selectedDate, setSelectedDate] = useState<string>(() =>
     initialMode === "clock-in" ? getYesterdayString() : getTodayString()
@@ -133,6 +136,10 @@ export default function ReportForm({
         const settJson = await settRes.json();
         const dashJson = await dashRes.json();
 
+        if (dashJson?.data?.todayReport) {
+          setReportedToday(true);
+        }
+
         setSettings({
           clockInMaxDays: settJson?.data?.clockInMaxDays ?? initialSettings?.clockInMaxDays ?? 3,
           clockInRequiredWitness: settJson?.data?.clockInRequiredWitness ?? initialSettings?.clockInRequiredWitness ?? 2,
@@ -145,6 +152,10 @@ export default function ReportForm({
     }
     loadSettings();
   }, [initialSettings]);
+
+  useEffect(() => {
+    setReportedToday(hasReportedToday);
+  }, [hasReportedToday]);
 
   const [approver1, setApprover1] = useState("");
   const [approver2, setApprover2] = useState("");
@@ -167,6 +178,8 @@ export default function ReportForm({
       (settings.clockInRequiredWitness === 1
         ? !approver1
         : !approver1 || !approver2 || approver1 === approver2));
+
+  const isSubmitDisabled = isFormIncomplete || (!isClockIn && reportedToday);
 
   const handleModeChange = (newMode: "today" | "clock-in") => {
     setMode(newMode);
@@ -227,6 +240,11 @@ export default function ReportForm({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!isClockIn && reportedToday) {
+      alert("Anda sudah membuat daily report hari ini.");
+      return;
+    }
+
     if (!tasks.trim() || !results.trim()) {
       alert("Pekerjaan dan hasil pekerjaan wajib diisi!");
       return;
@@ -277,6 +295,9 @@ export default function ReportForm({
       });
 
       if (res.success) {
+        if (!isClockIn) {
+          setReportedToday(true);
+        }
         setToastData({
           title: isClockIn ? "Pengajuan Clock-in Berhasil Terkirim" : "Laporan Berhasil Diterbitkan",
           description: isClockIn
@@ -539,7 +560,7 @@ export default function ReportForm({
                   </Button>
 
                   <Button
-                    disabled={isFormIncomplete}
+                    disabled={isSubmitDisabled}
                     className="w-full sm:w-auto font-semibold px-8 py-3 rounded-xl shadow-md flex items-center justify-center transition-transform duration-150 active:scale-[0.99] text-sm disabled:opacity-50 disabled:cursor-not-allowed h-auto bg-primary-container hover:bg-secondary text-white cursor-pointer"
                     type="submit"
                   >

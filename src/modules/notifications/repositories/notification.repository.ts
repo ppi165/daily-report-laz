@@ -172,6 +172,16 @@ export class NotificationRepository {
       },
     });
   }
+
+  async deleteExpiredReminders(userId: string, beforeDate: Date) {
+    return prisma.notification.deleteMany({
+      where: {
+        userId,
+        type: "REMINDER",
+        createdAt: { lt: beforeDate },
+      },
+    });
+  }
 }
 
 export const notificationRepository = new NotificationRepository();

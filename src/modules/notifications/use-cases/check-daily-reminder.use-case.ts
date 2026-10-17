@@ -5,6 +5,7 @@ import { reportRepository } from "@/src/modules/reports/repositories/report.repo
 
 export class CheckDailyReminderUseCase {
   private lastCheckedMap = new Map<string, number>();
+  private remindedDateMap = new Map<string, string>();
 
   async execute(userId: string) {
     if (!userId) return { reminded: false };
@@ -31,10 +32,21 @@ export class CheckDailyReminderUseCase {
     const hour = getPart("hour");
     const minute = getPart("minute");
 
-    const currentHourNum = Number(hour);
-    // Optimasi: Jika masih sebelum pukul 12:00 WIB, pengingat harian belum relevan (skip semua query database)
-    if (currentHourNum < 12) {
-      return { reminded: false, reason: "BEFORE_REMINDER_HOURS" };
+    const currentTimeStr = `${hour}:${minute}`;
+    const todayWibStr = `${year}-${month}-${day}`;
+
+    // Awal dan akhir hari WIB yang valid di zona waktu Asia/Jakarta (+07:00)
+    const startOfToday = new Date(`${todayWibStr}T00:00:00.000+07:00`);
+    const endOfToday = new Date(`${todayWibStr}T23:59:59.999+07:00`);
+
+    // Bersihkan notifikasi pengingat usang dari hari-hari sebelumnya
+    await notificationRepository
+      .deleteExpiredReminders(userId, startOfToday)
+      .catch(() => {});
+
+    // Jika user sudah diingatkan hari ini di memori proses, lewati query
+    if (this.remindedDateMap.get(userId) === todayWibStr) {
+      return { reminded: false, reason: "ALREADY_REMINDED" };
     }
 
     // Throttling: Cek per-user maksimal setiap 5 menit untuk menghemat koneksi database Supabase
@@ -67,12 +79,6 @@ export class CheckDailyReminderUseCase {
       "FRIDAY",
     ];
 
-    const currentTimeStr = `${hour}:${minute}`;
-    const todayWibStr = `${year}-${month}-${day}`;
-
-    // Awal hari WIB yang valid di zona waktu Asia/Jakarta (+07:00)
-    const startOfToday = new Date(`${todayWibStr}T00:00:00.000+07:00`);
-
     const dayFormatter = new Intl.DateTimeFormat("en-US", {
       timeZone: "Asia/Jakarta",
       weekday: "long",
@@ -84,28 +90,34 @@ export class CheckDailyReminderUseCase {
       return { reminded: false, reason: "NOT_WORK_DAY" };
     }
 
-    // Cek apakah sudah memasuki waktu pengingat
+    // Cek apakah belum memasuki jam pengingat
     if (currentTimeStr < reminderTime) {
       return { reminded: false, reason: "BEFORE_REMINDER_TIME" };
     }
 
-    // Cek apakah user sudah mengirim laporan hari ini via repository
-    const todayReport = await reportRepository.findTodayReportByAuthor(
+    // Cek apakah sudah melewati batas waktu pelaporan hari ini
+    if (currentTimeStr >= deadlineTime) {
+      return { reminded: false, reason: "PAST_DEADLINE" };
+    }
+
+    // Cek apakah user sudah mengirim laporan reguler hari ini via repository (abaikan clock-in susulan)
+    const todayReport = await reportRepository.findTodayRegularReportByAuthor(
       userId,
-      startOfToday
+      startOfToday,
+      endOfToday
     );
 
     if (todayReport) {
-      // Jika sudah kirim laporan, perpanjang throttle hingga 30 menit & bersihkan notif pengingat jika ada
+      // Jika sudah kirim laporan, tandai hari ini & bersihkan notif pengingat jika ada
+      this.remindedDateMap.set(userId, todayWibStr);
       this.lastCheckedMap.set(userId, nowTime + 25 * 60 * 1000);
-      await notificationRepository.deleteReminderForReportSubmitted(
-        userId,
-        startOfToday
-      );
+      await notificationRepository
+        .deleteReminderForReportSubmitted(userId, startOfToday)
+        .catch(() => {});
       return { reminded: false, reason: "ALREADY_REPORTED" };
     }
 
-    // Cek apakah notifikasi pengingat hari ini sudah pernah dibuat
+    // Cek apakah notifikasi pengingat hari ini sudah pernah dibuat di database
     const existingReminder =
       await notificationRepository.findExistingReminderToday(
         userId,
@@ -113,7 +125,8 @@ export class CheckDailyReminderUseCase {
       );
 
     if (existingReminder) {
-      // Perpanjang throttle 30 menit agar tidak berulang kali query
+      // Tandai dan perpanjang throttle 30 menit agar tidak berulang kali query
+      this.remindedDateMap.set(userId, todayWibStr);
       this.lastCheckedMap.set(userId, nowTime + 25 * 60 * 1000);
       return { reminded: false, reason: "ALREADY_REMINDED" };
     }
@@ -127,6 +140,7 @@ export class CheckDailyReminderUseCase {
       link: "/daily-report",
     });
 
+    this.remindedDateMap.set(userId, todayWibStr);
     return { reminded: true };
   }
 }
