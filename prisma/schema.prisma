@@ -72,14 +72,20 @@ model ReportAppreciation {
 }
 
 model ReportComment {
-  id        String   @id @default(uuid())
+  id        String          @id @default(uuid())
   reportId  String
-  report    Report   @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  report    Report          @relation(fields: [reportId], references: [id], onDelete: Cascade)
   userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User            @relation(fields: [userId], references: [id], onDelete: Cascade)
   content   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  parentId  String?
+  parent    ReportComment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   ReportComment[] @relation("CommentReplies")
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@index([parentId])
+  @@index([reportId])
 }
 
 model ReportApproval {

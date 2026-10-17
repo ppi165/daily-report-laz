@@ -5,7 +5,7 @@ export class AddCommentUseCase {
   constructor(private readonly repo: FeedRepository = feedRepository) {}
 
   async execute(input: AddCommentInput, userId: string) {
-    return this.repo.createComment(input.reportId, userId, input.content);
+    return this.repo.createComment(input.reportId, userId, input.content, input.parentId);
   }
 }
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { addCommentAction } from "../index";
@@ -8,6 +8,7 @@ import { addCommentAction } from "../index";
 export interface CommentItem {
   id: string;
   content: string;
+  parentId?: string | null;
   createdAt: Date | string;
   user: {
     id: string;
@@ -39,13 +40,59 @@ export default function FeedCommentSection({
   const [newText, setNewText] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [showAll, setShowAll] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<{
+    rootId: string;
+    authorName: string;
+  } | null>(null);
+  const [expandedReplies, setExpandedReplies] = useState<Record<string, boolean>>({});
+
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Pisahkan komentar utama (root) dan peta balasan (repliesMap)
+  const rootComments: CommentItem[] = [];
+  const repliesMap: Record<string, CommentItem[]> = {};
+
+  // Build index untuk mencari root parent
+  for (const c of comments) {
+    if (!c.parentId) {
+      rootComments.push(c);
+    } else {
+      if (!repliesMap[c.parentId]) {
+        repliesMap[c.parentId] = [];
+      }
+      repliesMap[c.parentId].push(c);
+    }
+  }
+
+  const toggleReplies = (rootId: string) => {
+    setExpandedReplies((prev) => ({
+      ...prev,
+      [rootId]: !prev[rootId],
+    }));
+  };
+
+  const handleStartReply = (rootId: string, authorName: string) => {
+    setReplyingTo({ rootId, authorName });
+    // Buka balasan dari thread ini otomatis jika belum terbuka
+    setExpandedReplies((prev) => ({ ...prev, [rootId]: true }));
+    setTimeout(() => {
+      inputRef.current?.focus();
+    }, 50);
+  };
+
+  const handleCancelReply = () => {
+    setReplyingTo(null);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newText.trim() || submitting) return;
 
     const content = newText.trim();
+    const parentId = replyingTo ? replyingTo.rootId : null;
+
     setNewText("");
+    setReplyingTo(null);
     setSubmitting(true);
 
     // Optimistic comment
@@ -53,6 +100,7 @@ export default function FeedCommentSection({
     const optimisticComment: CommentItem = {
       id: tempId,
       content,
+      parentId,
       createdAt: new Date(),
       user: {
         id: currentUser?.id || "me",
@@ -64,11 +112,15 @@ export default function FeedCommentSection({
     };
 
     setComments((prev) => [...prev, optimisticComment]);
+    if (parentId) {
+      setExpandedReplies((prev) => ({ ...prev, [parentId]: true }));
+    }
 
     try {
       const res = await addCommentAction({
         reportId,
         content,
+        parentId,
       });
 
       if (res.success && res.data) {
@@ -77,7 +129,7 @@ export default function FeedCommentSection({
         );
         onCommentAdded?.();
       } else {
-        // Rollback on failure
+        // Rollback
         setComments((prev) => prev.filter((c) => c.id !== tempId));
         alert(res.message || "Gagal mengirim komentar.");
       }
@@ -89,58 +141,172 @@ export default function FeedCommentSection({
     }
   };
 
-  const displayedComments = showAll ? comments : comments.slice(-2);
-  const userInitial = currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : "S";
+  const displayedRootComments = showAll ? rootComments : rootComments.slice(-2);
+  const userInitial = currentUser?.name
+    ? currentUser.name.charAt(0).toUpperCase()
+    : "S";
 
   return (
     <div className="flex flex-col gap-2.5 pt-1">
-      {/* Daftar Komentar ala Instagram Web */}
-      {comments.length > 2 && (
+      {/* Toggle lihat semua komentar jika komentar utama > 2 */}
+      {rootComments.length > 2 && (
         <button
           type="button"
           onClick={() => setShowAll(!showAll)}
-          className="text-xs text-outline hover:text-on-surface-variant font-medium text-left cursor-pointer transition-colors"
+          className="text-xs text-outline hover:text-on-surface font-medium text-left cursor-pointer transition-colors"
         >
           {showAll
             ? "Sembunyikan sebagian komentar"
-            : `Lihat semua ${comments.length} komentar`}
+            : `Lihat semua ${rootComments.length} diskusi komentar`}
         </button>
       )}
 
-      {comments.length > 0 && (
-        <div className={`flex flex-col gap-1.5 ${showAll ? "max-h-64 overflow-y-auto pr-1" : ""}`}>
-          {displayedComments.map((comment) => (
-            <div key={comment.id} className="text-xs leading-relaxed flex items-start justify-between gap-2">
-              <div className="text-on-surface break-words">
-                <span className="font-bold text-on-surface mr-1.5 inline-block">
-                  {comment.user?.name || "Amil"}
-                </span>
-                <span className="text-on-surface-variant whitespace-pre-wrap">
-                  {comment.content}
-                </span>
+      {/* List Komentar Utama */}
+      {rootComments.length > 0 && (
+        <div
+          className={`flex flex-col gap-3 ${
+            showAll ? "max-h-72 overflow-y-auto pr-1" : ""
+          }`}
+        >
+          {displayedRootComments.map((comment) => {
+            const replies = repliesMap[comment.id] || [];
+            const isRepliesExpanded = !!expandedReplies[comment.id];
+
+            return (
+              <div key={comment.id} className="flex flex-col gap-1.5">
+                {/* Baris Komentar Induk */}
+                <div className="text-xs leading-relaxed flex items-start justify-between gap-2">
+                  <div className="text-on-surface break-words">
+                    <span className="font-bold text-on-surface mr-1.5 inline-block">
+                      {comment.user?.name || "Amil"}
+                    </span>
+                    <span className="text-on-surface-variant whitespace-pre-wrap">
+                      {comment.content}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0 pt-0.5">
+                    <span className="text-[10px] text-outline font-mono">
+                      {new Date(comment.createdAt).toLocaleDateString("id-ID", {
+                        day: "numeric",
+                        month: "short",
+                      })}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleStartReply(comment.id, comment.user?.name || "Amil")
+                      }
+                      className="text-[11px] font-semibold text-secondary hover:text-primary cursor-pointer transition-colors"
+                    >
+                      Balas
+                    </button>
+                  </div>
+                </div>
+
+                {/* Toggle & Thread Balasan Komentar (Instagram Web Style) */}
+                {replies.length > 0 && (
+                  <div className="ml-5 sm:ml-6 flex flex-col gap-1.5 mt-0.5">
+                    <button
+                      type="button"
+                      onClick={() => toggleReplies(comment.id)}
+                      className="text-[11px] text-outline hover:text-secondary font-semibold flex items-center gap-1.5 text-left cursor-pointer transition-colors py-0.5"
+                    >
+                      <span className="w-5 h-[1px] bg-outline-variant" />
+                      <span>
+                        {isRepliesExpanded
+                          ? "Sembunyikan balasan"
+                          : `Lihat ${replies.length} balasan`}
+                      </span>
+                    </button>
+
+                    {isRepliesExpanded && (
+                      <div className="pl-3 border-l-2 border-outline-variant/50 flex flex-col gap-2 pt-1 animate-in fade-in-50 duration-150">
+                        {replies.map((reply) => (
+                          <div
+                            key={reply.id}
+                            className="text-xs leading-relaxed flex items-start justify-between gap-2"
+                          >
+                            <div className="text-on-surface break-words">
+                              <span className="font-bold text-on-surface mr-1.5 inline-block">
+                                {reply.user?.name || "Amil"}
+                              </span>
+                              <span className="text-on-surface-variant whitespace-pre-wrap">
+                                {reply.content}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-2 shrink-0 pt-0.5">
+                              <span className="text-[10px] text-outline font-mono">
+                                {new Date(reply.createdAt).toLocaleDateString(
+                                  "id-ID",
+                                  {
+                                    day: "numeric",
+                                    month: "short",
+                                  }
+                                )}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  handleStartReply(
+                                    comment.id,
+                                    reply.user?.name || "Amil"
+                                  )
+                                }
+                                className="text-[11px] font-semibold text-secondary hover:text-primary cursor-pointer transition-colors"
+                              >
+                                Balas
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
-              <span className="text-[10px] text-outline font-mono shrink-0 whitespace-nowrap pt-0.5">
-                {new Date(comment.createdAt).toLocaleDateString("id-ID", {
-                  day: "numeric",
-                  month: "short",
-                })}
-              </span>
-            </div>
-          ))}
+            );
+          })}
+        </div>
+      )}
+
+      {/* Banner Membalas Komentar */}
+      {replyingTo && (
+        <div className="flex items-center justify-between px-2.5 py-1 rounded-lg bg-secondary/10 border border-secondary/20 text-xs text-secondary mt-1">
+          <span className="font-medium flex items-center gap-1">
+            <span className="material-symbols-outlined text-[14px]">
+              reply
+            </span>
+            <span>Membalas @{replyingTo.authorName}</span>
+          </span>
+          <button
+            type="button"
+            onClick={handleCancelReply}
+            className="text-outline hover:text-secondary cursor-pointer p-0.5"
+            aria-label="Batalkan balasan"
+          >
+            <span className="material-symbols-outlined text-[15px]">close</span>
+          </button>
         </div>
       )}
 
       {/* Form Input Komentar Inline (Instagram Web Style) */}
       <form
         onSubmit={handleSubmit}
-        className="flex items-center gap-2 pt-2.5 mt-1 border-t border-outline-variant/50"
+        className="flex items-center gap-2 pt-2 border-t border-outline-variant/50"
       >
         <div className="size-7 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center font-bold text-[11px] shrink-0 border border-outline-variant/60">
           {userInitial}
         </div>
 
         <Input
-          placeholder="Tambahkan komentar..."
+          ref={inputRef}
+          placeholder={
+            replyingTo
+              ? `Balas komentar @${replyingTo.authorName}...`
+              : "Tambahkan komentar..."
+          }
           value={newText}
           onChange={(e) => setNewText(e.target.value)}
           disabled={submitting}

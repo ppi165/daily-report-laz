@@ -109,12 +109,18 @@ export class FeedRepository {
     ]);
   }
 
-  async createComment(reportId: string, userId: string, content: string) {
+  async createComment(
+    reportId: string,
+    userId: string,
+    content: string,
+    parentId?: string | null
+  ) {
     return prisma.reportComment.create({
       data: {
         reportId,
         userId,
         content,
+        parentId: parentId || null,
       },
       include: {
         user: {

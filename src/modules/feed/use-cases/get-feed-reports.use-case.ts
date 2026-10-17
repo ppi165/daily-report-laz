@@ -22,6 +22,7 @@ export interface ParsedFeedReport {
   comments: Array<{
     id: string;
     content: string;
+    parentId?: string | null;
     createdAt: Date;
     user: {
       id: string;
