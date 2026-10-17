@@ -7,8 +7,19 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const division = searchParams.get('division') || undefined;
+    const authorId = searchParams.get('authorId') || undefined;
+    const startDate = searchParams.get('startDate') || undefined;
+    const endDate = searchParams.get('endDate') || undefined;
+    const limitParam = searchParams.get('limit');
+    const limit = limitParam ? parseInt(limitParam, 10) : undefined;
 
-    const reports = await getReportsUseCase.execute({ division });
+    const reports = await getReportsUseCase.execute({
+      division,
+      authorId,
+      startDate,
+      endDate,
+      limit,
+    });
     return NextResponse.json({ success: true, data: reports }, { status: 200 });
   } catch (error) {
     return NextResponse.json(

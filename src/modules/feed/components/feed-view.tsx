@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import AppShell from "@/src/common/components/app-shell";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -19,15 +19,26 @@ import { getDivisionsAction } from "@/src/modules/divisions";
 import FeedCard from "./feed-card";
 import { scrollToAndHighlightElement } from "@/src/common/utils/scroll-to-element";
 
-export default function FeedView() {
+interface FeedViewProps {
+  initialReports?: ParsedFeedReport[];
+  initialNextCursor?: string | null;
+  initialDivisions?: { id: string; name: string }[];
+}
+
+export default function FeedView({
+  initialReports = [],
+  initialNextCursor = null,
+  initialDivisions = [],
+}: FeedViewProps) {
   const { user } = useUser();
-  const [reports, setReports] = useState<ParsedFeedReport[]>([]);
-  const [nextCursor, setNextCursor] = useState<string | null>(null);
-  const [divisions, setDivisions] = useState<{ id: string; name: string }[]>([]);
+  const [reports, setReports] = useState<ParsedFeedReport[]>(initialReports);
+  const [nextCursor, setNextCursor] = useState<string | null>(initialNextCursor);
+  const [divisions, setDivisions] = useState<{ id: string; name: string }[]>(initialDivisions);
   const [selectedDivision, setSelectedDivision] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(initialReports.length === 0);
   const [loadingMore, setLoadingMore] = useState(false);
+  const isInitialMount = useRef(true);
 
   const loadData = async (div = selectedDivision, search = searchQuery) => {
     try {
@@ -70,22 +81,26 @@ export default function FeedView() {
     }
   };
 
-  // Muat data divisi awal dan feed awal
+  // Muat data divisi awal dan feed jika SSR tidak menyediakan initial data
   useEffect(() => {
+    if (initialReports.length > 0 && initialDivisions.length > 0) {
+      return;
+    }
+
     let ignore = false;
     async function init() {
       try {
         const [reportsRes, divRes] = await Promise.all([
-          getFeedReportsAction({ limit: 10 }),
-          getDivisionsAction(),
+          initialReports.length === 0 ? getFeedReportsAction({ limit: 10 }) : Promise.resolve(null),
+          initialDivisions.length === 0 ? getDivisionsAction() : Promise.resolve(null),
         ]);
 
         if (!ignore) {
-          if (reportsRes.success && reportsRes.data) {
+          if (reportsRes?.success && reportsRes.data) {
             setReports(reportsRes.data.reports);
             setNextCursor(reportsRes.data.nextCursor);
           }
-          if (divRes.success && divRes.data) {
+          if (divRes?.success && divRes.data) {
             setDivisions(divRes.data as { id: string; name: string }[]);
           }
         }
@@ -100,10 +115,15 @@ export default function FeedView() {
     return () => {
       ignore = true;
     };
-  }, []);
+  }, [initialReports.length, initialDivisions.length]);
 
-  // Debounced search (350ms)
+  // Debounced search (350ms) - lewati initial mount agar tidak double fetch
   useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+
     const timer = setTimeout(() => {
       loadData(selectedDivision, searchQuery);
     }, 350);

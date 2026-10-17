@@ -10,8 +10,8 @@ export const prisma =
     log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
   });
 
-if (process.env.NODE_ENV !== 'production') {
-  globalForPrisma.prisma = prisma;
-}
+// Selalu simpan instance ke globalThis baik di dev maupun production
+// untuk mencegah re-instansiasi berulang pada dynamic/serverless runtime
+globalForPrisma.prisma = prisma;
 
 export default prisma;

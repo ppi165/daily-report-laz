@@ -65,7 +65,11 @@ function formatReportDate(isoString: string): string {
   }
 }
 
-export default function ProfileView() {
+interface ProfileViewProps {
+  initialPerformance?: PerformanceData | null;
+}
+
+export default function ProfileView({ initialPerformance = null }: ProfileViewProps) {
   const { user, refreshUser } = useUser();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -76,8 +80,8 @@ export default function ProfileView() {
   const [avatarLoading, setAvatarLoading] = useState(false);
 
   // Kinerja Data State
-  const [performance, setPerformance] = useState<PerformanceData | null>(null);
-  const [performanceLoading, setPerformanceLoading] = useState(true);
+  const [performance, setPerformance] = useState<PerformanceData | null>(initialPerformance);
+  const [performanceLoading, setPerformanceLoading] = useState(!initialPerformance);
 
   // Password State
   const [passwordData, setPasswordData] = useState({
@@ -98,6 +102,10 @@ export default function ProfileView() {
   }, [user?.name]);
 
   useEffect(() => {
+    if (initialPerformance) {
+      return;
+    }
+
     let ignore = false;
     async function loadPerformance() {
       setPerformanceLoading(true);
@@ -118,7 +126,7 @@ export default function ProfileView() {
     return () => {
       ignore = true;
     };
-  }, []);
+  }, [initialPerformance]);
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];

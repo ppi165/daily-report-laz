@@ -24,6 +24,7 @@ interface InitialSettingsProps {
   clockInMaxDays?: number;
   clockInRequiredWitness?: number;
   requirePhoto?: boolean;
+  deadlineTime?: string;
 }
 
 interface ReportFormProps {
@@ -86,7 +87,7 @@ export default function ReportForm({
     clockInMaxDays: initialSettings?.clockInMaxDays ?? 3,
     clockInRequiredWitness: initialSettings?.clockInRequiredWitness ?? 2,
     requirePhoto: Boolean(initialSettings?.requirePhoto),
-    deadlineTime: "17:00",
+    deadlineTime: initialSettings?.deadlineTime ?? "17:00",
   });
 
   const [isPastDeadline, setIsPastDeadline] = useState(false);
@@ -118,6 +119,11 @@ export default function ReportForm({
   }, [settings.deadlineTime]);
 
   useEffect(() => {
+    // Jika deadlineTime sudah diberikan dari SSR/Server Component, lewati overfetching dashboard stats
+    if (initialSettings?.deadlineTime) {
+      return;
+    }
+
     async function loadSettings() {
       try {
         const [settRes, dashRes] = await Promise.all([

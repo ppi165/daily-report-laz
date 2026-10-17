@@ -7,7 +7,7 @@ export interface ParsedFeedReport {
   results: string;
   division: string;
   attachments: string[];
-  createdAt: Date;
+  createdAt: Date | string;
   isClockIn?: boolean;
   status?: string;
   approvals?: Array<{
@@ -15,7 +15,7 @@ export interface ParsedFeedReport {
     approverName: string;
     approverDivision: string | null;
     status: string;
-    respondedAt?: Date | null;
+    respondedAt?: Date | string | null;
   }>;
   author: {
     id: string;
@@ -33,7 +33,7 @@ export interface ParsedFeedReport {
     id: string;
     content: string;
     parentId?: string | null;
-    createdAt: Date;
+    createdAt: Date | string;
     user: {
       id: string;
       name: string;
@@ -97,7 +97,7 @@ export class GetFeedReportsUseCase {
         approvals: report.approvals,
         appreciationsCount: report.likes.length > 0 ? report.likes.length : report.appreciations,
         hasLiked,
-        commentsCount: report.comments.length,
+        commentsCount: (report as unknown as { _count?: { comments?: number } })._count?.comments ?? report.comments.length,
         comments: report.comments,
       };
     });

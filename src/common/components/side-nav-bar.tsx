@@ -96,10 +96,9 @@ export default function SideNavBar({}: SideNavBarProps) {
             alt="Logo LAZ Persis"
             className="h-9 w-auto object-contain"
           />
-          <div className="flex flex-col">
-            <span className="text-sm font-bold text-primary tracking-tight">LAZ Persis</span>
-            <span className="text-xs text-on-surface-variant">Sistem Pelaporan Harian</span>
-          </div>
+          <span className="text-xs text-on-surface-variant font-medium tracking-wide">
+            Daily Report System
+          </span>
         </div>
 
         <nav className="flex flex-col gap-1 px-1" aria-label="Menu Utama">
@@ -109,9 +108,10 @@ export default function SideNavBar({}: SideNavBarProps) {
               <Link
                 key={item.label}
                 href={item.href}
+                prefetch={true}
                 className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm transition-all duration-150 ${
                   active
-                    ? "bg-secondary text-white font-semibold shadow-xs"
+                    ? "bg-secondary/10 text-secondary font-semibold border border-secondary/20 shadow-xs"
                     : "text-on-surface-variant font-medium hover:bg-surface-container hover:text-on-surface"
                 }`}
               >

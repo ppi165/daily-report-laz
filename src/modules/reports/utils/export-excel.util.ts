@@ -1,5 +1,3 @@
-import * as XLSX from "xlsx";
-
 interface ReportExportItem {
   id: string;
   content: string;
@@ -29,7 +27,7 @@ export function parseReportContent(rawContent: string): { pekerjaan: string; has
   };
 }
 
-export function exportReportsToExcel(
+export async function exportReportsToExcel(
   reports: ReportExportItem[],
   selectedDivision = "ALL",
   dateRangeLabel?: string
@@ -37,6 +35,9 @@ export function exportReportsToExcel(
   if (!reports || reports.length === 0) {
     return;
   }
+
+  // Dynamic import XLSX (SheetJS) untuk memangkas ~1.2 MB bundle awal
+  const XLSX = await import("xlsx");
 
   const rows = reports.map((r, index) => {
     const { pekerjaan, hasil } = parseReportContent(r.content || "");

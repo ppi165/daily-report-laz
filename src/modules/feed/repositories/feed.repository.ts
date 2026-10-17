@@ -54,6 +54,7 @@ export class FeedRepository {
           orderBy: {
             createdAt: "asc",
           },
+          take: 10, // Capping initial comments untuk kecepatan transfer data
           include: {
             user: {
               select: {
@@ -65,6 +66,11 @@ export class FeedRepository {
                 avatar: true,
               },
             },
+          },
+        },
+        _count: {
+          select: {
+            comments: true,
           },
         },
         approvals: {

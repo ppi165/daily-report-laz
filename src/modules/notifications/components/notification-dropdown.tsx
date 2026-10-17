@@ -38,15 +38,8 @@ export default function NotificationDropdown() {
   }, []);
 
   useEffect(() => {
-    // 1. Muat notifikasi saat mount
+    // Muat notifikasi satu kali saat mount (login / refresh browser)
     fetchNotifications();
-
-    // 2. Polling efisien setiap 45 detik
-    const interval = setInterval(() => {
-      fetchNotifications();
-    }, 45000);
-
-    return () => clearInterval(interval);
   }, [fetchNotifications]);
 
   const handleOpenChange = (nextOpen: boolean) => {

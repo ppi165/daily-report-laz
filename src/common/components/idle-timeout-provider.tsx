@@ -22,7 +22,7 @@ export default function IdleTimeoutProvider({
   useEffect(() => {
     // 1. Validasi Sesi Browser/Tab & Proteksi Backward/Forward:
     // Jika sessionStorage kosong atau pernah ditandai di-kick saat di /login, paksa redirect ke /login
-    const checkSession = () => {
+    const checkSession = (verifyServer = false) => {
       const activeSession = sessionStorage.getItem("laz_session_active");
       const isKicked = sessionStorage.getItem("laz_session_kicked") === "true";
 
@@ -38,28 +38,52 @@ export default function IdleTimeoutProvider({
         return false;
       }
 
-      // Verifikasi keaslian token sesi di server (mencegah manipulasi state)
-      fetch("/api/v1/users/me", { cache: "no-store" })
-        .then((res) => {
-          if (!res.ok) {
-            localStorage.removeItem("laz_user_profile");
-            sessionStorage.clear();
-            window.location.replace("/login");
-          }
-        })
-        .catch(() => {});
+      // Verifikasi keaslian token di server hanya saat navigasi back/forward (UserProvider sudah memverifikasi saat mount awal)
+      if (verifyServer) {
+        fetch("/api/v1/users/me", { cache: "no-store" })
+          .then((res) => {
+            if (!res.ok) {
+              localStorage.removeItem("laz_user_profile");
+              sessionStorage.clear();
+              window.location.replace("/login");
+            }
+          })
+          .catch(() => {});
+      }
 
       return true;
     };
 
-    if (!checkSession()) {
+    if (!checkSession(false)) {
       return;
     }
 
+    // 4. Pengecekan Idle Timeout 30 Menit
+    const checkIdleTimeout = async () => {
+      const now = Date.now();
+      const elapsed = now - lastActivityRef.current;
+
+      if (elapsed >= IDLE_TIMEOUT_MS && !isKickingRef.current) {
+        isKickingRef.current = true;
+        try {
+          await fetch("/api/v1/auth/logout", { method: "POST" });
+        } catch {
+          // ignore
+        } finally {
+          localStorage.removeItem("laz_user_profile");
+          sessionStorage.clear();
+          window.location.href = "/login?reason=idle_timeout";
+        }
+      }
+    };
+
     // 2. Proteksi Navigasi Forward/Backward Browser:
-    // Pastikan event pageshow, popstate, dan visibilitychange selalu mengecek keaktifan sesi
+    // Pastikan event pageshow, popstate, dan visibilitychange selalu mengecek keaktifan sesi saat tab terlihat
     const handleNavigationCheck = () => {
-      checkSession();
+      if (document.visibilityState === "visible") {
+        checkSession(true);
+        checkIdleTimeout();
+      }
     };
 
     window.addEventListener("pageshow", handleNavigationCheck);
@@ -94,22 +118,9 @@ export default function IdleTimeoutProvider({
       window.addEventListener(evt, throttledUpdate, { passive: true });
     });
 
-    // 4. Interval Pengecekan Idle Timeout 30 Menit
-    const intervalId = setInterval(async () => {
-      const now = Date.now();
-      const elapsed = now - lastActivityRef.current;
-
-      if (elapsed >= IDLE_TIMEOUT_MS && !isKickingRef.current) {
-        isKickingRef.current = true;
-        try {
-          await fetch("/api/v1/auth/logout", { method: "POST" });
-        } catch {
-          // ignore
-        } finally {
-          localStorage.removeItem("laz_user_profile");
-          sessionStorage.clear();
-          window.location.href = "/login?reason=idle_timeout";
-        }
+    const intervalId = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        checkIdleTimeout();
       }
     }, CHECK_INTERVAL_MS);
 

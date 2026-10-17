@@ -52,21 +52,14 @@ export default function RekapReport() {
   const [period, setPeriod] = useState<string>("ALL");
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
+  const [exporting, setExporting] = useState<boolean>(false);
 
+  // Muat daftar divisi satu kali saat mount
   useEffect(() => {
     let ignore = false;
-    async function loadData() {
+    async function loadDivisions() {
       try {
-        const [repRes, divRes] = await Promise.all([
-          fetch("/api/v1/reports"),
-          fetch("/api/v1/divisions"),
-        ]);
-
-        if (!ignore && repRes.ok) {
-          const json = await repRes.json();
-          if (json.data) setReports(json.data);
-        }
-
+        const divRes = await fetch("/api/v1/divisions");
         if (!ignore && divRes.ok) {
           const json = await divRes.json();
           if (json.data && Array.isArray(json.data)) {
@@ -74,16 +67,50 @@ export default function RekapReport() {
           }
         }
       } catch {
+        // Fallback hening
+      }
+    }
+    loadDivisions();
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
+  // Ambil laporan dari database dengan parameter filter & batas kuota hingga 1000 data
+  useEffect(() => {
+    let ignore = false;
+    async function fetchReports() {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams();
+        params.set("limit", "1000");
+        if (selectedDivision && selectedDivision !== "ALL") {
+          params.set("division", selectedDivision);
+        }
+        if (startDate) {
+          params.set("startDate", startDate);
+        }
+        if (endDate) {
+          params.set("endDate", endDate);
+        }
+
+        const repRes = await fetch(`/api/v1/reports?${params.toString()}`);
+        if (!ignore && repRes.ok) {
+          const json = await repRes.json();
+          if (json.data) setReports(json.data);
+        }
+      } catch {
         // Fallback
       } finally {
         if (!ignore) setLoading(false);
       }
     }
-    loadData();
+
+    fetchReports();
     return () => {
       ignore = true;
     };
-  }, []);
+  }, [selectedDivision, startDate, endDate]);
 
   const handlePeriodChange = (val: string | null) => {
     if (!val) return;
@@ -162,6 +189,18 @@ export default function RekapReport() {
     if (endDate) return `sd_${endDate}`;
     return "Periode";
   }, [period, startDate, endDate]);
+
+  const handleExportExcel = async () => {
+    if (exporting || filteredReports.length === 0) return;
+    try {
+      setExporting(true);
+      await exportReportsToExcel(filteredReports, selectedDivision, dateRangeLabel);
+    } catch (err) {
+      console.error("Gagal export excel:", err);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   return (
     <AppShell headerTitle="Rekap Daily Report LAZ Persis" headerBadge={selectedDivision === "ALL" ? "Semua Bidang" : `Unit ${selectedDivision}`}>
@@ -335,12 +374,14 @@ export default function RekapReport() {
               <Button
                 variant="outline"
                 type="button"
-                onClick={() => exportReportsToExcel(filteredReports, selectedDivision, dateRangeLabel)}
-                disabled={loading || filteredReports.length === 0}
+                onClick={handleExportExcel}
+                disabled={loading || exporting || filteredReports.length === 0}
                 className="w-full lg:w-auto border-secondary/40 text-secondary hover:bg-secondary/10 text-xs sm:text-sm font-semibold px-4 h-10 rounded-xl flex items-center justify-center gap-1.5 shrink-0 cursor-pointer disabled:opacity-50"
               >
-                <span className="material-symbols-outlined text-[18px]">download</span>
-                <span>Export Excel</span>
+                <span className={`material-symbols-outlined text-[18px] ${exporting ? "animate-spin" : ""}`}>
+                  {exporting ? "progress_activity" : "download"}
+                </span>
+                <span>{exporting ? "Mengekspor..." : "Export Excel"}</span>
               </Button>
             </CardContent>
           </Card>

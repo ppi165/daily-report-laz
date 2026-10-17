@@ -288,29 +288,23 @@ export class UserRepository {
   }
 
   async getUserPerformance(userId: string) {
-    const [totalReports, onTimeReports, reportsWithLikes] = await Promise.all([
+    const [totalReports, onTimeReports, relationalLikes, legacyLikes] = await Promise.all([
       prisma.report.count({
         where: { authorId: userId },
       }),
       prisma.report.count({
         where: { authorId: userId, isLate: false },
       }),
-      prisma.report.findMany({
+      prisma.reportAppreciation.count({
+        where: { report: { authorId: userId } },
+      }),
+      prisma.report.aggregate({
         where: { authorId: userId },
-        select: {
-          id: true,
-          appreciations: true,
-          _count: {
-            select: { likes: true },
-          },
-        },
+        _sum: { appreciations: true },
       }),
     ]);
 
-    let totalAppreciations = 0;
-    for (const r of reportsWithLikes) {
-      totalAppreciations += Math.max(r.appreciations, r._count.likes);
-    }
+    const totalAppreciations = Math.max(relationalLikes, legacyLikes._sum.appreciations || 0);
 
     const disciplineRate = totalReports > 0 ? Math.round((onTimeReports / totalReports) * 100) : 100;
 

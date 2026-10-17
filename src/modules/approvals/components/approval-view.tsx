@@ -25,16 +25,41 @@ import UserAvatar from "@/src/common/components/user-avatar";
 import ReviseClockInDialog from "./revise-clock-in-dialog";
 import { ClockInReport } from "../types/approval.types";
 
-export default function ApprovalView() {
-  const [reports, setReports] = useState<ClockInReport[]>([]);
+interface ApprovalViewProps {
+  initialReports?: ClockInReport[];
+  initialUser?: {
+    id: string;
+    name: string;
+    role: string;
+    division?: string;
+  } | null;
+}
+
+export default function ApprovalView({
+  initialReports = [],
+  initialUser = null,
+}: ApprovalViewProps) {
+  const [reports, setReports] = useState<ClockInReport[]>(initialReports);
   const [currentUser, setCurrentUser] = useState<{
     id: string;
     name: string;
     role: string;
     division?: string;
-  } | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("all");
+  } | null>(initialUser);
+  const [loading, setLoading] = useState(initialReports.length === 0 && !initialUser);
+  const [activeTab, setActiveTab] = useState(() => {
+    if (initialUser && initialReports.length > 0) {
+      const hasAction = initialReports.some(
+        (r) =>
+          r.status === "PENDING_APPROVAL" &&
+          r.approvals?.some(
+            (a) => a.status === "PENDING" && (a.approverId === initialUser.id || a.approverMockId === initialUser.id)
+          )
+      );
+      if (hasAction) return "my-action";
+    }
+    return "all";
+  });
   const [rejectingApprovalId, setRejectingApprovalId] = useState<string | null>(null);
   const [rejectionNote, setRejectionNote] = useState("");
   const [revisingReport, setRevisingReport] = useState<ClockInReport | null>(null);
@@ -55,6 +80,10 @@ export default function ApprovalView() {
   };
 
   useEffect(() => {
+    if (initialUser) {
+      return;
+    }
+
     let ignore = false;
     async function init() {
       try {
@@ -94,7 +123,7 @@ export default function ApprovalView() {
     return () => {
       ignore = true;
     };
-  }, []);
+  }, [initialUser]);
 
   useEffect(() => {
     if (!loading && typeof window !== "undefined" && window.location.hash) {

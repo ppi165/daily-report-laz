@@ -64,6 +64,10 @@ model Report {
   
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+
+  @@index([status, createdAt(sort: Desc)])
+  @@index([authorId])
+  @@index([division])
 }
 
 model ReportAppreciation {
@@ -113,6 +117,9 @@ model ReportApproval {
   
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
+
+  @@index([approverId, status])
+  @@index([reportId])
 }
 
 model SystemSetting {

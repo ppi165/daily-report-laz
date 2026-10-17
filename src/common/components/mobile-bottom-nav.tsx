@@ -57,12 +57,11 @@ export default function MobileBottomNav() {
       }
     }
 
+    // Muat satu kali saat mount (login / refresh browser)
     fetchPendingVerifications();
-    const interval = setInterval(fetchPendingVerifications, 45000);
 
     return () => {
       isMounted = false;
-      clearInterval(interval);
     };
   }, [user]);
 
@@ -88,6 +87,7 @@ export default function MobileBottomNav() {
       {/* Tab 1: Beranda */}
       <Link
         href="/dashboard"
+        prefetch={true}
         className={cn(
           "flex flex-col items-center justify-center min-w-[48px] min-h-[44px] py-1 px-1.5 transition-colors touch-manipulation",
           isDashboard
@@ -119,6 +119,7 @@ export default function MobileBottomNav() {
       {/* Tab 2: Feed / Linimasa */}
       <Link
         href="/feed"
+        prefetch={true}
         className={cn(
           "flex flex-col items-center justify-center min-w-[48px] min-h-[44px] py-1 px-1.5 transition-colors touch-manipulation",
           isFeed
@@ -148,7 +149,7 @@ export default function MobileBottomNav() {
       {/* Tab 3: Center Elevated FAB (Buat Laporan) */}
       <div className="flex flex-col items-center justify-center -mt-6">
         <Button
-          render={<Link href="/daily-report" />}
+          render={<Link href="/daily-report" prefetch={true} />}
           size="icon"
           className="size-13 rounded-full bg-gradient-to-tr from-emerald-600 to-teal-500 text-white shadow-lg shadow-emerald-900/30 ring-4 ring-background hover:from-emerald-500 hover:to-teal-400 active:scale-95 transition-all flex items-center justify-center p-0 cursor-pointer"
           aria-label="Buat Laporan Harian"
@@ -165,6 +166,7 @@ export default function MobileBottomNav() {
       {/* Tab 4: Verifikasi */}
       <Link
         href="/verifikasi"
+        prefetch={true}
         className={cn(
           "flex flex-col items-center justify-center min-w-[48px] min-h-[44px] py-1 px-1.5 transition-colors touch-manipulation",
           isVerifikasi
@@ -277,6 +279,7 @@ export default function MobileBottomNav() {
               </span>
               <Link
                 href="/rekap-report"
+                prefetch={true}
                 onClick={() => setDrawerOpen(false)}
                 className={cn(
                   "flex items-center justify-between p-3 rounded-xl border transition-all touch-manipulation",
@@ -305,6 +308,7 @@ export default function MobileBottomNav() {
 
               <Link
                 href="/profil"
+                prefetch={true}
                 onClick={() => setDrawerOpen(false)}
                 className={cn(
                   "flex items-center justify-between p-3 rounded-xl border transition-all touch-manipulation",

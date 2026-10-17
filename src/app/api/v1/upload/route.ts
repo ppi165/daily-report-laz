@@ -1,8 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { imageCompressionService, storageService } from '@/src/infrastructure/storage';
+import { verifyJWT } from '@/src/infrastructure/auth';
 
 export async function POST(req: NextRequest) {
   try {
+    const token = req.cookies.get('token')?.value;
+    if (!token) {
+      return NextResponse.json(
+        { success: false, message: 'Unauthorized: Sesi tidak ditemukan. Silakan login terlebih dahulu.' },
+        { status: 401 }
+      );
+    }
+
+    const payload = await verifyJWT(token);
+    if (!payload) {
+      return NextResponse.json(
+        { success: false, message: 'Unauthorized: Sesi tidak valid atau telah kedaluwarsa.' },
+        { status: 401 }
+      );
+    }
+
     const formData = await req.formData();
     const file = formData.get('file') as File | null;
     const folder = (formData.get('folder') as string) || 'attachments';
