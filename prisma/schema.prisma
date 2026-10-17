@@ -48,6 +48,7 @@ model Report {
   status        String   @default("PUBLISHED") // PUBLISHED, PENDING_APPROVAL, REJECTED
   appreciations Int      @default(0)
   isClockIn     Boolean  @default(false)
+  isLate        Boolean  @default(false)
   
   authorId      String
   author        User     @relation(fields: [authorId], references: [id])

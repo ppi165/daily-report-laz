@@ -23,6 +23,8 @@ interface ReportData {
   status: string;
   appreciations: number;
   division: string;
+  isClockIn?: boolean;
+  isLate?: boolean;
   createdAt: string | Date;
   author?: { name: string };
   [key: string]: unknown;
@@ -308,9 +310,17 @@ export default function RekapReport() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2 flex-wrap justify-end">
-                      {Boolean(report.isClockIn) && (
+                      {Boolean(report.isClockIn) ? (
                         <span className="text-xs font-bold font-mono text-amber-500">
                           [Clock-in]
+                        </span>
+                      ) : report.isLate ? (
+                        <span className="text-xs font-bold font-mono text-rose-500">
+                          [Terlambat]
+                        </span>
+                      ) : (
+                        <span className="text-xs font-bold font-mono text-secondary">
+                          [Tepat Waktu]
                         </span>
                       )}
                       {report.status === "PENDING_APPROVAL" ? (

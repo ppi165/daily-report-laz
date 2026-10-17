@@ -80,11 +80,15 @@ export default function ReportForm({
     clockInMaxDays: number;
     clockInRequiredWitness: number;
     requirePhoto: boolean;
+    deadlineTime: string;
   }>({
     clockInMaxDays: initialSettings?.clockInMaxDays ?? 3,
     clockInRequiredWitness: initialSettings?.clockInRequiredWitness ?? 2,
     requirePhoto: Boolean(initialSettings?.requirePhoto),
+    deadlineTime: "17:00",
   });
+
+  const [isPastDeadline, setIsPastDeadline] = useState(false);
 
   useEffect(() => {
     // Sinkronisasi client-side URL param setelah hydration
@@ -99,19 +103,35 @@ export default function ReportForm({
   }, [mode]);
 
   useEffect(() => {
-    if (initialSettings) return;
+    function checkDeadline() {
+      const now = new Date();
+      const [h, m] = settings.deadlineTime.split(":").map(Number);
+      if (isNaN(h) || isNaN(m)) return;
+      const deadline = new Date();
+      deadline.setHours(h, m, 0, 0);
+      setIsPastDeadline(now.getTime() > deadline.getTime());
+    }
+    checkDeadline();
+    const timer = setInterval(checkDeadline, 30000);
+    return () => clearInterval(timer);
+  }, [settings.deadlineTime]);
 
+  useEffect(() => {
     async function loadSettings() {
       try {
-        const res = await fetch("/api/v1/settings");
-        const json = await res.json();
-        if (json.success && json.data) {
-          setSettings({
-            clockInMaxDays: json.data.clockInMaxDays ?? 3,
-            clockInRequiredWitness: json.data.clockInRequiredWitness ?? 2,
-            requirePhoto: Boolean(json.data.requirePhoto),
-          });
-        }
+        const [settRes, dashRes] = await Promise.all([
+          fetch("/api/v1/settings"),
+          fetch("/api/v1/dashboard/stats"),
+        ]);
+        const settJson = await settRes.json();
+        const dashJson = await dashRes.json();
+
+        setSettings({
+          clockInMaxDays: settJson?.data?.clockInMaxDays ?? initialSettings?.clockInMaxDays ?? 3,
+          clockInRequiredWitness: settJson?.data?.clockInRequiredWitness ?? initialSettings?.clockInRequiredWitness ?? 2,
+          requirePhoto: settJson?.data?.requirePhoto !== undefined ? Boolean(settJson.data.requirePhoto) : Boolean(initialSettings?.requirePhoto),
+          deadlineTime: dashJson?.data?.deadlineTime || settJson?.data?.dailyDeadlineTime || "17:00",
+        });
       } catch {
         // Fallback default
       }
@@ -332,6 +352,22 @@ export default function ReportForm({
                       onChange={(e) => isClockIn && setSelectedDate(e.target.value)}
                     />
                   </div>
+
+                  {!isClockIn && isPastDeadline && (
+                    <div className="mt-1 p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-500 flex items-start gap-2.5">
+                      <span className="material-symbols-outlined text-[18px] shrink-0 mt-0.5">
+                        schedule
+                      </span>
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-xs font-bold">
+                          Batas Waktu Reguler ({settings.deadlineTime} WIB) Telah Lewat
+                        </span>
+                        <span className="text-[11px] text-amber-500/90 leading-relaxed">
+                          Laporan tetap dapat Anda kirimkan hari ini hingga pukul 23:59 WIB dengan status Terlambat. Jika dikirimkan esok hari, laporan akan dialihkan ke alur Clock-In susulan.
+                        </span>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex flex-col gap-1.5">

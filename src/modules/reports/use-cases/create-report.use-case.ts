@@ -3,6 +3,7 @@ import { CreateReportInput, CreateReportSchema } from '../schemas/create-report.
 import { approvalRepository } from '@/src/modules/approvals';
 import { userRepository } from '@/src/modules/users';
 import { settingRepository } from '@/src/modules/settings';
+import { scheduleRepository } from '@/src/modules/schedules';
 
 export class CreateReportUseCase {
   async execute(input: CreateReportInput, authorId: string) {
@@ -23,10 +24,43 @@ export class CreateReportUseCase {
       : undefined;
 
     const isClockIn = Boolean(validated.isClockIn);
+    const now = new Date();
+
+    // Tentukan batas waktu (deadline) hari ini berdasarkan jadwal khusus atau pengaturan reguler
+    const activeSchedule = await scheduleRepository.findActiveForDate(now);
+    let deadlineTime = settings.dailyDeadlineTime || '17:00';
+    if (activeSchedule) {
+      deadlineTime = activeSchedule.deadlineTime;
+    } else if (settings.isRamadhanMode && settings.ramadhanDeadlineTime) {
+      deadlineTime = settings.ramadhanDeadlineTime;
+    }
+
+    // Evaluasi apakah pengiriman melewati batas waktu hari ini (WIB)
+    let isLate = false;
+    if (isClockIn) {
+      isLate = true;
+    } else {
+      const [deadlineH, deadlineM] = deadlineTime.split(':').map(Number);
+      const wibTimeParts = new Intl.DateTimeFormat('en-GB', {
+        timeZone: 'Asia/Jakarta',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+      }).formatToParts(now);
+
+      const currentH = Number(wibTimeParts.find((p) => p.type === 'hour')?.value ?? now.getHours());
+      const currentM = Number(wibTimeParts.find((p) => p.type === 'minute')?.value ?? now.getMinutes());
+
+      const currentMinutes = currentH * 60 + currentM;
+      const deadlineMinutes = deadlineH * 60 + deadlineM;
+
+      if (currentMinutes > deadlineMinutes) {
+        isLate = true;
+      }
+    }
 
     if (isClockIn) {
       if (reportDate) {
-        const now = new Date();
         const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         const repDay = new Date(reportDate.getFullYear(), reportDate.getMonth(), reportDate.getDate());
 
@@ -77,6 +111,7 @@ export class CreateReportUseCase {
         status: 'PENDING_APPROVAL',
         appreciations: 0,
         isClockIn: true,
+        isLate: true,
         ...(reportDate ? { createdAt: reportDate } : {}),
       });
 
@@ -102,6 +137,7 @@ export class CreateReportUseCase {
       status: 'PUBLISHED',
       appreciations: 0,
       isClockIn: false,
+      isLate,
       ...(reportDate ? { createdAt: reportDate } : {}),
     });
   }
