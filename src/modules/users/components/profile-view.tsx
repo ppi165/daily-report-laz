@@ -360,21 +360,6 @@ export default function ProfileView() {
                   </div>
                 </CardContent>
               </Card>
-
-              {/* Kartu Sistem Keamanan Akun */}
-              <div className="bg-secondary-container/20 border border-secondary/35 rounded-2xl p-5 shadow-xs flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-[18px] text-secondary">
-                    lock
-                  </span>
-                  <h4 className="text-xs font-bold text-on-surface">
-                    Sistem Keamanan Akun
-                  </h4>
-                </div>
-                <p className="text-xs leading-relaxed text-on-surface-variant">
-                  Sesi login Anda terenkripsi standar keamanan internal LAZ Persis. Pastikan memperbarui password secara berkala.
-                </p>
-              </div>
             </div>
 
             {/* Panel Kanan: Tabs Navigasi */}
