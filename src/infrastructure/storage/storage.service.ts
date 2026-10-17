@@ -72,13 +72,13 @@ export class StorageService {
       });
 
     if (uploadError) {
-      throw new Error(`Gagal mengunggah foto WebP ke Supabase Storage: ${uploadError.message}`);
+      throw new Error('Gagal mengunggah berkas ke penyimpanan sistem.');
     }
 
     const { data } = supabase.storage.from(this.bucketName).getPublicUrl(filePath);
 
     if (!data?.publicUrl) {
-      throw new Error('Gagal memperoleh Public URL dari Supabase Storage.');
+      throw new Error('Gagal mengunggah berkas ke penyimpanan sistem.');
     }
 
     return data.publicUrl;

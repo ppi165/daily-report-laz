@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTheme } from '@/src/common/context/theme-context';
 import { Button } from '@/components/ui/button';
@@ -9,16 +9,57 @@ import { Label } from '@/components/ui/label';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
+import ForgotPasswordDialog from './forgot-password-dialog';
+import SessionNoticeDialog from './session-notice-dialog';
 
 export default function LoginForm() {
   const router = useRouter();
   const { isDarkMode, toggleTheme } = useTheme();
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
-  const [remember, setRemember] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sessionNoticeReason, setSessionNoticeReason] = useState<"idle_timeout" | null>(null);
+  const [sessionNoticeOpen, setSessionNoticeOpen] = useState(false);
+  const [forgotPasswordOpen, setForgotPasswordOpen] = useState(false);
+
+  useEffect(() => {
+    const kickSession = () => {
+      try {
+        sessionStorage.clear();
+        sessionStorage.setItem('laz_session_kicked', 'true');
+        localStorage.removeItem('laz_user_profile');
+        fetch('/api/v1/auth/logout', { method: 'POST', keepalive: true }).catch(() => {});
+      } catch {
+        // ignore
+      }
+    };
+
+    // 1. Kick session saat user masuk/backward ke halaman login
+    kickSession();
+
+    // Listener pageshow & popstate agar saat backward browser (bfcache), sesi tetap mutlak dihanguskan
+    const handlePageShow = () => kickSession();
+    window.addEventListener('pageshow', handlePageShow);
+    window.addEventListener('popstate', handlePageShow);
+
+    // 2. Tampilkan popup khusus jika sesi berakhir karena inaktivitas (idle timeout 30 menit)
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const reason = params.get('reason');
+      if (reason === 'idle_timeout') {
+        setSessionNoticeReason('idle_timeout');
+        setSessionNoticeOpen(true);
+        window.history.replaceState({}, '', '/login');
+      }
+    }
+
+    return () => {
+      window.removeEventListener('pageshow', handlePageShow);
+      window.removeEventListener('popstate', handlePageShow);
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,7 +70,7 @@ export default function LoginForm() {
       const res = await fetch('/api/v1/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ identifier, password, remember }),
+        body: JSON.stringify({ identifier, password }),
       });
 
       const data = await res.json();
@@ -38,8 +79,13 @@ export default function LoginForm() {
         throw new Error(data.message || 'Gagal masuk. Periksa kembali kredensial Anda.');
       }
 
-      if (typeof window !== 'undefined' && data.data) {
-        localStorage.setItem('laz_user_profile', JSON.stringify(data.data));
+      if (typeof window !== 'undefined') {
+        // Tandai sesi browser/tab aktif dan hapus tanda kicked
+        sessionStorage.setItem('laz_session_active', 'true');
+        sessionStorage.removeItem('laz_session_kicked');
+        if (data.data) {
+          localStorage.setItem('laz_user_profile', JSON.stringify(data.data));
+        }
       }
 
       // Gunakan full page navigation agar sesi, hak akses role, dan in-memory router cache Next.js ter-refresh total
@@ -101,7 +147,7 @@ export default function LoginForm() {
           </CardHeader>
 
           <CardContent className="p-0">
-            <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+            <form className="flex flex-col gap-5" onSubmit={handleSubmit} method="POST">
               {error && (
                 <Alert variant="destructive" className="border-error/20 bg-error-container text-on-error-container text-sm rounded-lg">
                   <AlertDescription>{error}</AlertDescription>
@@ -168,24 +214,17 @@ export default function LoginForm() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between pt-1 text-sm font-medium">
-                <label className="flex items-center gap-2.5 cursor-pointer select-none">
-                  <input
-                    className="size-4 rounded border-outline-variant/80 text-primary-container focus:ring-secondary/20 focus:ring-offset-0 transition-colors cursor-pointer"
-                    id="remember"
-                    name="remember"
-                    type="checkbox"
-                    checked={remember}
-                    onChange={(e) => setRemember(e.target.checked)}
-                  />
-                  <span className="text-on-surface-variant text-xs">Ingat saya</span>
-                </label>
-                <a
-                  className="text-secondary hover:text-primary text-xs transition-colors duration-150 focus:underline focus:outline-none"
-                  href="#"
+              <div className="flex items-center justify-end pt-0.5 text-sm font-medium">
+                <button
+                  type="button"
+                  onClick={() => setForgotPasswordOpen(true)}
+                  className="text-secondary hover:text-primary text-xs transition-colors duration-150 hover:underline cursor-pointer font-semibold flex items-center gap-1"
                 >
-                  Lupa password?
-                </a>
+                  <span className="material-symbols-outlined text-[15px]">
+                    help
+                  </span>
+                  <span>Lupa password?</span>
+                </button>
               </div>
 
               <div className="pt-2">
@@ -215,6 +254,17 @@ export default function LoginForm() {
           © 2026 LAZ PERSIS. Hak Cipta Dilindungi Undang-Undang.
         </p>
       </footer>
+
+      <ForgotPasswordDialog
+        open={forgotPasswordOpen}
+        onOpenChange={setForgotPasswordOpen}
+      />
+
+      <SessionNoticeDialog
+        open={sessionNoticeOpen}
+        onOpenChange={setSessionNoticeOpen}
+        reason={sessionNoticeReason}
+      />
     </div>
   );
 }

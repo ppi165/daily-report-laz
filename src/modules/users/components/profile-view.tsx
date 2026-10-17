@@ -147,16 +147,16 @@ export default function ProfileView() {
 
       const uploadData = await uploadRes.json();
       if (!uploadRes.ok || !uploadData.url) {
-        throw new Error(uploadData.message || "Gagal mengunggah foto profil ke Supabase.");
+        throw new Error(uploadData.message || "Gagal mengunggah foto profil.");
       }
 
       const updateRes = await updateAvatarAction({ avatarUrl: uploadData.url });
       if (!updateRes.success) {
-        throw new Error(updateRes.message || "Gagal menyimpan foto profil ke database.");
+        throw new Error(updateRes.message || "Gagal menyimpan pembaruan foto profil.");
       }
 
       await refreshUser();
-      toast.success("Foto profil berhasil diperbarui dan disinkronkan!");
+      toast.success("Foto profil berhasil diperbarui!");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Terjadi kesalahan saat mengunggah foto profil.");
     } finally {

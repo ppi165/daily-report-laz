@@ -49,12 +49,19 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let ignore = false;
 
-    // Baca cache instan di client saat mount agar sinkron dengan SSR
+    // Baca cache instan di client saat mount HANYA jika sesi browser aktif dan belum di-kick
     try {
-      const cached = localStorage.getItem(STORAGE_KEY);
-      if (cached) {
-        setUser(JSON.parse(cached));
-        setIsLoading(false);
+      const isSessionActive = sessionStorage.getItem("laz_session_active") === "true";
+      const isKicked = sessionStorage.getItem("laz_session_kicked") === "true";
+      if (!isSessionActive || isKicked) {
+        localStorage.removeItem(STORAGE_KEY);
+        setUser(null);
+      } else {
+        const cached = localStorage.getItem(STORAGE_KEY);
+        if (cached) {
+          setUser(JSON.parse(cached));
+          setIsLoading(false);
+        }
       }
     } catch {
       // ignore
@@ -67,6 +74,14 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         if (!ignore && json.success && json.data) {
           setUser(json.data);
           localStorage.setItem(STORAGE_KEY, JSON.stringify(json.data));
+        } else if (!ignore) {
+          // Gagal verifikasi sesi di server atau token sudah tidak valid
+          setUser(null);
+          localStorage.removeItem(STORAGE_KEY);
+          sessionStorage.clear();
+          if (typeof window !== "undefined" && window.location.pathname !== "/login") {
+            window.location.replace("/login");
+          }
         }
       } catch (err) {
         console.error("Gagal memuat sesi user:", err);

@@ -1,5 +1,7 @@
 import { approvalRepository } from '../repositories/approval.repository';
 import { RespondApprovalInput, RespondApprovalSchema } from '../schemas/respond-approval.schema';
+import { notificationRepository } from '@/src/modules/notifications/repositories/notification.repository';
+import { createPeerReportNotificationUseCase } from '@/src/modules/notifications/use-cases/create-peer-report-notification.use-case';
 
 export class RespondApprovalUseCase {
   async execute(input: RespondApprovalInput, userId?: string) {
@@ -27,6 +29,19 @@ export class RespondApprovalUseCase {
       );
       await approvalRepository.updateReportStatus(existing.reportId, 'REJECTED');
 
+      // Notifikasi ke pembuat laporan bahwa pengajuan Clock-in ditolak
+      if (existing.report?.authorId) {
+        await notificationRepository.create({
+          userId: existing.report.authorId,
+          type: 'APPROVAL_RESULT',
+          title: 'Pengajuan Clock-in Ditolak',
+          message: `${existing.approverName || 'Saksi verifikator'} menolak pengajuan Clock-in Anda. Catatan: ${validated.note || 'Pengajuan ditolak.'}`,
+          link: '/verifikasi',
+          reportId: existing.reportId,
+          actorId: userId,
+        });
+      }
+
       return {
         success: true,
         message: 'Pengajuan Clock-in berhasil ditolak.',
@@ -48,6 +63,28 @@ export class RespondApprovalUseCase {
 
     if (allApproved) {
       await approvalRepository.updateReportStatus(existing.reportId, 'PUBLISHED');
+
+      // 1. Notifikasi ke pembuat laporan bahwa seluruh saksi telah menyetujui
+      if (existing.report?.authorId) {
+        await notificationRepository.create({
+          userId: existing.report.authorId,
+          type: 'APPROVAL_RESULT',
+          title: 'Pengajuan Clock-in Disetujui',
+          message: 'Pengajuan Clock-in Anda telah disetujui lengkap oleh para saksi dan dipublikasikan.',
+          link: `/feed#report-${existing.reportId}`,
+          reportId: existing.reportId,
+          actorId: userId,
+        });
+
+        // 2. Notifikasi ke rekan sedivisi bahwa laporan baru sudah dipublikasikan
+        await createPeerReportNotificationUseCase.execute({
+          reportId: existing.reportId,
+          authorId: existing.report.authorId,
+          authorName: existing.report.author?.name || 'Rekan',
+          division: existing.report.division,
+        });
+      }
+
       return {
         success: true,
         message: 'Pengajuan Clock-in telah disetujui lengkap oleh semua saksi dan status laporan kini PUBLISHED.',

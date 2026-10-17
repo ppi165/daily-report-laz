@@ -17,7 +17,7 @@ export class LoginUseCase {
       throw new Error('Password salah');
     }
 
-    const expiresIn = input.remember ? '30d' : '1d';
+    const expiresIn = '1d';
 
     const token = await signJWT(
       {

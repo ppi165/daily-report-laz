@@ -1,5 +1,7 @@
 import { feedRepository, FeedRepository } from "../repositories/feed.repository";
 import { ToggleAppreciationInput } from "../schemas/toggle-appreciation.schema";
+import { createAppreciationNotificationUseCase } from "@/src/modules/notifications/use-cases/create-appreciation-notification.use-case";
+import { prisma } from "@/src/infrastructure/prisma";
 
 export class ToggleAppreciationUseCase {
   constructor(private readonly repo: FeedRepository = feedRepository) {}
@@ -12,6 +14,24 @@ export class ToggleAppreciationUseCase {
       return { liked: false };
     } else {
       await this.repo.addAppreciation(input.reportId, userId);
+
+      // Picu notifikasi agregasi like ala Instagram ke pemilik laporan
+      try {
+        const actor = await prisma.user.findUnique({
+          where: { id: userId },
+          select: { name: true },
+        });
+        if (actor) {
+          await createAppreciationNotificationUseCase.execute({
+            reportId: input.reportId,
+            actorId: userId,
+            actorName: actor.name,
+          });
+        }
+      } catch (err) {
+        console.error("Gagal membuat notifikasi like:", err);
+      }
+
       return { liked: true };
     }
   }

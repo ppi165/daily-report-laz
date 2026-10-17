@@ -9,15 +9,14 @@ export async function loginAction(rawInput: LoginInput) {
     const validated = LoginSchema.parse(rawInput);
     const result = await loginUseCase.execute(validated);
 
-    const maxAge = validated.remember ? 30 * 24 * 60 * 60 : 24 * 60 * 60;
     const cookieStore = await cookies();
 
+    // Session cookie: tidak diset maxAge/expires agar sesi otomatis terhapus saat browser/tab ditutup
     cookieStore.set('token', result.token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
-      maxAge,
     });
 
     return {

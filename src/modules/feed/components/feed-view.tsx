@@ -21,20 +21,24 @@ import FeedCard from "./feed-card";
 export default function FeedView() {
   const { user } = useUser();
   const [reports, setReports] = useState<ParsedFeedReport[]>([]);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [divisions, setDivisions] = useState<{ id: string; name: string }[]>([]);
   const [selectedDivision, setSelectedDivision] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
 
   const loadData = async (div = selectedDivision, search = searchQuery) => {
     try {
-      const res = await getFeedReportsAction(
-        div === "ALL" ? undefined : div,
-        search.trim() ? search.trim() : undefined
-      );
+      const res = await getFeedReportsAction({
+        limit: 10,
+        division: div === "ALL" ? undefined : div,
+        search: search.trim() ? search.trim() : undefined,
+      });
 
       if (res.success && res.data) {
-        setReports(res.data);
+        setReports(res.data.reports);
+        setNextCursor(res.data.nextCursor);
       }
     } catch {
       // Ignore network errors
@@ -43,18 +47,42 @@ export default function FeedView() {
     }
   };
 
+  const handleLoadMore = async () => {
+    if (!nextCursor || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const res = await getFeedReportsAction({
+        cursor: nextCursor,
+        limit: 10,
+        division: selectedDivision === "ALL" ? undefined : selectedDivision,
+        search: searchQuery.trim() ? searchQuery.trim() : undefined,
+      });
+
+      if (res.success && res.data) {
+        setReports((prev) => [...prev, ...res.data.reports]);
+        setNextCursor(res.data.nextCursor);
+      }
+    } catch {
+      // Ignore
+    } finally {
+      setLoadingMore(false);
+    }
+  };
+
+  // Muat data divisi awal dan feed awal
   useEffect(() => {
     let ignore = false;
     async function init() {
       try {
         const [reportsRes, divRes] = await Promise.all([
-          getFeedReportsAction(),
+          getFeedReportsAction({ limit: 10 }),
           getDivisionsAction(),
         ]);
 
         if (!ignore) {
           if (reportsRes.success && reportsRes.data) {
-            setReports(reportsRes.data);
+            setReports(reportsRes.data.reports);
+            setNextCursor(reportsRes.data.nextCursor);
           }
           if (divRes.success && divRes.data) {
             setDivisions(divRes.data as { id: string; name: string }[]);
@@ -73,18 +101,23 @@ export default function FeedView() {
     };
   }, []);
 
+  // Debounced search (350ms)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadData(selectedDivision, searchQuery);
+    }, 350);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery, selectedDivision]);
+
   const handleDivisionChange = (val: string | null) => {
     if (!val) return;
     setSelectedDivision(val);
     setLoading(true);
-    loadData(val, searchQuery);
   };
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    setSearchQuery(val);
-    // Debounced search can be added or direct
-    loadData(selectedDivision, val);
+    setSearchQuery(e.target.value);
   };
 
   return (
@@ -176,23 +209,59 @@ export default function FeedView() {
                 </div>
               </>
             ) : reports.length > 0 ? (
-              reports.map((report) => (
-                <FeedCard
-                  key={report.id}
-                  report={report}
-                  currentUser={
-                    user
-                      ? {
-                          id: user.id,
-                          name: user.name,
-                          division: user.division,
-                          role: user.role,
-                          avatar: user.avatar,
-                        }
-                      : null
-                  }
-                />
-              ))
+              <>
+                {reports.map((report) => (
+                  <FeedCard
+                    key={report.id}
+                    report={report}
+                    currentUser={
+                      user
+                        ? {
+                            id: user.id,
+                            name: user.name,
+                            division: user.division,
+                            role: user.role,
+                            avatar: user.avatar,
+                          }
+                        : null
+                    }
+                  />
+                ))}
+
+                {/* Tombol Muat Lebih Banyak / Indikator Akhir Feed */}
+                {nextCursor ? (
+                  <div className="pt-2 pb-6 flex justify-center">
+                    <button
+                      type="button"
+                      onClick={handleLoadMore}
+                      disabled={loadingMore}
+                      className="px-6 py-2.5 rounded-xl bg-surface-container-low hover:bg-surface-container border border-outline-variant/80 text-xs sm:text-sm font-semibold text-on-surface hover:text-primary transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-xs"
+                    >
+                      {loadingMore ? (
+                        <>
+                          <span className="material-symbols-outlined text-[18px] animate-spin">
+                            progress_activity
+                          </span>
+                          <span>Memuat Laporan...</span>
+                        </>
+                      ) : (
+                        <>
+                          <span className="material-symbols-outlined text-[18px]">
+                            expand_more
+                          </span>
+                          <span>Muat Laporan Lainnya</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                ) : (
+                  <div className="py-6 text-center text-xs text-outline font-medium flex items-center justify-center gap-2">
+                    <span className="size-1.5 rounded-full bg-outline-variant"></span>
+                    <span>Semua laporan telah ditampilkan</span>
+                    <span className="size-1.5 rounded-full bg-outline-variant"></span>
+                  </div>
+                )}
+              </>
             ) : (
               <div className="py-16 text-center bg-surface-container-lowest rounded-2xl border border-dashed border-outline-variant flex flex-col items-center justify-center p-6">
                 <span className="material-symbols-outlined text-4xl text-outline mb-2">

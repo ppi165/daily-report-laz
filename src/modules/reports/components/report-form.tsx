@@ -187,7 +187,7 @@ export default function ReportForm({
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      alert("Hanya file gambar (JPG, PNG, WEBP) yang diperbolehkan!");
+      alert("Hanya berkas gambar yang diperbolehkan.");
       return;
     }
 
@@ -434,7 +434,7 @@ export default function ReportForm({
                       </span>
                     </h2>
                     <p className="text-xs text-on-surface-variant">
-                      Upload minimal 1 foto dokumentasi pekerjaan. Foto otomatis dikompresi ke format WebP untuk menghemat storage.
+                      Unggah minimal 1 foto dokumentasi hasil atau aktivitas pekerjaan hari ini.
                     </p>
                   </div>
 
@@ -443,14 +443,14 @@ export default function ReportForm({
                       <div className="border-2 border-dashed border-secondary rounded-xl p-8 bg-surface-container-low/40 flex flex-col items-center justify-center gap-2">
                         <div className="size-8 rounded-full border-3 border-secondary border-t-transparent animate-spin"></div>
                         <p className="text-xs font-semibold text-on-surface">
-                          Mengompresi ke WebP &amp; Mengunggah ke Storage...
+                          Mengunggah foto dokumentasi...
                         </p>
                       </div>
                     ) : uploadedPhoto ? (
                       <div className="border border-outline-variant/80 rounded-2xl p-4 bg-surface-container-lowest flex flex-col gap-3 relative group hover:border-secondary transition-colors duration-150">
                         <div className="flex items-start justify-between">
                           <span className="text-xs font-bold text-secondary">
-                            Foto Dokumentasi (WebP)
+                            Foto Dokumentasi
                           </span>
                           <Button
                             variant="ghost"
@@ -478,11 +478,8 @@ export default function ReportForm({
                             <p className="text-xs font-semibold text-on-surface truncate">
                               {uploadedPhoto.name}
                             </p>
-                            <p className="text-xs text-outline">
-                              Format WebP {uploadedPhoto.savedPercentage ? `• Hemat ${uploadedPhoto.savedPercentage}` : ""}
-                            </p>
                             <div className="text-secondary text-xs mt-0.5 font-medium">
-                              <span>Tersimpan di Supabase Storage</span>
+                              <span>Foto siap dilampirkan</span>
                             </div>
                           </div>
                         </div>
@@ -500,7 +497,7 @@ export default function ReportForm({
                           Pilih atau Tarik Foto ke sini
                         </p>
                         <p className="text-[11px] text-outline mt-0.5">
-                          PNG / JPG / WEBP (otomatis dikompresi ke WebP)
+                          Format yang didukung: PNG, JPG, JPEG
                         </p>
                         <input
                           accept="image/png, image/jpeg, image/webp"

@@ -1,7 +1,7 @@
 "use client";
 
 import { useUser } from "@/src/common/context/user-context";
-import NotificationDropdown from "./notification-dropdown";
+import { NotificationDropdown } from "@/src/modules/notifications";
 import ProfileDropdown from "./profile-dropdown";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";

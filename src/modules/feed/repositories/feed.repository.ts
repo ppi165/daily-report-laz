@@ -1,8 +1,21 @@
 import { prisma } from "@/src/infrastructure/prisma";
 
 export class FeedRepository {
-  async getFeedReports(division?: string, search?: string) {
-    return prisma.report.findMany({
+  async getFeedReports(options?: {
+    cursor?: string;
+    limit?: number;
+    division?: string;
+    search?: string;
+  }) {
+    const limit = options?.limit ?? 10;
+    const cursor = options?.cursor;
+    const division = options?.division;
+    const search = options?.search;
+    const take = limit + 1;
+
+    const reports = await prisma.report.findMany({
+      take,
+      ...(cursor ? { skip: 1, cursor: { id: cursor } } : {}),
       where: {
         status: "PUBLISHED",
         AND: [
@@ -68,6 +81,20 @@ export class FeedRepository {
         createdAt: "desc",
       },
     });
+
+    let nextCursor: string | null = null;
+    let paginatedReports = reports;
+
+    if (reports.length > limit) {
+      const nextItem = reports[limit];
+      nextCursor = nextItem.id;
+      paginatedReports = reports.slice(0, limit);
+    }
+
+    return {
+      reports: paginatedReports,
+      nextCursor,
+    };
   }
 
   async findAppreciation(reportId: string, userId: string) {

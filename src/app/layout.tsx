@@ -33,6 +33,19 @@ export default function RootLayout({
           href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
           rel="stylesheet"
         />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                window.addEventListener('pageshow', function(event) {
+                  if (event.persisted || (window.performance && window.performance.navigation && window.performance.navigation.type === 2)) {
+                    window.location.reload();
+                  }
+                });
+              })();
+            `,
+          }}
+        />
       </head>
       <body className="antialiased min-h-screen bg-background text-on-surface transition-colors duration-200">
         <UserProvider>

@@ -2,6 +2,9 @@ import AppShell from "@/src/common/components/app-shell";
 import { getSettingsUseCase } from "@/src/modules/settings/use-cases/get-settings.use-case";
 import { SettingsView } from "@/src/modules/settings";
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export const metadata = {
   title: "Pengaturan Umum Sistem - Daily Report LAZ Persis",
   description: "Pengaturan dinamis jadwal batas laporan, jam kerja, toleransi clock-in, dan kebijakan verifikator.",

@@ -1,6 +1,9 @@
 import ProfileView from "@/src/modules/users/components/profile-view";
 import type { Metadata } from "next";
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export const metadata: Metadata = {
   title: "Profil Saya - Daily Report LAZ Persis",
   description: "Lengkapi data identitas dan kepegawaian mandiri LAZ Persis",

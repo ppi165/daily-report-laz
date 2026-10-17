@@ -1,7 +1,17 @@
 import { NextResponse } from 'next/server';
-import { logoutAction } from '@/src/modules/auth/actions/logout.action';
 
 export async function POST() {
-  const result = await logoutAction();
-  return NextResponse.json(result, { status: 200 });
+  const response = NextResponse.json({ success: true, message: 'Logout berhasil' });
+  
+  // Hapus cookie token di path root '/' secara mutlak
+  response.cookies.set('token', '', {
+    path: '/',
+    maxAge: 0,
+    expires: new Date(0),
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+  });
+  
+  return response;
 }

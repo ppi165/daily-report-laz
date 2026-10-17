@@ -79,7 +79,10 @@ export default function FeedCard({ report, currentUser }: FeedCardProps) {
   });
 
   return (
-    <article className="w-full bg-surface-container-lowest rounded-2xl border border-outline-variant/60 shadow-xs overflow-hidden flex flex-col gap-3.5 p-4 sm:p-5 transition-shadow hover:shadow-sm">
+    <article
+      id={`report-${report.id}`}
+      className="w-full bg-surface-container-lowest rounded-2xl border border-outline-variant/60 shadow-xs overflow-hidden flex flex-col gap-3.5 p-4 sm:p-5 transition-shadow hover:shadow-sm scroll-mt-20"
+    >
       {/* 1. Header Postingan: Profil Amil + Tombol Lihat Hasil */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
@@ -125,14 +128,9 @@ export default function FeedCard({ report, currentUser }: FeedCardProps) {
       )}
 
       {/* 2. Isi Tugas & Aktivitas Pelaporan */}
-      <div className="text-xs sm:text-sm text-on-surface leading-relaxed whitespace-pre-wrap font-sans">
-        {report.title && (
-          <span className="font-semibold text-secondary mr-1.5">
-            [{report.title}]
-          </span>
-        )}
-        <span>{report.tasks}</span>
-      </div>
+      <p className="text-xs sm:text-sm text-on-surface leading-relaxed whitespace-pre-wrap font-sans m-0">
+        {report.tasks}
+      </p>
 
       {/* 3. Media Foto / Panel Rincian Hasil */}
       <div className="w-full">

@@ -45,13 +45,28 @@ export interface ParsedFeedReport {
   }>;
 }
 
+export interface GetFeedReportsOptions {
+  cursor?: string;
+  limit?: number;
+  division?: string;
+  search?: string;
+}
+
+export interface GetFeedReportsResult {
+  reports: ParsedFeedReport[];
+  nextCursor: string | null;
+}
+
 export class GetFeedReportsUseCase {
   constructor(private readonly repo: FeedRepository = feedRepository) {}
 
-  async execute(currentUserId: string, division?: string, search?: string): Promise<ParsedFeedReport[]> {
-    const rawReports = await this.repo.getFeedReports(division, search);
+  async execute(
+    currentUserId: string,
+    options?: GetFeedReportsOptions
+  ): Promise<GetFeedReportsResult> {
+    const { reports: rawReports, nextCursor } = await this.repo.getFeedReports(options);
 
-    return rawReports.map((report) => {
+    const reports = rawReports.map((report) => {
       let tasks = report.content;
       let results = "";
 
@@ -86,6 +101,11 @@ export class GetFeedReportsUseCase {
         comments: report.comments,
       };
     });
+
+    return {
+      reports,
+      nextCursor,
+    };
   }
 }
 

@@ -81,7 +81,7 @@ export default function ScheduleRetentionConfig({
           </h4>
         </div>
         <p className="text-xs text-on-surface-variant leading-relaxed">
-          Atur batas waktu retensi penyimpanan agar riwayat jadwal yang telah lewat masa berlakunya terhapus otomatis dari database.
+          Atur batas waktu retensi penyimpanan agar riwayat jadwal yang telah lewat masa berlakunya terhapus otomatis dari sistem.
         </p>
       </div>
 
@@ -141,7 +141,7 @@ export default function ScheduleRetentionConfig({
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pt-1 border-t border-outline-variant/40">
         <p className="text-[11px] text-outline leading-tight">
           {retentionType === "NEVER"
-            ? "Semua arsip riwayat jadwal akan tetap disimpan permanen di database."
+            ? "Semua arsip riwayat jadwal akan tetap disimpan permanen di arsip sistem."
             : `Jadwal khusus yang telah berakhir lebih dari ${retentionValue} ${
                 retentionType === "MONTH" ? "bulan" : "tahun"
               } akan dibersihkan otomatis.`}

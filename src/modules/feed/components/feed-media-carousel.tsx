@@ -47,7 +47,7 @@ export default function FeedMediaCarousel({
           alt={`Dokumentasi ${authorName ? `oleh ${authorName}` : ""} ${currentIndex + 1}`}
           fill
           unoptimized
-          priority={currentIndex === 0}
+          loading="lazy"
           sizes="(max-width: 768px) 100vw, 700px"
           className="object-cover transition-transform duration-300 group-hover:scale-[1.01]"
         />

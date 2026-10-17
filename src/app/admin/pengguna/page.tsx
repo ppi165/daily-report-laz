@@ -4,6 +4,9 @@ import { verifyJWT } from "@/src/infrastructure/auth";
 import UserManagerView from "@/src/modules/users/components/user-manager-view";
 import type { Metadata } from "next";
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export const metadata: Metadata = {
   title: "Kelola Pengguna & Hak Akses | LAZ Persis",
   description: "Panel manajemen amil, struktur pimpinan, koordinator, dan hierarki hak akses sistem.",

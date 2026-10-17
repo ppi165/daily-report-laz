@@ -4,6 +4,8 @@ import { approvalRepository } from '@/src/modules/approvals';
 import { userRepository } from '@/src/modules/users';
 import { settingRepository } from '@/src/modules/settings';
 import { scheduleRepository } from '@/src/modules/schedules';
+import { createApprovalRequestNotificationUseCase } from '@/src/modules/notifications/use-cases/create-approval-request-notification.use-case';
+import { createPeerReportNotificationUseCase } from '@/src/modules/notifications/use-cases/create-peer-report-notification.use-case';
 
 export class CreateReportUseCase {
   async execute(input: CreateReportInput, authorId: string) {
@@ -13,6 +15,7 @@ export class CreateReportUseCase {
       throw new Error('Unauthorized: Author ID wajib ada');
     }
 
+    const author = await userRepository.findById(authorId);
     const settings = await settingRepository.findDefault();
 
     if (!validated.attachments || validated.attachments.length === 0) {
@@ -129,10 +132,19 @@ export class CreateReportUseCase {
         }))
       );
 
+      createApprovalRequestNotificationUseCase
+        .execute({
+          reportId: report.id,
+          authorId,
+          authorName: author?.name || 'Rekan Kerja',
+          approverUserIds: selectedApprovers.map((a) => a.id),
+        })
+        .catch(() => {});
+
       return report;
     }
 
-    return reportRepository.create({
+    const createdReport = await reportRepository.create({
       title: validated.title || 'Daily Report',
       content: validated.content,
       division: validated.division,
@@ -144,6 +156,17 @@ export class CreateReportUseCase {
       isLate,
       ...(reportDate ? { createdAt: reportDate } : {}),
     });
+
+    createPeerReportNotificationUseCase
+      .execute({
+        reportId: createdReport.id,
+        authorId,
+        authorName: author?.name || 'Rekan Kerja',
+        division: validated.division,
+      })
+      .catch(() => {});
+
+    return createdReport;
   }
 }
 

@@ -5,6 +5,9 @@ import { verifyJWT } from "@/src/infrastructure/auth";
 import { cookies } from "next/headers";
 import type { Metadata } from "next";
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export const metadata: Metadata = {
   title: "Input Daily Report - LAZ Persis",
   description: "Formulir Pelaporan Harian Pegawai LAZ Persis",
