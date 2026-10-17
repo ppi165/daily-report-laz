@@ -274,19 +274,16 @@ export default function FeedCommentSection({
       {/* Banner Membalas Komentar */}
       {replyingTo && (
         <div className="flex items-center justify-between px-2.5 py-1 rounded-lg bg-secondary/10 border border-secondary/20 text-xs text-secondary mt-1">
-          <span className="font-medium flex items-center gap-1">
-            <span className="material-symbols-outlined text-[14px]">
-              reply
-            </span>
-            <span>Membalas @{replyingTo.authorName}</span>
+          <span className="font-medium">
+            Membalas @{replyingTo.authorName}
           </span>
           <button
             type="button"
             onClick={handleCancelReply}
-            className="text-outline hover:text-secondary cursor-pointer p-0.5"
+            className="text-xs font-semibold text-secondary hover:text-primary cursor-pointer p-0.5 hover:underline"
             aria-label="Batalkan balasan"
           >
-            <span className="material-symbols-outlined text-[15px]">close</span>
+            Batal
           </button>
         </div>
       )}

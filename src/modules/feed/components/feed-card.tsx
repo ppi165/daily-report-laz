@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import FeedMediaCarousel from "./feed-media-carousel";
 import FeedResultPanel from "./feed-result-panel";
 import FeedCommentSection from "./feed-comment-section";
@@ -79,23 +78,14 @@ export default function FeedCard({ report, currentUser }: FeedCardProps) {
           </div>
         </div>
 
-        {/* Tombol Lihat Hasil / Capaian Output */}
-        <Button
+        {/* Tombol Lihat Hasil: Hanya teks berwarna tanpa border kapsul & tanpa ikon */}
+        <button
           type="button"
-          size="sm"
-          variant={showResult ? "secondary" : "outline"}
           onClick={() => setShowResult(!showResult)}
-          className={`h-8 px-2.5 sm:px-3 text-xs font-semibold rounded-xl flex items-center gap-1.5 cursor-pointer shrink-0 transition-all ${
-            showResult
-              ? "bg-secondary text-white hover:bg-secondary/90 shadow-2xs"
-              : "border-secondary/40 text-secondary hover:bg-secondary/10"
-          }`}
+          className="text-xs font-semibold text-secondary hover:text-primary hover:underline cursor-pointer transition-colors px-1 py-0.5 shrink-0"
         >
-          <span className="material-symbols-outlined text-[16px]">
-            {showResult ? "photo" : "assignment_turned_in"}
-          </span>
-          <span>{showResult ? "Lihat Foto" : "Lihat Hasil"}</span>
-        </Button>
+          {showResult ? "Lihat Foto" : "Lihat Hasil"}
+        </button>
       </div>
 
       {/* 2. Isi Tugas & Aktivitas Pelaporan */}
