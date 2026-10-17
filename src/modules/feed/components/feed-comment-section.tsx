@@ -5,10 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { addCommentAction } from "../index";
 
-interface CommentItem {
+export interface CommentItem {
   id: string;
   content: string;
-  createdAt: Date;
+  createdAt: Date | string;
   user: {
     id: string;
     name: string;
@@ -38,6 +38,7 @@ export default function FeedCommentSection({
   const [comments, setComments] = useState<CommentItem[]>(initialComments);
   const [newText, setNewText] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [showAll, setShowAll] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,60 +89,72 @@ export default function FeedCommentSection({
     }
   };
 
+  const displayedComments = showAll ? comments : comments.slice(-2);
+  const userInitial = currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : "S";
+
   return (
-    <div className="pt-3 border-t border-surface-container flex flex-col gap-3">
-      {/* Daftar Komentar */}
-      <div className="flex flex-col gap-2.5 max-h-60 overflow-y-auto pr-1">
-        {comments.length === 0 ? (
-          <p className="text-xs text-outline italic py-2 text-center">
-            Belum ada komentar. Berikan apresiasi atau catatan positif pertama!
-          </p>
-        ) : (
-          comments.map((comment) => (
-            <div
-              key={comment.id}
-              className="bg-surface-container-low/60 rounded-xl p-2.5 sm:p-3 text-xs flex flex-col gap-1 border border-outline-variant/30"
-            >
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="font-bold text-on-surface">
-                    {comment.user?.name || "Amil"}
-                  </span>
-                  <span className="text-[11px] font-semibold text-secondary">
-                    • {comment.user?.division || "LAZ Persis"}
-                  </span>
-                </div>
-                <span className="text-[10px] text-outline font-mono">
-                  {new Date(comment.createdAt).toLocaleDateString("id-ID", {
-                    day: "numeric",
-                    month: "short",
-                  })}
+    <div className="flex flex-col gap-2.5 pt-1">
+      {/* Daftar Komentar ala Instagram Web */}
+      {comments.length > 2 && (
+        <button
+          type="button"
+          onClick={() => setShowAll(!showAll)}
+          className="text-xs text-outline hover:text-on-surface-variant font-medium text-left cursor-pointer transition-colors"
+        >
+          {showAll
+            ? "Sembunyikan sebagian komentar"
+            : `Lihat semua ${comments.length} komentar`}
+        </button>
+      )}
+
+      {comments.length > 0 && (
+        <div className={`flex flex-col gap-1.5 ${showAll ? "max-h-64 overflow-y-auto pr-1" : ""}`}>
+          {displayedComments.map((comment) => (
+            <div key={comment.id} className="text-xs leading-relaxed flex items-start justify-between gap-2">
+              <div className="text-on-surface break-words">
+                <span className="font-bold text-on-surface mr-1.5 inline-block">
+                  {comment.user?.name || "Amil"}
+                </span>
+                <span className="text-on-surface-variant whitespace-pre-wrap">
+                  {comment.content}
                 </span>
               </div>
-              <p className="text-on-surface-variant leading-relaxed whitespace-pre-wrap">
-                {comment.content}
-              </p>
+              <span className="text-[10px] text-outline font-mono shrink-0 whitespace-nowrap pt-0.5">
+                {new Date(comment.createdAt).toLocaleDateString("id-ID", {
+                  day: "numeric",
+                  month: "short",
+                })}
+              </span>
             </div>
-          ))
-        )}
-      </div>
+          ))}
+        </div>
+      )}
 
-      {/* Input Komentar Baru */}
-      <form onSubmit={handleSubmit} className="flex items-center gap-2">
+      {/* Form Input Komentar Inline (Instagram Web Style) */}
+      <form
+        onSubmit={handleSubmit}
+        className="flex items-center gap-2 pt-2.5 mt-1 border-t border-outline-variant/50"
+      >
+        <div className="size-7 rounded-full bg-surface-container-high text-on-surface-variant flex items-center justify-center font-bold text-[11px] shrink-0 border border-outline-variant/60">
+          {userInitial}
+        </div>
+
         <Input
-          placeholder="Tulis apresiasi atau tanggapan..."
+          placeholder="Tambahkan komentar..."
           value={newText}
           onChange={(e) => setNewText(e.target.value)}
           disabled={submitting}
-          className="text-xs sm:text-sm h-9 bg-surface-container-low/50 border-outline-variant focus-visible:ring-secondary/20"
+          className="h-9 text-xs sm:text-sm bg-transparent border-0 focus-visible:ring-0 shadow-none px-1 placeholder:text-outline text-on-surface flex-1"
         />
+
         <Button
           type="submit"
+          variant="ghost"
           size="sm"
           disabled={!newText.trim() || submitting}
-          className="h-9 px-3 bg-primary-container hover:bg-secondary text-white rounded-lg text-xs font-semibold cursor-pointer shrink-0"
+          className="text-xs font-bold text-secondary hover:text-primary hover:bg-secondary/10 px-2.5 h-8 rounded-lg cursor-pointer transition-colors disabled:opacity-30 disabled:pointer-events-none"
         >
-          <span className="material-symbols-outlined text-[16px]">send</span>
+          Kirim
         </Button>
       </form>
     </div>

@@ -90,14 +90,14 @@ export default function FeedView() {
   return (
     <AppShell headerTitle="Feed Laporan" headerBadge="Linimasa Amil">
       <main className="p-4 sm:p-6 lg:p-8 flex-1 flex flex-col items-center">
-        <div className="w-full max-w-3xl flex flex-col gap-6">
+        <div className="w-full max-w-2xl flex flex-col gap-6">
           {/* Header & Deskripsi */}
           <div className="flex flex-col gap-1">
             <h1 className="text-2xl sm:text-3xl font-extrabold text-on-surface tracking-tight">
               Feed Laporan Amil
             </h1>
             <p className="text-sm text-on-surface-variant">
-              Linimasa interaktif kegiatan harian amil LAZ Persis. Berikan apresiasi, komentar, dan balik kartu untuk melihat hasil kerja rekan amil.
+              Linimasa interaktif kegiatan harian amil LAZ Persis. Berikan apresiasi, komentar, serta tinjau capaian dan hasil kerja rekan amil.
             </p>
           </div>
 
@@ -138,27 +138,41 @@ export default function FeedView() {
           <div className="flex flex-col gap-6">
             {loading ? (
               <>
-                <div className="p-6 rounded-2xl bg-surface-container-lowest border border-outline-variant/50 flex flex-col gap-4">
-                  <div className="flex items-center gap-3">
-                    <Skeleton className="size-12 rounded-full" />
-                    <div className="flex flex-col gap-2">
-                      <Skeleton className="h-4 w-36" />
-                      <Skeleton className="h-3 w-24" />
+                <div className="p-4 sm:p-5 rounded-2xl bg-surface-container-lowest border border-outline-variant/50 flex flex-col gap-3.5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Skeleton className="size-10 rounded-full" />
+                      <div className="flex flex-col gap-1.5">
+                        <Skeleton className="h-3.5 w-32" />
+                        <Skeleton className="h-2.5 w-24" />
+                      </div>
                     </div>
+                    <Skeleton className="h-8 w-24 rounded-xl" />
                   </div>
-                  <Skeleton className="h-24 w-full rounded-xl" />
-                  <Skeleton className="h-10 w-full rounded-xl" />
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="w-full aspect-[4/3] rounded-xl" />
+                  <div className="flex items-center gap-4 pt-1">
+                    <Skeleton className="h-5 w-20" />
+                    <Skeleton className="h-5 w-24" />
+                  </div>
                 </div>
-                <div className="p-6 rounded-2xl bg-surface-container-lowest border border-outline-variant/50 flex flex-col gap-4">
-                  <div className="flex items-center gap-3">
-                    <Skeleton className="size-12 rounded-full" />
-                    <div className="flex flex-col gap-2">
-                      <Skeleton className="h-4 w-36" />
-                      <Skeleton className="h-3 w-24" />
+                <div className="p-4 sm:p-5 rounded-2xl bg-surface-container-lowest border border-outline-variant/50 flex flex-col gap-3.5">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Skeleton className="size-10 rounded-full" />
+                      <div className="flex flex-col gap-1.5">
+                        <Skeleton className="h-3.5 w-32" />
+                        <Skeleton className="h-2.5 w-24" />
+                      </div>
                     </div>
+                    <Skeleton className="h-8 w-24 rounded-xl" />
                   </div>
-                  <Skeleton className="h-24 w-full rounded-xl" />
-                  <Skeleton className="h-10 w-full rounded-xl" />
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="w-full aspect-[4/3] rounded-xl" />
+                  <div className="flex items-center gap-4 pt-1">
+                    <Skeleton className="h-5 w-20" />
+                    <Skeleton className="h-5 w-24" />
+                  </div>
                 </div>
               </>
             ) : reports.length > 0 ? (
