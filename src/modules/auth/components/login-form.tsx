@@ -42,7 +42,8 @@ export default function LoginForm() {
         localStorage.setItem('laz_user_profile', JSON.stringify(data.data));
       }
 
-      router.push('/dashboard');
+      // Gunakan full page navigation agar sesi, hak akses role, dan in-memory router cache Next.js ter-refresh total
+      window.location.href = '/dashboard';
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
