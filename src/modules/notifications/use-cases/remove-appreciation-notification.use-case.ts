@@ -19,15 +19,22 @@ export class RemoveAppreciationNotificationUseCase {
       return null;
     }
 
-    const totalLiker = await feedRepository.countAppreciations(reportId);
+    // Hitung liker eksternal yang tersisa (kecualikan self-like dari pemilik laporan)
+    const totalLiker = await feedRepository.countAppreciations(
+      reportId,
+      report.authorId
+    );
 
     if (totalLiker === 0) {
-      // Hapus notifikasi jika seluruh like sudah dibatalkan
+      // Hapus notifikasi jika seluruh like dari rekan sudah dibatalkan
       return notificationRepository.delete(existing.id);
     }
 
-    // Ambil liker terkini yang tersisa
-    const latestLiker = await feedRepository.findLatestAppreciation(reportId);
+    // Ambil liker terkini yang tersisa dari rekan (kecualikan pemilik laporan)
+    const latestLiker = await feedRepository.findLatestAppreciation(
+      reportId,
+      report.authorId
+    );
     if (!latestLiker || !latestLiker.user) {
       return notificationRepository.delete(existing.id);
     }
@@ -42,7 +49,7 @@ export class RemoveAppreciationNotificationUseCase {
     if (totalLiker === 2) {
       const secondLiker = await feedRepository.findSecondAppreciation(
         reportId,
-        latestLiker.user.id
+        [latestLiker.user.id, report.authorId]
       );
       secondLikerName = secondLiker?.user?.name || "1 rekan lainnya";
     }

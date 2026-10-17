@@ -43,11 +43,6 @@ export default function FeedCard({ report, currentUser }: FeedCardProps) {
     .map((a) => a.approverName);
 
   const handleToggleLike = async () => {
-    if (isAuthor) {
-      toast.warning("Anda tidak dapat menyukai laporan Anda sendiri.");
-      return;
-    }
-
     if (isLiking) return;
 
     const previousLiked = hasLiked;
@@ -81,10 +76,6 @@ export default function FeedCard({ report, currentUser }: FeedCardProps) {
   };
 
   const handleDoubleTapLike = () => {
-    if (isAuthor) {
-      toast.warning("Anda tidak dapat menyukai laporan Anda sendiri.");
-      return;
-    }
     if (!hasLiked) {
       handleToggleLike();
     }
@@ -182,25 +173,9 @@ export default function FeedCard({ report, currentUser }: FeedCardProps) {
         <button
           type="button"
           onClick={handleToggleLike}
-          aria-label={
-            isAuthor
-              ? "Laporan Anda sendiri"
-              : hasLiked
-              ? "Batal suka"
-              : "Beri suka"
-          }
-          title={
-            isAuthor
-              ? "Anda tidak dapat menyukai laporan Anda sendiri"
-              : hasLiked
-              ? "Batal suka"
-              : "Beri suka"
-          }
-          className={`flex items-center gap-1.5 text-xs font-semibold select-none group transition-transform ${
-            isAuthor
-              ? "opacity-75 cursor-default"
-              : "cursor-pointer active:scale-90"
-          }`}
+          aria-label={hasLiked ? "Batal suka" : "Beri suka"}
+          title={hasLiked ? "Batal suka" : "Beri suka"}
+          className="flex items-center gap-1.5 text-xs font-semibold select-none group transition-transform cursor-pointer active:scale-90"
         >
           <span
             className={`material-symbols-outlined text-[22px] transition-colors ${

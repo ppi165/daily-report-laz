@@ -21,13 +21,23 @@ export class CreateAppreciationNotificationUseCase {
     const titlePreview = report.title || (report.content.length > 35 ? `${report.content.substring(0, 35)}...` : report.content);
     const existing = await notificationRepository.findAppreciationNotification(report.authorId, reportId);
 
-    // Ambil jumlah like riil terkini dari database
-    const totalLiker = await feedRepository.countAppreciations(reportId);
+    // Ambil jumlah like riil dari rekan (kecualikan self-like dari pemilik laporan)
+    const totalLiker = await feedRepository.countAppreciations(
+      reportId,
+      report.authorId
+    );
 
-    // Cari nama liker lain jika total like == 2
+    if (totalLiker === 0) {
+      return null;
+    }
+
+    // Cari nama liker lain jika total like rekan == 2
     let secondLikerName: string | null = null;
     if (totalLiker === 2) {
-      const secondLiker = await feedRepository.findSecondAppreciation(reportId, actorId);
+      const secondLiker = await feedRepository.findSecondAppreciation(reportId, [
+        actorId,
+        report.authorId,
+      ]);
       secondLikerName = secondLiker?.user?.name || "1 rekan lainnya";
     }
 

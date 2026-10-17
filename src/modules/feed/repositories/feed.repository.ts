@@ -183,15 +183,21 @@ export class FeedRepository {
     });
   }
 
-  async countAppreciations(reportId: string) {
+  async countAppreciations(reportId: string, excludeUserId?: string) {
     return prisma.reportAppreciation.count({
-      where: { reportId },
+      where: {
+        reportId,
+        ...(excludeUserId ? { userId: { not: excludeUserId } } : {}),
+      },
     });
   }
 
-  async findLatestAppreciation(reportId: string) {
+  async findLatestAppreciation(reportId: string, excludeUserId?: string) {
     return prisma.reportAppreciation.findFirst({
-      where: { reportId },
+      where: {
+        reportId,
+        ...(excludeUserId ? { userId: { not: excludeUserId } } : {}),
+      },
       orderBy: { createdAt: "desc" },
       include: {
         user: {
@@ -201,11 +207,17 @@ export class FeedRepository {
     });
   }
 
-  async findSecondAppreciation(reportId: string, excludeUserId: string) {
+  async findSecondAppreciation(
+    reportId: string,
+    excludeUserIds: string | string[]
+  ) {
+    const excluded = Array.isArray(excludeUserIds)
+      ? excludeUserIds
+      : [excludeUserIds];
     return prisma.reportAppreciation.findFirst({
       where: {
         reportId,
-        userId: { not: excludeUserId },
+        userId: { notIn: excluded },
       },
       include: {
         user: {
