@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "seed:uat": "node prisma/seed-uat.mjs",
+    "reset:data": "node prisma/reset-transactions.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
