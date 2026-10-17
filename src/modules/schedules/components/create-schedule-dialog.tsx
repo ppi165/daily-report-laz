@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -14,17 +14,21 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { createScheduleAction } from "../actions/create-schedule.action";
+import { updateScheduleAction } from "../actions/update-schedule.action";
+import { SpecialScheduleData } from "../types/schedule.types";
 
 interface CreateScheduleDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess: () => void;
+  scheduleToEdit?: SpecialScheduleData | null;
 }
 
 export default function CreateScheduleDialog({
   open,
   onOpenChange,
   onSuccess,
+  scheduleToEdit,
 }: CreateScheduleDialogProps) {
   const [name, setName] = useState("");
   const [startDate, setStartDate] = useState("");
@@ -33,6 +37,33 @@ export default function CreateScheduleDialog({
   const [reminderTime, setReminderTime] = useState("14:30");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const isEdit = Boolean(scheduleToEdit && scheduleToEdit.id);
+
+  const formatDateForInput = (dateVal: Date | string) => {
+    if (!dateVal) return "";
+    const d = new Date(dateVal);
+    if (isNaN(d.getTime())) return "";
+    return d.toISOString().split("T")[0];
+  };
+
+  useEffect(() => {
+    if (open && scheduleToEdit) {
+      setName(scheduleToEdit.name || "");
+      setStartDate(formatDateForInput(scheduleToEdit.startDate));
+      setEndDate(formatDateForInput(scheduleToEdit.endDate));
+      setDeadlineTime(scheduleToEdit.deadlineTime || "15:30");
+      setReminderTime(scheduleToEdit.reminderTime || "");
+      setDescription(scheduleToEdit.description || "");
+    } else if (open && !scheduleToEdit) {
+      setName("");
+      setStartDate("");
+      setEndDate("");
+      setDeadlineTime("15:30");
+      setReminderTime("14:30");
+      setDescription("");
+    }
+  }, [open, scheduleToEdit]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,29 +87,44 @@ export default function CreateScheduleDialog({
 
     setLoading(true);
     try {
-      const res = await createScheduleAction({
-        name: name.trim(),
-        startDate,
-        endDate,
-        deadlineTime,
-        reminderTime: reminderTime || undefined,
-        description: description.trim() || undefined,
-        isActive: true,
-      });
+      if (isEdit && scheduleToEdit) {
+        const res = await updateScheduleAction({
+          id: scheduleToEdit.id,
+          name: name.trim(),
+          startDate,
+          endDate,
+          deadlineTime,
+          reminderTime: reminderTime || undefined,
+          description: description.trim() || undefined,
+          isActive: scheduleToEdit.isActive ?? true,
+        });
 
-      if (res.success) {
-        onSuccess();
-        onOpenChange(false);
-        // Reset form
-        setName("");
-        setStartDate("");
-        setEndDate("");
-        setDescription("");
+        if (res.success) {
+          onSuccess();
+          onOpenChange(false);
+        } else {
+          alert(res.message || "Gagal memperbarui jadwal khusus.");
+        }
       } else {
-        alert(res.message || "Gagal menyimpan jadwal khusus.");
+        const res = await createScheduleAction({
+          name: name.trim(),
+          startDate,
+          endDate,
+          deadlineTime,
+          reminderTime: reminderTime || undefined,
+          description: description.trim() || undefined,
+          isActive: true,
+        });
+
+        if (res.success) {
+          onSuccess();
+          onOpenChange(false);
+        } else {
+          alert(res.message || "Gagal membuat jadwal khusus.");
+        }
       }
     } catch {
-      alert("Terjadi kesalahan sistem saat membuat jadwal khusus.");
+      alert("Terjadi kesalahan sistem saat menyimpan jadwal khusus.");
     } finally {
       setLoading(false);
     }
@@ -90,12 +136,14 @@ export default function CreateScheduleDialog({
         <DialogHeader className="flex flex-col gap-1 pb-2">
           <DialogTitle className="text-base font-bold text-on-surface flex items-center gap-2">
             <span className="material-symbols-outlined text-secondary text-[22px]">
-              event_available
+              {isEdit ? "edit_calendar" : "event_available"}
             </span>
-            Tambah Jadwal Kerja Khusus
+            {isEdit ? "Edit Jadwal Kerja Khusus" : "Tambah Jadwal Kerja Khusus"}
           </DialogTitle>
           <DialogDescription className="text-xs text-on-surface-variant">
-            Konfigurasi penyesuaian jam batas pelaporan untuk periode atau event tertentu (misal: Ramadhan, tanggap bencana, atau lembur audit).
+            {isEdit
+              ? "Perbarui periode atau jam batas pelaporan untuk event/jadwal ini."
+              : "Konfigurasi penyesuaian jam batas pelaporan untuk periode atau event tertentu (misal: Ramadhan, tanggap bencana, atau lembur audit)."}
           </DialogDescription>
         </DialogHeader>
 
@@ -200,11 +248,11 @@ export default function CreateScheduleDialog({
             </Button>
             <Button
               type="submit"
-              disabled={loading}
               size="sm"
-              className="h-9 px-5 rounded-xl bg-secondary hover:bg-secondary/90 text-white font-semibold text-xs transition-colors cursor-pointer"
+              disabled={loading}
+              className="h-9 px-4 rounded-xl bg-secondary hover:bg-secondary/90 text-white font-semibold text-xs transition-colors cursor-pointer"
             >
-              {loading ? "Menyimpan..." : "Simpan Jadwal"}
+              {loading ? "Menyimpan..." : isEdit ? "Simpan Perubahan" : "Simpan Jadwal"}
             </Button>
           </DialogFooter>
         </form>

@@ -1,14 +1,17 @@
 export * from "./types/schedule.types";
 export * from "./schemas/create-schedule.schema";
+export * from "./schemas/update-schedule.schema";
 export * from "./schemas/update-schedule-retention.schema";
 export * from "./repositories/schedule.repository";
 export * from "./use-cases/get-schedules.use-case";
 export * from "./use-cases/get-active-schedule.use-case";
 export * from "./use-cases/create-schedule.use-case";
+export * from "./use-cases/update-schedule.use-case";
 export * from "./use-cases/delete-schedule.use-case";
 export * from "./use-cases/cleanup-expired-schedules.use-case";
 export * from "./actions/get-schedules.action";
 export * from "./actions/create-schedule.action";
+export * from "./actions/update-schedule.action";
 export * from "./actions/delete-schedule.action";
 export * from "./actions/update-schedule-retention.action";
 export { default as SpecialSchedulesCard } from "./components/special-schedules-card";

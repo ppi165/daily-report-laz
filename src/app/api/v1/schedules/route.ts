@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSchedulesUseCase } from "@/src/modules/schedules/use-cases/get-schedules.use-case";
 import { createScheduleUseCase } from "@/src/modules/schedules/use-cases/create-schedule.use-case";
+import { updateScheduleUseCase } from "@/src/modules/schedules/use-cases/update-schedule.use-case";
 import { deleteScheduleUseCase } from "@/src/modules/schedules/use-cases/delete-schedule.use-case";
 
 export async function GET() {
@@ -28,6 +29,22 @@ export async function POST(request: NextRequest) {
       {
         success: false,
         message: error instanceof Error ? error.message : "Gagal membuat jadwal khusus",
+      },
+      { status: 400 }
+    );
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const data = await updateScheduleUseCase.execute(body);
+    return NextResponse.json({ success: true, data }, { status: 200 });
+  } catch (error) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: error instanceof Error ? error.message : "Gagal memperbarui jadwal khusus",
       },
       { status: 400 }
     );

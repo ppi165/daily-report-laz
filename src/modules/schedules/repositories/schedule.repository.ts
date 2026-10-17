@@ -1,5 +1,6 @@
 import { prisma } from "@/src/infrastructure/prisma";
 import { CreateScheduleInput } from "../schemas/create-schedule.schema";
+import { UpdateScheduleInput } from "../schemas/update-schedule.schema";
 
 export class ScheduleRepository {
   async findAll() {
@@ -34,6 +35,24 @@ export class ScheduleRepository {
     const endDate = new Date(`${input.endDate}T23:59:59.999Z`);
 
     return prisma.specialSchedule.create({
+      data: {
+        name: input.name,
+        startDate,
+        endDate,
+        deadlineTime: input.deadlineTime,
+        reminderTime: input.reminderTime || null,
+        description: input.description || null,
+        isActive: input.isActive ?? true,
+      },
+    });
+  }
+
+  async update(id: string, input: UpdateScheduleInput) {
+    const startDate = new Date(`${input.startDate}T00:00:00.000Z`);
+    const endDate = new Date(`${input.endDate}T23:59:59.999Z`);
+
+    return prisma.specialSchedule.update({
+      where: { id },
       data: {
         name: input.name,
         startDate,

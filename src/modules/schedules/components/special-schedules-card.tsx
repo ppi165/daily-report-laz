@@ -25,6 +25,7 @@ export default function SpecialSchedulesCard({
   const [schedules, setSchedules] = useState<ExtendedScheduleData[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingSchedule, setEditingSchedule] = useState<ExtendedScheduleData | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const fetchSchedules = useCallback(async () => {
@@ -88,7 +89,10 @@ export default function SpecialSchedulesCard({
 
         <Button
           type="button"
-          onClick={() => setDialogOpen(true)}
+          onClick={() => {
+            setEditingSchedule(null);
+            setDialogOpen(true);
+          }}
           size="sm"
           className="h-10 px-4 rounded-xl bg-secondary hover:bg-secondary/90 text-white font-semibold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
         >
@@ -173,7 +177,22 @@ export default function SpecialSchedulesCard({
                     )}
                   </div>
 
-                  <div className="flex items-center gap-2 self-end sm:self-center">
+                  <div className="flex items-center gap-1 sm:gap-2 self-end sm:self-center">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setEditingSchedule(item);
+                        setDialogOpen(true);
+                      }}
+                      className="size-9 p-0 rounded-lg text-outline hover:text-secondary hover:bg-secondary/10 cursor-pointer"
+                      aria-label="Edit Jadwal"
+                    >
+                      <span className="material-symbols-outlined text-[18px]">
+                        edit
+                      </span>
+                    </Button>
+
                     <Button
                       variant="ghost"
                       size="sm"
@@ -205,8 +224,12 @@ export default function SpecialSchedulesCard({
 
       <CreateScheduleDialog
         open={dialogOpen}
-        onOpenChange={setDialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open);
+          if (!open) setEditingSchedule(null);
+        }}
         onSuccess={fetchSchedules}
+        scheduleToEdit={editingSchedule}
       />
     </Card>
   );
