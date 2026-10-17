@@ -119,23 +119,8 @@ export function DialogProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  // Intercept window.alert globally so native browser alert() automatically triggers shadcn dialog
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const originalAlert = window.alert;
-      window.alert = (message?: unknown) => {
-        showAlert({
-          title: "Pemberitahuan",
-          description: String(message ?? ""),
-          variant: "info",
-        });
-      };
-      return () => {
-        window.alert = originalAlert;
-      };
-    }
-  }, [showAlert]);
-
+  // DialogProvider focuses on modal confirmation dialogs (confirm)
+  // while window.alert and general notifications are handled by ToastProvider in top-right
   const handleConfirmClose = (result: boolean) => {
     if (confirmState.resolve) {
       confirmState.resolve(result);

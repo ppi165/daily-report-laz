@@ -13,6 +13,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 
 import { useUser } from "@/src/common/context/user-context";
+import { toast } from "@/src/common/context/toast-context";
 import { changePasswordAction } from "../actions/change-password.action";
 import { updateAvatarAction } from "../actions/update-avatar.action";
 import { updateProfileNameAction } from "../actions/update-profile-name.action";
@@ -90,8 +91,6 @@ export default function ProfileView() {
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-
   useEffect(() => {
     if (user?.name) {
       setName(user.name);
@@ -126,12 +125,12 @@ export default function ProfileView() {
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      setToastMessage("Hanya berkas gambar (JPG, PNG, WEBP) yang diizinkan.");
+      toast.error("Hanya berkas gambar (JPG, PNG, WEBP) yang diizinkan.");
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      setToastMessage("Ukuran foto maksimal 5MB.");
+      toast.error("Ukuran foto maksimal 5MB.");
       return;
     }
 
@@ -157,10 +156,9 @@ export default function ProfileView() {
       }
 
       await refreshUser();
-      setToastMessage("Foto profil berhasil diperbarui dan disinkronkan!");
-      setTimeout(() => setToastMessage(null), 4000);
+      toast.success("Foto profil berhasil diperbarui dan disinkronkan!");
     } catch (err) {
-      setToastMessage(err instanceof Error ? err.message : "Terjadi kesalahan saat mengunggah foto profil.");
+      toast.error(err instanceof Error ? err.message : "Terjadi kesalahan saat mengunggah foto profil.");
     } finally {
       setAvatarLoading(false);
       if (fileInputRef.current) {
@@ -172,7 +170,7 @@ export default function ProfileView() {
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
-      setToastMessage("Nama lengkap tidak boleh kosong.");
+      toast.warning("Nama lengkap tidak boleh kosong.");
       return;
     }
 
@@ -181,15 +179,14 @@ export default function ProfileView() {
       const res = await updateProfileNameAction({ name });
       if (res.success) {
         await refreshUser();
-        setToastMessage("Data diri berhasil diperbarui!");
+        toast.success("Data diri berhasil diperbarui!");
       } else {
-        setToastMessage(res.message || "Gagal memperbarui data diri.");
+        toast.error(res.message || "Gagal memperbarui data diri.");
       }
     } catch {
-      setToastMessage("Terjadi kesalahan jaringan saat menyimpan profil.");
+      toast.error("Terjadi kesalahan jaringan saat menyimpan profil.");
     } finally {
       setSavingProfile(false);
-      setTimeout(() => setToastMessage(null), 4000);
     }
   };
 
@@ -199,11 +196,13 @@ export default function ProfileView() {
 
     if (passwordData.newPassword.length < 6) {
       setPasswordError("Password baru minimal 6 karakter.");
+      toast.error("Password baru minimal 6 karakter.");
       return;
     }
 
     if (passwordData.newPassword !== passwordData.confirmPassword) {
       setPasswordError("Password baru dan konfirmasi password tidak cocok!");
+      toast.error("Password baru dan konfirmasi password tidak cocok!");
       return;
     }
 
@@ -216,14 +215,17 @@ export default function ProfileView() {
       });
 
       if (res.success) {
-        setToastMessage("Kata sandi akun Anda berhasil diperbarui!");
+        toast.success("Kata sandi akun Anda berhasil diperbarui!");
         setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
-        setTimeout(() => setToastMessage(null), 4000);
       } else {
-        setPasswordError(res.message || "Gagal memperbarui kata sandi.");
+        const errMsg = res.message || "Gagal memperbarui kata sandi.";
+        setPasswordError(errMsg);
+        toast.error(errMsg);
       }
     } catch {
-      setPasswordError("Terjadi kesalahan jaringan saat memperbarui kata sandi.");
+      const errMsg = "Terjadi kesalahan jaringan saat memperbarui kata sandi.";
+      setPasswordError(errMsg);
+      toast.error(errMsg);
     } finally {
       setPasswordLoading(false);
     }
@@ -245,24 +247,6 @@ export default function ProfileView() {
               Kelola informasi identitas, bidang penugasan, kinerja pelaporan, dan sistem keamanan akun Anda.
             </p>
           </div>
-
-          {toastMessage && (
-            <Alert className="bg-secondary/15 border-secondary/30 text-secondary rounded-xl p-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="material-symbols-outlined text-lg">check_circle</span>
-                <AlertDescription className="text-sm font-semibold text-secondary">{toastMessage}</AlertDescription>
-              </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                type="button"
-                onClick={() => setToastMessage(null)}
-                className="text-xs hover:underline cursor-pointer h-auto p-1"
-              >
-                Tutup
-              </Button>
-            </Alert>
-          )}
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Panel Kiri: Avatar & Sistem Keamanan Akun */}

@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/src/common/context/theme-context";
 import { UserProvider } from "@/src/common/context/user-context";
 import { DialogProvider } from "@/src/common/context/dialog-context";
+import { ToastProvider } from "@/src/common/context/toast-context";
 import { cn } from "@/lib/utils";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
@@ -36,9 +37,11 @@ export default function RootLayout({
       <body className="antialiased min-h-screen bg-background text-on-surface transition-colors duration-200">
         <UserProvider>
           <ThemeProvider>
-            <DialogProvider>
-              {children}
-            </DialogProvider>
+            <ToastProvider>
+              <DialogProvider>
+                {children}
+              </DialogProvider>
+            </ToastProvider>
           </ThemeProvider>
         </UserProvider>
       </body>
