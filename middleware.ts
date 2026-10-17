@@ -16,6 +16,7 @@ export async function middleware(request: NextRequest) {
     path.startsWith('/verifikasi') ||
     path.startsWith('/feed') ||
     path.startsWith('/settings') ||
+    path.startsWith('/admin') ||
     path.startsWith('/profil');
 
   if (isProtectedRoute) {
@@ -45,6 +46,7 @@ export const config = {
     '/verifikasi/:path*',
     '/feed/:path*',
     '/settings/:path*',
+    '/admin/:path*',
     '/profil/:path*',
     '/login',
   ],
