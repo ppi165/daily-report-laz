@@ -9,7 +9,7 @@ interface ReportExportItem {
   [key: string]: unknown;
 }
 
-function parseReportContent(rawContent: string): { pekerjaan: string; hasil: string } {
+export function parseReportContent(rawContent: string): { pekerjaan: string; hasil: string } {
   if (!rawContent) return { pekerjaan: "-", hasil: "-" };
 
   let pekerjaan = rawContent;

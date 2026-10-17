@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { exportReportsToExcel } from "../utils/export-excel.util";
+import RekapTable from "./rekap-table";
 
 interface ReportData {
   id: string;
@@ -267,122 +268,7 @@ export default function RekapReport() {
             </CardContent>
           </Card>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
-            {loading ? (
-              <>
-                <div className="p-6 rounded-2xl bg-surface-container-lowest border border-outline-variant/50 flex flex-col gap-4">
-                  <div className="flex items-center gap-3">
-                    <Skeleton className="size-10 rounded-full" />
-                    <div className="flex flex-col gap-2">
-                      <Skeleton className="h-4 w-32" />
-                      <Skeleton className="h-3 w-24" />
-                    </div>
-                  </div>
-                  <Skeleton className="h-16 w-full" />
-                </div>
-                <div className="p-6 rounded-2xl bg-surface-container-lowest border border-outline-variant/50 flex flex-col gap-4">
-                  <div className="flex items-center gap-3">
-                    <Skeleton className="size-10 rounded-full" />
-                    <div className="flex flex-col gap-2">
-                      <Skeleton className="h-4 w-32" />
-                      <Skeleton className="h-3 w-24" />
-                    </div>
-                  </div>
-                  <Skeleton className="h-16 w-full" />
-                </div>
-              </>
-            ) : filteredReports.length > 0 ? (
-              filteredReports.map((report) => (
-                <Card key={report.id} className="bg-surface-container-lowest rounded-2xl p-6 border-outline-variant/60 shadow-none hover:shadow-xs hover:border-secondary/30 transition-all flex flex-col gap-4">
-                  <CardHeader className="p-0 flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <div className="size-11 rounded-2xl bg-primary-container/15 text-primary flex items-center justify-center font-bold text-lg shrink-0">
-                        {report.author?.name?.charAt(0) || "A"}
-                      </div>
-                      <div>
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                          <CardTitle className="text-base font-bold text-on-surface leading-tight">
-                            {report.author?.name || "Anonim"}
-                          </CardTitle>
-                          <span className="text-xs font-semibold text-secondary">
-                            • {report.division}
-                          </span>
-                        </div>
-                        <span className="text-xs text-outline block mt-0.5 font-mono">
-                          {new Date(report.createdAt).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })} • {new Date(report.createdAt).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })} WIB
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 flex-wrap justify-end">
-                      {Boolean(report.isClockIn) ? (
-                        <span className="text-xs font-bold font-mono text-amber-500">
-                          [Clock-in]
-                        </span>
-                      ) : report.isLate ? (
-                        <span className="text-xs font-bold font-mono text-rose-500">
-                          [Terlambat]
-                        </span>
-                      ) : (
-                        <span className="text-xs font-bold font-mono text-secondary">
-                          [Tepat Waktu]
-                        </span>
-                      )}
-                      {report.status === "PENDING_APPROVAL" ? (
-                        <span className="text-xs font-bold text-amber-500 flex items-center gap-1 font-mono uppercase">
-                          <span className="size-1.5 rounded-full bg-amber-500"></span>
-                          Menunggu Verifikasi
-                        </span>
-                      ) : report.status === "REJECTED" ? (
-                        <span className="text-xs font-bold text-error flex items-center gap-1 font-mono uppercase">
-                          <span className="size-1.5 rounded-full bg-error"></span>
-                          Ditolak
-                        </span>
-                      ) : (
-                        <span className="text-xs font-bold text-secondary flex items-center gap-1 font-mono uppercase">
-                          <span className="size-1.5 rounded-full bg-secondary"></span>
-                          PUBLISHED
-                        </span>
-                      )}
-                    </div>
-                  </CardHeader>
-
-                  <CardContent className="p-0 text-sm text-on-surface leading-relaxed whitespace-pre-wrap line-clamp-4">
-                    {report.content}
-                  </CardContent>
-
-                  <Separator className="bg-surface-container" />
-
-                  <CardFooter className="p-0 pb-6 pt-1 bg-transparent border-0 flex items-center justify-between">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-surface-container-low border-outline-variant/60 hover:bg-surface-container text-xs font-semibold h-auto cursor-pointer"
-                    >
-                      <span data-icon="inline-start" className="material-symbols-outlined text-[14px] text-secondary">thumb_up</span>
-                      <span>{report.appreciations} Apresiasi</span>
-                    </Button>
-                    <a
-                      className="text-sm font-medium text-primary hover:text-secondary flex items-center gap-1 cursor-pointer"
-                    >
-                      <span>Lihat Detail</span>
-                    </a>
-                  </CardFooter>
-                </Card>
-              ))
-            ) : (
-              <div className="col-span-full py-16 text-center bg-surface-container-lowest rounded-2xl border border-dashed border-outline-variant">
-                <span className="material-symbols-outlined text-4xl text-outline mb-2">
-                  description
-                </span>
-                <p className="text-on-surface font-semibold text-base">
-                  Tidak Ada Laporan yang Ditemukan
-                </p>
-                <p className="text-on-surface-variant text-xs mt-1">
-                  Coba sesuaikan filter bidang atau kata kunci pencarian Anda.
-                </p>
-              </div>
-            )}
-          </div>
+          <RekapTable reports={filteredReports} loading={loading} />
         </div>
       </main>
     </AppShell>
