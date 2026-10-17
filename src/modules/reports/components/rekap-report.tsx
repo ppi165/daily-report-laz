@@ -5,9 +5,8 @@ import AppShell from "@/src/common/components/app-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -32,12 +31,27 @@ interface ReportData {
   [key: string]: unknown;
 }
 
+function getWIBDateString(date: Date): string {
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Jakarta",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  return formatter.format(date);
+}
+
 export default function RekapReport() {
   const [reports, setReports] = useState<ReportData[]>([]);
   const [divisionsList, setDivisionsList] = useState<string[]>([]);
   const [selectedDivision, setSelectedDivision] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [loading, setLoading] = useState(true);
+
+  // Filter Tanggal State
+  const [period, setPeriod] = useState<string>("ALL");
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
 
   useEffect(() => {
     let ignore = false;
@@ -71,16 +85,55 @@ export default function RekapReport() {
     };
   }, []);
 
-  const filteredReports = reports.filter((r) => {
-    const matchDivision =
-      selectedDivision === "ALL" || r.division === selectedDivision;
-    const q = searchQuery.toLowerCase().trim();
-    const matchSearch =
-      !q ||
-      r.content.toLowerCase().includes(q) ||
-      r.author?.name.toLowerCase().includes(q);
-    return matchDivision && matchSearch;
-  });
+  const handlePeriodChange = (val: string | null) => {
+    if (!val) return;
+    setPeriod(val);
+    const now = new Date();
+
+    if (val === "ALL") {
+      setStartDate("");
+      setEndDate("");
+    } else if (val === "TODAY") {
+      const todayStr = getWIBDateString(now);
+      setStartDate(todayStr);
+      setEndDate(todayStr);
+    } else if (val === "7DAYS") {
+      const past = new Date(now);
+      past.setDate(now.getDate() - 6);
+      setStartDate(getWIBDateString(past));
+      setEndDate(getWIBDateString(now));
+    } else if (val === "THIS_MONTH") {
+      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+      const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      setStartDate(getWIBDateString(firstDay));
+      setEndDate(getWIBDateString(lastDay));
+    } else if (val === "CUSTOM") {
+      if (!startDate) setStartDate(getWIBDateString(now));
+      if (!endDate) setEndDate(getWIBDateString(now));
+    }
+  };
+
+  const filteredReports = useMemo(() => {
+    return reports.filter((r) => {
+      const matchDivision =
+        selectedDivision === "ALL" || r.division === selectedDivision;
+
+      const q = searchQuery.toLowerCase().trim();
+      const matchSearch =
+        !q ||
+        r.content.toLowerCase().includes(q) ||
+        r.author?.name.toLowerCase().includes(q);
+
+      let matchDate = true;
+      if (startDate || endDate) {
+        const reportDateStr = getWIBDateString(new Date(r.createdAt));
+        if (startDate && reportDateStr < startDate) matchDate = false;
+        if (endDate && reportDateStr > endDate) matchDate = false;
+      }
+
+      return matchDivision && matchSearch && matchDate;
+    });
+  }, [reports, selectedDivision, searchQuery, startDate, endDate]);
 
   const activeReportersCount = new Set(filteredReports.map((r) => r.author?.name || "anon")).size;
 
@@ -99,6 +152,17 @@ export default function RekapReport() {
     }));
   }, [reports]);
 
+  const dateRangeLabel = useMemo(() => {
+    if (period === "ALL" && !startDate && !endDate) return "Semua_Waktu";
+    if (startDate && endDate) {
+      if (startDate === endDate) return startDate;
+      return `${startDate}_sd_${endDate}`;
+    }
+    if (startDate) return `sejak_${startDate}`;
+    if (endDate) return `sd_${endDate}`;
+    return "Periode";
+  }, [period, startDate, endDate]);
+
   return (
     <AppShell headerTitle="Rekap Daily Report LAZ Persis" headerBadge={selectedDivision === "ALL" ? "Semua Bidang" : `Unit ${selectedDivision}`}>
       <main className="p-4 sm:p-6 lg:p-8 flex-1 flex flex-col items-center">
@@ -108,8 +172,7 @@ export default function RekapReport() {
               Rekap Daily Report
             </h1>
             <p className="text-sm sm:text-base text-on-surface-variant mt-1.5">
-              Lihat aktivitas, sinergi, dan kontribusi seluruh rekan kerja di
-              berbagai bidang LAZ Persis.
+              Lihat aktivitas, sinergi, dan kontribusi seluruh rekan kerja di berbagai bidang LAZ Persis.
             </p>
           </div>
 
@@ -158,7 +221,7 @@ export default function RekapReport() {
                     Distribusi Laporan per Bidang
                   </h2>
                   <span className="text-xs text-on-surface-variant">
-                    Update real-time pekan ini
+                    Update real-time lembaga
                   </span>
                 </div>
                 <div className="flex flex-col gap-3.5">
@@ -195,36 +258,48 @@ export default function RekapReport() {
             </CardContent>
           </Card>
 
+          {/* Filter Bar: Periode, Tanggal Kustom, Divisi, Search, & Export */}
           <Card className="bg-surface-container-lowest rounded-2xl p-4 sm:p-5 border border-outline-variant/60 shadow-xs">
             <CardContent className="p-0 w-full flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-wrap items-center gap-2.5 flex-1">
-                <Select defaultValue="Hari Ini">
-                  <SelectTrigger className="w-full sm:w-[130px] bg-surface-container-lowest border-outline-variant text-on-surface rounded-xl text-sm h-10">
+              <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5 flex-1">
+                {/* Preset Periode */}
+                <Select value={period} onValueChange={handlePeriodChange}>
+                  <SelectTrigger className="w-full sm:w-[150px] bg-surface-container-lowest border-outline-variant text-on-surface rounded-xl text-sm h-10">
                     <SelectValue placeholder="Pilih Periode" />
                   </SelectTrigger>
                   <SelectContent className="bg-surface-container-lowest border-outline-variant">
                     <SelectGroup>
-                      <SelectItem value="Hari Ini">Hari Ini</SelectItem>
-                      <SelectItem value="Mingguan">Mingguan</SelectItem>
-                      <SelectItem value="Bulanan">Bulanan</SelectItem>
-                      <SelectItem value="Custom">Custom</SelectItem>
+                      <SelectItem value="ALL">Semua Waktu</SelectItem>
+                      <SelectItem value="TODAY">Hari Ini</SelectItem>
+                      <SelectItem value="7DAYS">7 Hari Terakhir</SelectItem>
+                      <SelectItem value="THIS_MONTH">Bulan Ini</SelectItem>
+                      <SelectItem value="CUSTOM">Rentang Kustom</SelectItem>
                     </SelectGroup>
                   </SelectContent>
                 </Select>
 
-                <Select defaultValue="21 – 27 September 2026">
-                  <SelectTrigger className="w-full sm:w-[190px] bg-surface-container-lowest border-outline-variant text-on-surface rounded-xl text-sm h-10">
-                    <SelectValue placeholder="Pilih Rentang" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-surface-container-lowest border-outline-variant">
-                    <SelectGroup>
-                      <SelectItem value="21 – 27 September 2026">21 – 27 Sep 2026</SelectItem>
-                      <SelectItem value="14 – 20 September 2026">14 – 20 Sep 2026</SelectItem>
-                      <SelectItem value="07 – 13 September 2026">07 – 13 Sep 2026</SelectItem>
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
+                {/* Input Tanggal Kustom */}
+                {period === "CUSTOM" && (
+                  <div className="flex items-center gap-1.5 w-full sm:w-auto">
+                    <Input
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      className="h-10 text-xs sm:text-sm bg-surface-container-lowest border-outline-variant rounded-xl w-full sm:w-[140px]"
+                      title="Tanggal Mulai"
+                    />
+                    <span className="text-xs text-outline font-medium px-0.5">s.d.</span>
+                    <Input
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="h-10 text-xs sm:text-sm bg-surface-container-lowest border-outline-variant rounded-xl w-full sm:w-[140px]"
+                      title="Tanggal Selesai"
+                    />
+                  </div>
+                )}
 
+                {/* Filter Divisi */}
                 <Select value={selectedDivision} onValueChange={(val) => { if (val) setSelectedDivision(val); }}>
                   <SelectTrigger className="w-full sm:w-[160px] bg-surface-container-lowest border-outline-variant text-on-surface rounded-xl text-sm h-10">
                     <SelectValue placeholder="Filter Bidang" />
@@ -241,7 +316,8 @@ export default function RekapReport() {
                   </SelectContent>
                 </Select>
 
-                <div className="relative w-full sm:col-span-2 lg:col-span-1 lg:flex-1 lg:min-w-[220px]">
+                {/* Pencarian */}
+                <div className="relative w-full sm:flex-1 sm:min-w-[200px]">
                   <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-[18px] pointer-events-none">
                     search
                   </span>
@@ -255,10 +331,11 @@ export default function RekapReport() {
                 </div>
               </div>
 
+              {/* Tombol Export Excel */}
               <Button
                 variant="outline"
                 type="button"
-                onClick={() => exportReportsToExcel(filteredReports, selectedDivision)}
+                onClick={() => exportReportsToExcel(filteredReports, selectedDivision, dateRangeLabel)}
                 disabled={loading || filteredReports.length === 0}
                 className="w-full lg:w-auto border-secondary/40 text-secondary hover:bg-secondary/10 text-xs sm:text-sm font-semibold px-4 h-10 rounded-xl flex items-center justify-center gap-1.5 shrink-0 cursor-pointer disabled:opacity-50"
               >
@@ -268,6 +345,7 @@ export default function RekapReport() {
             </CardContent>
           </Card>
 
+          {/* Tabel Rekap Data */}
           <RekapTable reports={filteredReports} loading={loading} />
         </div>
       </main>

@@ -71,7 +71,7 @@ export default function RekapTable({ reports, loading }: RekapTableProps) {
                       Tidak Ada Laporan yang Ditemukan
                     </p>
                     <p className="text-[11px] text-outline max-w-sm">
-                      Coba sesuaikan filter bidang atau kata kunci pencarian Anda.
+                      Coba sesuaikan filter bidang, rentang tanggal, atau kata kunci pencarian Anda.
                     </p>
                   </div>
                 </td>

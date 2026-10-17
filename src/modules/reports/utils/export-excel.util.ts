@@ -29,9 +29,12 @@ export function parseReportContent(rawContent: string): { pekerjaan: string; has
   };
 }
 
-export function exportReportsToExcel(reports: ReportExportItem[], selectedDivision = "ALL") {
+export function exportReportsToExcel(
+  reports: ReportExportItem[],
+  selectedDivision = "ALL",
+  dateRangeLabel?: string
+) {
   if (!reports || reports.length === 0) {
-    alert("Tidak ada data laporan untuk diexport!");
     return;
   }
 
@@ -74,12 +77,16 @@ export function exportReportsToExcel(reports: ReportExportItem[], selectedDivisi
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, "Daily Report");
 
-  const todayStr = new Date().toISOString().split("T")[0];
   const divName =
     selectedDivision === "ALL"
       ? "Semua_Divisi"
       : selectedDivision.replace(/\s+/g, "_");
-  const fileName = `Rekap_Daily_Report_LAZ_Persis_${divName}_${todayStr}.xlsx`;
+      
+  const dateSuffix = dateRangeLabel
+    ? `_${dateRangeLabel.replace(/[^a-zA-Z0-9-]/g, "_")}`
+    : `_${new Date().toISOString().split("T")[0]}`;
+    
+  const fileName = `Rekap_Daily_Report_LAZ_Persis_${divName}${dateSuffix}.xlsx`;
 
   XLSX.writeFile(workbook, fileName);
 }
