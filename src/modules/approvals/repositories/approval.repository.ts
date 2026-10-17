@@ -49,7 +49,7 @@ export class ApprovalRepository {
       where: { isClockIn: true },
       include: {
         author: {
-          select: { name: true, division: true },
+          select: { id: true, name: true, division: true },
         },
         approvals: {
           orderBy: { createdAt: 'asc' },
@@ -59,13 +59,45 @@ export class ApprovalRepository {
     });
   }
 
-  async updateApproval(id: string, status: string, note?: string) {
+  async findClockInReportsForUser(userId: string) {
+    return prisma.report.findMany({
+      where: {
+        isClockIn: true,
+        OR: [
+          { authorId: userId },
+          { approvals: { some: { approverId: userId } } },
+        ],
+      },
+      include: {
+        author: {
+          select: { id: true, name: true, division: true },
+        },
+        approvals: {
+          orderBy: { createdAt: 'asc' },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async updateApproval(
+    id: string,
+    status: string,
+    note?: string,
+    overrideData?: { isOverridden: boolean; respondedByName: string }
+  ) {
     return prisma.reportApproval.update({
       where: { id },
       data: {
         status,
         note: note ?? null,
         respondedAt: new Date(),
+        ...(overrideData
+          ? {
+              isOverridden: overrideData.isOverridden,
+              respondedByName: overrideData.respondedByName,
+            }
+          : {}),
       },
     });
   }

@@ -13,6 +13,9 @@ export async function middleware(request: NextRequest) {
     path.startsWith('/daily-report') ||
     path.startsWith('/rekap-report') ||
     path.startsWith('/reports') ||
+    path.startsWith('/verifikasi') ||
+    path.startsWith('/feed') ||
+    path.startsWith('/settings') ||
     path.startsWith('/profil');
 
   if (isProtectedRoute) {
@@ -39,6 +42,9 @@ export const config = {
     '/daily-report/:path*',
     '/rekap-report/:path*',
     '/reports/:path*',
+    '/verifikasi/:path*',
+    '/feed/:path*',
+    '/settings/:path*',
     '/profil/:path*',
     '/login',
   ],

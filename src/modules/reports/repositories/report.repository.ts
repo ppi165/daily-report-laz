@@ -20,6 +20,8 @@ export class ReportRepository {
             approverDivision: true,
             status: true,
             note: true,
+            isOverridden: true,
+            respondedByName: true,
           },
         },
       },
