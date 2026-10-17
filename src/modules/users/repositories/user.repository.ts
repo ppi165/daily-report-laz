@@ -12,6 +12,7 @@ export class UserRepository {
         division: true,
         role: true,
         position: true,
+        avatar: true,
         createdAt: true,
       },
     });
@@ -72,6 +73,28 @@ export class UserRepository {
     return prisma.user.update({
       where: { id },
       data: { password: hashedPassword },
+    });
+  }
+
+  async updateAvatar(id: string, avatarUrl: string) {
+    return prisma.user.update({
+      where: { id },
+      data: { avatar: avatarUrl },
+      select: {
+        id: true,
+        avatar: true,
+      },
+    });
+  }
+
+  async updateName(id: string, name: string) {
+    return prisma.user.update({
+      where: { id },
+      data: { name: name.trim() },
+      select: {
+        id: true,
+        name: true,
+      },
     });
   }
 
@@ -235,6 +258,71 @@ export class UserRepository {
     ]);
 
     return { total, superadmin, admin, supervisor, staff };
+  }
+
+  async getUserPerformance(userId: string) {
+    const [totalReports, onTimeReports, reportsWithLikes] = await Promise.all([
+      prisma.report.count({
+        where: { authorId: userId },
+      }),
+      prisma.report.count({
+        where: { authorId: userId, isLate: false },
+      }),
+      prisma.report.findMany({
+        where: { authorId: userId },
+        select: {
+          id: true,
+          appreciations: true,
+          _count: {
+            select: { likes: true },
+          },
+        },
+      }),
+    ]);
+
+    let totalAppreciations = 0;
+    for (const r of reportsWithLikes) {
+      totalAppreciations += Math.max(r.appreciations, r._count.likes);
+    }
+
+    const disciplineRate = totalReports > 0 ? Math.round((onTimeReports / totalReports) * 100) : 100;
+
+    const recentReports = await prisma.report.findMany({
+      where: { authorId: userId },
+      orderBy: { createdAt: 'desc' },
+      take: 5,
+      select: {
+        id: true,
+        content: true,
+        division: true,
+        status: true,
+        isLate: true,
+        attachments: true,
+        createdAt: true,
+        appreciations: true,
+        _count: {
+          select: { likes: true },
+        },
+      },
+    });
+
+    const formattedRecentReports = recentReports.map((r) => ({
+      id: r.id,
+      content: r.content,
+      division: r.division,
+      status: r.status,
+      isLate: r.isLate,
+      attachmentsCount: r.attachments?.length || 0,
+      createdAt: r.createdAt.toISOString(),
+      appreciations: Math.max(r.appreciations, r._count.likes),
+    }));
+
+    return {
+      totalReports,
+      disciplineRate,
+      totalAppreciations,
+      recentReports: formattedRecentReports,
+    };
   }
 }
 

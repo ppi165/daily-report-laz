@@ -34,7 +34,7 @@ export default function ProfileDropdown() {
       <DropdownMenuTrigger className="flex items-center gap-2 sm:gap-2.5 p-1 sm:px-2 sm:py-1.5 rounded-xl transition-all duration-150 cursor-pointer select-none focus:outline-none focus:ring-2 focus:ring-primary/20 hover:bg-surface-container text-on-surface-variant hover:text-on-surface">
         <div className="relative shrink-0">
           <Avatar className="size-9 sm:size-10 border border-outline-variant">
-            <AvatarImage src={user?.avatar} alt={displayName} />
+            <AvatarImage src={user?.avatar} alt={displayName} className="object-cover size-full" />
             <AvatarFallback>{displayName.charAt(0)}</AvatarFallback>
           </Avatar>
           <span
@@ -61,7 +61,7 @@ export default function ProfileDropdown() {
         <div className="p-4 bg-surface-container-low/50 border-b border-surface-container">
           <div className="flex items-center gap-3">
             <Avatar className="size-11 border border-outline-variant shrink-0">
-              <AvatarImage src={user?.avatar} alt={displayName} />
+              <AvatarImage src={user?.avatar} alt={displayName} className="object-cover size-full" />
               <AvatarFallback>{displayName.charAt(0)}</AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">

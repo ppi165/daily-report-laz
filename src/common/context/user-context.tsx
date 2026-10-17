@@ -11,6 +11,7 @@ export interface UserSession {
   role: "SUPERADMIN" | "ADMIN" | "SUPERVISOR" | "STAFF" | string;
   position?: string | null;
   avatar?: string;
+  createdAt?: string | Date;
 }
 
 interface UserContextType {

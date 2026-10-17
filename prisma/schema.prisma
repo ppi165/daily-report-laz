@@ -21,6 +21,7 @@ model User {
   division  String   // Humas, Program, Keuangan, dll
   role      String   @default("STAFF") // "ADMIN", "SUPERVISOR", "STAFF"
   position  String?  @default("Staf Pelaksana")
+  avatar    String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
