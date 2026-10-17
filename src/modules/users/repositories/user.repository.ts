@@ -296,7 +296,10 @@ export class UserRepository {
         where: { authorId: userId, isLate: false },
       }),
       prisma.reportAppreciation.count({
-        where: { report: { authorId: userId } },
+        where: {
+          report: { authorId: userId },
+          userId: { not: userId },
+        },
       }),
       prisma.report.aggregate({
         where: { authorId: userId },

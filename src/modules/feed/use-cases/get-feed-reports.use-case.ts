@@ -95,7 +95,9 @@ export class GetFeedReportsUseCase {
         isClockIn: Boolean(report.isClockIn),
         status: report.status,
         approvals: report.approvals,
-        appreciationsCount: report.likes.length > 0 ? report.likes.length : report.appreciations,
+        appreciationsCount:
+          (report as unknown as { _count?: { likes?: number } })._count?.likes ??
+          report.appreciations,
         hasLiked,
         commentsCount: (report as unknown as { _count?: { comments?: number } })._count?.comments ?? report.comments.length,
         comments: report.comments,

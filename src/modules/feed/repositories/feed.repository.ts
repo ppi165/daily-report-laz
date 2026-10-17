@@ -70,6 +70,7 @@ export class FeedRepository {
         },
         _count: {
           select: {
+            likes: true,
             comments: true,
           },
         },
@@ -114,44 +115,72 @@ export class FeedRepository {
     });
   }
 
-  async addAppreciation(reportId: string, userId: string) {
-    return prisma.$transaction([
-      prisma.reportAppreciation.create({
-        data: {
-          reportId,
-          userId,
-        },
-      }),
-      prisma.report.update({
-        where: { id: reportId },
-        data: {
-          appreciations: {
-            increment: 1,
-          },
-        },
-      }),
-    ]);
-  }
-
-  async removeAppreciation(reportId: string, userId: string) {
-    return prisma.$transaction([
-      prisma.reportAppreciation.delete({
+  async addAppreciation(reportId: string, userId: string): Promise<number> {
+    return prisma.$transaction(async (tx) => {
+      // 1. Upsert record like agar idempotent & bebas error constraint
+      await tx.reportAppreciation.upsert({
         where: {
           reportId_userId: {
             reportId,
             userId,
           },
         },
-      }),
-      prisma.report.update({
+        create: {
+          reportId,
+          userId,
+        },
+        update: {},
+      });
+
+      // 2. Hitung jumlah like riil di database
+      const totalCount = await tx.reportAppreciation.count({
+        where: { reportId },
+      });
+
+      // 3. Sinkronisasi kolom Report.appreciations
+      await tx.report.update({
         where: { id: reportId },
         data: {
-          appreciations: {
-            decrement: 1,
-          },
+          appreciations: totalCount,
         },
-      }),
-    ]);
+      });
+
+      return totalCount;
+    });
+  }
+
+  async removeAppreciation(reportId: string, userId: string): Promise<number> {
+    return prisma.$transaction(async (tx) => {
+      // 1. Hapus jika ada
+      try {
+        await tx.reportAppreciation.delete({
+          where: {
+            reportId_userId: {
+              reportId,
+              userId,
+            },
+          },
+        });
+      } catch {
+        // Abaikan jika sudah tidak ada
+      }
+
+      // 2. Hitung jumlah like riil di database
+      const totalCount = await tx.reportAppreciation.count({
+        where: { reportId },
+      });
+
+      // 3. Sinkronisasi kolom Report.appreciations (tidak akan pernah negatif)
+      const nonNegativeCount = Math.max(0, totalCount);
+      await tx.report.update({
+        where: { id: reportId },
+        data: {
+          appreciations: nonNegativeCount,
+        },
+      });
+
+      return nonNegativeCount;
+    });
   }
 
   async countAppreciations(reportId: string) {

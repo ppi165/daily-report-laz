@@ -5,6 +5,7 @@ import FeedMediaCarousel from "./feed-media-carousel";
 import FeedResultPanel from "./feed-result-panel";
 import FeedCommentSection from "./feed-comment-section";
 import UserAvatar from "@/src/common/components/user-avatar";
+import { toast } from "@/components/ui/toast";
 import { toggleAppreciationAction } from "../index";
 import { ParsedFeedReport } from "../use-cases/get-feed-reports.use-case";
 
@@ -42,7 +43,15 @@ export default function FeedCard({ report, currentUser }: FeedCardProps) {
     .map((a) => a.approverName);
 
   const handleToggleLike = async () => {
+    if (isAuthor) {
+      toast.warning("Anda tidak dapat menyukai laporan Anda sendiri.");
+      return;
+    }
+
     if (isLiking) return;
+
+    const previousLiked = hasLiked;
+    const previousCount = likesCount;
 
     const nextLiked = !hasLiked;
     const nextCount = nextLiked ? likesCount + 1 : Math.max(0, likesCount - 1);
@@ -53,15 +62,31 @@ export default function FeedCard({ report, currentUser }: FeedCardProps) {
 
     try {
       const res = await toggleAppreciationAction({ reportId: report.id });
-      if (!res.success) {
-        setHasLiked(hasLiked);
-        setLikesCount(likesCount);
+      if (res.success) {
+        if (typeof res.likesCount === "number") {
+          setLikesCount(res.likesCount);
+        }
+      } else {
+        setHasLiked(previousLiked);
+        setLikesCount(previousCount);
+        toast.error(res.message || "Gagal memproses apresiasi");
       }
     } catch {
-      setHasLiked(hasLiked);
-      setLikesCount(likesCount);
+      setHasLiked(previousLiked);
+      setLikesCount(previousCount);
+      toast.error("Terjadi gangguan jaringan saat memproses apresiasi.");
     } finally {
       setIsLiking(false);
+    }
+  };
+
+  const handleDoubleTapLike = () => {
+    if (isAuthor) {
+      toast.warning("Anda tidak dapat menyukai laporan Anda sendiri.");
+      return;
+    }
+    if (!hasLiked) {
+      handleToggleLike();
     }
   };
 
@@ -145,6 +170,8 @@ export default function FeedCard({ report, currentUser }: FeedCardProps) {
           <FeedMediaCarousel
             attachments={report.attachments || []}
             authorName={report.author?.name}
+            onDoubleTapLike={handleDoubleTapLike}
+            isAuthor={isAuthor}
           />
         )}
       </div>
@@ -155,8 +182,25 @@ export default function FeedCard({ report, currentUser }: FeedCardProps) {
         <button
           type="button"
           onClick={handleToggleLike}
-          aria-label={hasLiked ? "Batal suka" : "Beri suka"}
-          className="flex items-center gap-1.5 text-xs font-semibold cursor-pointer select-none group transition-transform active:scale-90"
+          aria-label={
+            isAuthor
+              ? "Laporan Anda sendiri"
+              : hasLiked
+              ? "Batal suka"
+              : "Beri suka"
+          }
+          title={
+            isAuthor
+              ? "Anda tidak dapat menyukai laporan Anda sendiri"
+              : hasLiked
+              ? "Batal suka"
+              : "Beri suka"
+          }
+          className={`flex items-center gap-1.5 text-xs font-semibold select-none group transition-transform ${
+            isAuthor
+              ? "opacity-75 cursor-default"
+              : "cursor-pointer active:scale-90"
+          }`}
         >
           <span
             className={`material-symbols-outlined text-[22px] transition-colors ${

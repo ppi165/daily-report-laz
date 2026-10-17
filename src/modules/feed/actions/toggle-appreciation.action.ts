@@ -25,6 +25,7 @@ export async function toggleAppreciationAction(input: ToggleAppreciationInput) {
     return {
       success: true,
       liked: result.liked,
+      likesCount: result.likesCount,
     };
   } catch (error) {
     return {
