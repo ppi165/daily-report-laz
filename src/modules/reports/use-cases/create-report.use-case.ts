@@ -97,6 +97,10 @@ export class CreateReportUseCase {
         throw new Error('Verifikator 1 dan Verifikator 2 tidak boleh orang yang sama.');
       }
 
+      if (approverIds.includes(authorId)) {
+        throw new Error('Anda tidak dapat memilih diri Anda sendiri sebagai saksi verifikator.');
+      }
+
       const selectedApprovers = await userRepository.findByIds(approverIds);
       if (selectedApprovers.length !== approverIds.length) {
         throw new Error('Data verifikator yang dipilih tidak valid.');
