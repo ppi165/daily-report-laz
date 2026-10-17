@@ -98,11 +98,8 @@ export default function FeedCard({ report, currentUser }: FeedCardProps) {
         </Button>
       </div>
 
-      {/* 2. Caption Tugas & Aktivitas (Di Atas Foto ala Mockup) */}
+      {/* 2. Isi Tugas & Aktivitas Pelaporan */}
       <div className="text-xs sm:text-sm text-on-surface leading-relaxed whitespace-pre-wrap font-sans">
-        <span className="font-bold text-on-surface mr-1.5">
-          {report.author?.name || "Amil"}
-        </span>
         {report.title && (
           <span className="font-semibold text-secondary mr-1.5">
             [{report.title}]
