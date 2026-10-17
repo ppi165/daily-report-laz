@@ -39,6 +39,15 @@ export class ReportRepository {
     });
   }
 
+  async findTodayReportByAuthor(authorId: string, startOfDay: Date) {
+    return prisma.report.findFirst({
+      where: {
+        authorId,
+        createdAt: { gte: startOfDay },
+      },
+    });
+  }
+
   async count(options?: Prisma.ReportCountArgs) {
     return prisma.report.count(options);
   }

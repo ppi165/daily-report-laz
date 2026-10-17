@@ -148,6 +148,38 @@ export class FeedRepository {
     ]);
   }
 
+  async countAppreciations(reportId: string) {
+    return prisma.reportAppreciation.count({
+      where: { reportId },
+    });
+  }
+
+  async findLatestAppreciation(reportId: string) {
+    return prisma.reportAppreciation.findFirst({
+      where: { reportId },
+      orderBy: { createdAt: "desc" },
+      include: {
+        user: {
+          select: { id: true, name: true },
+        },
+      },
+    });
+  }
+
+  async findSecondAppreciation(reportId: string, excludeUserId: string) {
+    return prisma.reportAppreciation.findFirst({
+      where: {
+        reportId,
+        userId: { not: excludeUserId },
+      },
+      include: {
+        user: {
+          select: { id: true, name: true },
+        },
+      },
+    });
+  }
+
   async createComment(
     reportId: string,
     userId: string,

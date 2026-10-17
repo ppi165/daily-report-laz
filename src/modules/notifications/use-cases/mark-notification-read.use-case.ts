@@ -9,7 +9,7 @@ export class MarkNotificationReadUseCase {
       throw new Error("Unauthorized");
     }
 
-    return notificationRepository.markAsRead(validated.notificationId);
+    return notificationRepository.markAsRead(validated.notificationId, userId);
   }
 }
 

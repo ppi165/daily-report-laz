@@ -1,7 +1,8 @@
 import { feedRepository, FeedRepository } from "../repositories/feed.repository";
 import { AddCommentInput } from "../schemas/add-comment.schema";
 import { createCommentMentionNotificationUseCase } from "@/src/modules/notifications/use-cases/create-comment-mention-notification.use-case";
-import { prisma } from "@/src/infrastructure/prisma";
+import { createCommentNotificationUseCase } from "@/src/modules/notifications/use-cases/create-comment-notification.use-case";
+import { userRepository } from "@/src/modules/users";
 
 export class AddCommentUseCase {
   constructor(private readonly repo: FeedRepository = feedRepository) {}
@@ -14,24 +15,31 @@ export class AddCommentUseCase {
       input.parentId
     );
 
-    // Picu notifikasi sebutan (@Nama / @username) jika terdapat tag di dalam komentar
-    if (input.content && input.content.includes("@")) {
-      try {
-        const actor = await prisma.user.findUnique({
-          where: { id: userId },
-          select: { name: true },
+    try {
+      const actor = await userRepository.findById(userId);
+      if (actor) {
+        // 1. Picu notifikasi komentar/balasan untuk pemilik laporan atau pemilik komentar induk
+        await createCommentNotificationUseCase.execute({
+          reportId: input.reportId,
+          commentId: comment.id,
+          actorId: userId,
+          actorName: actor.name,
+          parentId: input.parentId,
         });
-        if (actor) {
+
+        // 2. Picu notifikasi sebutan (@Nama / @username) jika terdapat tag di dalam komentar
+        if (input.content && input.content.includes("@")) {
           await createCommentMentionNotificationUseCase.execute({
             reportId: input.reportId,
             actorId: userId,
             actorName: actor.name,
             commentContent: input.content,
+            commentId: comment.id,
           });
         }
-      } catch (err) {
-        console.error("Gagal mengirim notifikasi sebutan pada komentar baru:", err);
       }
+    } catch (err) {
+      console.error("Gagal mengirim notifikasi komentar:", err);
     }
 
     return comment;

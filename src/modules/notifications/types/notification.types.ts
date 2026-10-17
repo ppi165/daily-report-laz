@@ -4,6 +4,8 @@ export type NotificationType =
   | "APPROVAL_REQUEST"
   | "APPROVAL_RESULT"
   | "REMINDER"
+  | "COMMENT"
+  | "COMMENT_REPLY"
   | "COMMENT_MENTION";
 
 export interface NotificationItem {

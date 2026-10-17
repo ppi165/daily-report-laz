@@ -7,11 +7,13 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
 import UserAvatar from "@/src/common/components/user-avatar";
+import { toast } from "@/components/ui/toast";
+import { scrollToAndHighlightElement } from "@/src/common/utils/scroll-to-element";
 import { NotificationItem, NotificationType } from "../types/notification.types";
 import { getNotificationsAction } from "../actions/get-notifications.action";
 import { markNotificationAsReadAction } from "../actions/mark-as-read.action";
+import { markAllNotificationsAsReadAction } from "../actions/mark-all-as-read.action";
 import { clearReadNotificationsAction } from "../actions/clear-read-notifications.action";
 import { deleteNotificationAction } from "../actions/delete-notification.action";
 
@@ -21,7 +23,7 @@ export default function NotificationDropdown() {
   const [filter, setFilter] = useState<"all" | "unread">("all");
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
-  const [isPending, startTransition] = useTransition();
+  const [, startTransition] = useTransition();
 
   const fetchNotifications = useCallback(async () => {
     try {
@@ -36,13 +38,13 @@ export default function NotificationDropdown() {
   }, []);
 
   useEffect(() => {
-    // 1. Muat notifikasi dan cek reminder otomatis saat mount
+    // 1. Muat notifikasi saat mount
     fetchNotifications();
 
-    // 2. Polling efisien setiap 30 detik (cukup 1 single server action)
+    // 2. Polling efisien setiap 45 detik
     const interval = setInterval(() => {
       fetchNotifications();
-    }, 30000);
+    }, 45000);
 
     return () => clearInterval(interval);
   }, [fetchNotifications]);
@@ -55,7 +57,6 @@ export default function NotificationDropdown() {
   };
 
   const handleItemClick = async (item: NotificationItem) => {
-    // Tolak ukur pesan dibaca: ketika diklik dan dialihkan ke url tujuan
     if (!item.isRead) {
       // Optimistic update
       setNotifications((prev) =>
@@ -70,12 +71,11 @@ export default function NotificationDropdown() {
     setOpen(false);
 
     if (item.link) {
-      // Smooth scroll jika sudah berada di feed dan link mengarah ke kartu laporan tertentu
-      if (item.link.includes("#") && window.location.pathname === "/feed") {
-        const hash = item.link.split("#")[1];
-        const el = document.getElementById(hash);
-        if (el) {
-          el.scrollIntoView({ behavior: "smooth", block: "center" });
+      // Smooth scroll dan highlight jika sudah berada di halaman target
+      if (item.link.includes("#")) {
+        const [targetPath, hash] = item.link.split("#");
+        if (window.location.pathname === targetPath) {
+          scrollToAndHighlightElement(hash);
           window.history.replaceState(null, "", item.link);
           return;
         }
@@ -87,27 +87,61 @@ export default function NotificationDropdown() {
     }
   };
 
+  const handleMarkAllAsRead = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const previousNotifications = [...notifications];
+    const previousUnread = unreadCount;
+
+    setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    setUnreadCount(0);
+
+    try {
+      const res = await markAllNotificationsAsReadAction();
+      if (!res.success) {
+        setNotifications(previousNotifications);
+        setUnreadCount(previousUnread);
+        toast.error(res.message || "Gagal menandai semua telah dibaca");
+      }
+    } catch {
+      setNotifications(previousNotifications);
+      setUnreadCount(previousUnread);
+      toast.error("Terjadi kesalahan saat menandai semua telah dibaca");
+    }
+  };
+
   const handleClearRead = async (e: React.MouseEvent) => {
     e.stopPropagation();
+    const previousNotifications = [...notifications];
     // Optimistic update: hanya menghapus notifikasi yang isRead === true
     setNotifications((prev) => prev.filter((n) => !n.isRead));
 
     try {
-      await clearReadNotificationsAction();
+      const res = await clearReadNotificationsAction();
+      if (!res.success) {
+        setNotifications(previousNotifications);
+        toast.error(res.message || "Gagal membersihkan notifikasi");
+      }
     } catch {
-      fetchNotifications();
+      setNotifications(previousNotifications);
+      toast.error("Terjadi kesalahan jaringan saat membersihkan notifikasi");
     }
   };
 
   const handleDeleteItem = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
+    const previousNotifications = [...notifications];
     // Hanya berlaku untuk yang sudah dibaca
     setNotifications((prev) => prev.filter((n) => n.id !== id));
 
     try {
-      await deleteNotificationAction({ notificationId: id });
+      const res = await deleteNotificationAction({ notificationId: id });
+      if (!res.success) {
+        setNotifications(previousNotifications);
+        toast.error(res.message || "Gagal menghapus notifikasi");
+      }
     } catch {
-      fetchNotifications();
+      setNotifications(previousNotifications);
+      toast.error("Terjadi kesalahan jaringan saat menghapus notifikasi");
     }
   };
 
@@ -115,7 +149,7 @@ export default function NotificationDropdown() {
   const filteredNotifications =
     filter === "unread" ? notifications.filter((n) => !n.isRead) : notifications;
 
-  const getTypeIcon = (type: NotificationType) => {
+  const getTypeIcon = (type: NotificationType, item?: NotificationItem) => {
     switch (type) {
       case "APPRECIATION":
         return {
@@ -135,17 +169,40 @@ export default function NotificationDropdown() {
           color: "text-amber-500",
           bg: "bg-amber-500/15 border-amber-500/30",
         };
-      case "APPROVAL_RESULT":
+      case "APPROVAL_RESULT": {
+        const isRejected =
+          (item?.metadata as { status?: string } | null)?.status === "REJECTED" ||
+          item?.title?.toLowerCase().includes("ditolak");
+        if (isRejected) {
+          return {
+            icon: "cancel",
+            color: "text-rose-500",
+            bg: "bg-rose-500/15 border-rose-500/30",
+          };
+        }
         return {
           icon: "assignment_turned_in",
           color: "text-emerald-500",
           bg: "bg-emerald-500/15 border-emerald-500/30",
         };
+      }
       case "REMINDER":
         return {
           icon: "alarm",
           color: "text-amber-500",
           bg: "bg-amber-500/15 border-amber-500/30",
+        };
+      case "COMMENT":
+        return {
+          icon: "chat_bubble",
+          color: "text-indigo-500",
+          bg: "bg-indigo-500/15 border-indigo-500/30",
+        };
+      case "COMMENT_REPLY":
+        return {
+          icon: "reply",
+          color: "text-purple-500",
+          bg: "bg-purple-500/15 border-purple-500/30",
         };
       case "COMMENT_MENTION":
         return {
@@ -202,7 +259,7 @@ export default function NotificationDropdown() {
       <DropdownMenuContent
         align="end"
         sideOffset={8}
-        className="w-[360px] sm:w-[400px] p-0 bg-surface border-outline-variant/60 rounded-2xl shadow-2xl text-on-surface overflow-hidden z-50"
+        className="w-[calc(100vw-1.5rem)] max-w-[390px] sm:w-[400px] p-0 bg-surface border-outline-variant/60 rounded-2xl shadow-2xl text-on-surface overflow-hidden z-50"
       >
         {/* Header Dropdown */}
         <div className="p-3.5 pb-2.5 border-b border-outline-variant/40 flex items-center justify-between gap-2">
@@ -212,25 +269,42 @@ export default function NotificationDropdown() {
             </span>
             {unreadCount > 0 && (
               <span className="text-[11px] font-bold text-amber-500 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
-                {unreadCount} belum dibaca
+                {unreadCount} baru
               </span>
             )}
           </div>
 
-          {/* Tombol Bersihkan Hanya Yang Sudah Dibaca */}
-          {readCount > 0 && (
-            <button
-              type="button"
-              onClick={handleClearRead}
-              className="text-[11px] font-semibold text-outline hover:text-error transition-colors flex items-center gap-1 cursor-pointer p-1 rounded hover:bg-error/10"
-              title="Bersihkan hanya notifikasi yang sudah dibaca"
-            >
-              <span className="material-symbols-outlined text-[15px]">
-                cleaning_services
-              </span>
-              <span>Bersihkan ({readCount})</span>
-            </button>
-          )}
+          <div className="flex items-center gap-1.5">
+            {/* Tombol Tandai Semua Telah Dibaca */}
+            {unreadCount > 0 && (
+              <button
+                type="button"
+                onClick={handleMarkAllAsRead}
+                className="text-[11px] font-semibold text-secondary hover:text-secondary-focus transition-colors flex items-center gap-1 cursor-pointer px-1.5 py-1 rounded hover:bg-secondary/10"
+                title="Tandai semua notifikasi telah dibaca"
+              >
+                <span className="material-symbols-outlined text-[15px]">
+                  done_all
+                </span>
+                <span>Tandai Dibaca</span>
+              </button>
+            )}
+
+            {/* Tombol Bersihkan Hanya Yang Sudah Dibaca */}
+            {readCount > 0 && (
+              <button
+                type="button"
+                onClick={handleClearRead}
+                className="text-[11px] font-semibold text-outline hover:text-error transition-colors flex items-center gap-1 cursor-pointer px-1.5 py-1 rounded hover:bg-error/10"
+                title="Bersihkan hanya notifikasi yang sudah dibaca"
+              >
+                <span className="material-symbols-outlined text-[15px]">
+                  cleaning_services
+                </span>
+                <span>Bersihkan ({readCount})</span>
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Tab Filter */}
@@ -275,7 +349,7 @@ export default function NotificationDropdown() {
           ) : (
             <div className="divide-y divide-outline-variant/30">
               {filteredNotifications.map((item) => {
-                const iconInfo = getTypeIcon(item.type);
+                const iconInfo = getTypeIcon(item.type, item);
 
                 return (
                   <div
@@ -339,16 +413,16 @@ export default function NotificationDropdown() {
                       </p>
 
                       <span className="text-[10px] text-outline mt-1 block font-mono">
-                        {formatRelativeTime(item.updatedAt || item.createdAt)}
+                        {formatRelativeTime(item.createdAt)}
                       </span>
                     </div>
 
-                    {/* Tombol Hapus Satuan (HANYA MUNCUL JIKA SUDAH DIBACA) */}
+                    {/* Tombol Hapus Satuan (Hanya jika sudah dibaca) */}
                     {item.isRead && (
                       <button
                         type="button"
                         onClick={(e) => handleDeleteItem(e, item.id)}
-                        className="absolute right-2.5 top-3.5 size-6 rounded-lg flex items-center justify-center text-outline hover:text-error hover:bg-error/10 transition-colors opacity-0 group-hover:opacity-100 cursor-pointer"
+                        className="absolute right-2.5 top-3.5 size-7 rounded-lg flex items-center justify-center text-outline hover:text-error hover:bg-error/10 transition-opacity opacity-70 sm:opacity-0 sm:group-hover:opacity-100 cursor-pointer touch-manipulation"
                         title="Hapus notifikasi ini"
                       >
                         <span className="material-symbols-outlined text-[15px]">

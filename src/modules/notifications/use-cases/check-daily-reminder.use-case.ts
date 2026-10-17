@@ -1,20 +1,55 @@
-import { prisma } from "@/src/infrastructure/prisma";
 import { notificationRepository } from "../repositories/notification.repository";
 import { scheduleRepository } from "@/src/modules/schedules/repositories/schedule.repository";
+import { settingRepository } from "@/src/modules/settings/repositories/setting.repository";
+import { reportRepository } from "@/src/modules/reports/repositories/report.repository";
 
 export class CheckDailyReminderUseCase {
+  private lastCheckedMap = new Map<string, number>();
+
   async execute(userId: string) {
     if (!userId) return { reminded: false };
 
     const now = new Date();
 
-    // 1. Cek apakah ada jadwal khusus (SpecialSchedule) aktif hari ini
+    // 1. Konversi waktu dan tanggal ke zona waktu WIB (Asia/Jakarta, UTC+7)
+    const wibFormatter = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "Asia/Jakarta",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      hourCycle: "h23",
+    });
+
+    const parts = wibFormatter.formatToParts(now);
+    const getPart = (type: string) =>
+      parts.find((p) => p.type === type)?.value || "";
+    const year = getPart("year");
+    const month = getPart("month");
+    const day = getPart("day");
+    const hour = getPart("hour");
+    const minute = getPart("minute");
+
+    const currentHourNum = Number(hour);
+    // Optimasi: Jika masih sebelum pukul 12:00 WIB, pengingat harian belum relevan (skip semua query database)
+    if (currentHourNum < 12) {
+      return { reminded: false, reason: "BEFORE_REMINDER_HOURS" };
+    }
+
+    // Throttling: Cek per-user maksimal setiap 5 menit untuk menghemat koneksi database Supabase
+    const lastChecked = this.lastCheckedMap.get(userId) || 0;
+    const nowTime = Date.now();
+    if (nowTime - lastChecked < 5 * 60 * 1000) {
+      return { reminded: false, reason: "THROTTLED" };
+    }
+    this.lastCheckedMap.set(userId, nowTime);
+
+    // 2. Cek apakah ada jadwal khusus (SpecialSchedule) aktif hari ini via repository
     const activeSchedule = await scheduleRepository.findActiveForDate(now);
 
-    // 2. Ambil pengaturan sistem reguler
-    const settings = await prisma.systemSetting.findUnique({
-      where: { id: "default" },
-    });
+    // 3. Ambil pengaturan sistem reguler via repository
+    const settings = await settingRepository.findDefault();
 
     const reminderTime =
       activeSchedule?.reminderTime || settings?.reminderTime || "16:00";
@@ -31,25 +66,6 @@ export class CheckDailyReminderUseCase {
       "THURSDAY",
       "FRIDAY",
     ];
-
-    // 3. Konversi waktu dan tanggal ke zona waktu WIB (Asia/Jakarta, UTC+7) secara akurat
-    const wibFormatter = new Intl.DateTimeFormat("en-CA", {
-      timeZone: "Asia/Jakarta",
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      hourCycle: "h23",
-    });
-
-    const parts = wibFormatter.formatToParts(now);
-    const getPart = (type: string) => parts.find((p) => p.type === type)?.value || "";
-    const year = getPart("year");
-    const month = getPart("month");
-    const day = getPart("day");
-    const hour = getPart("hour");
-    const minute = getPart("minute");
 
     const currentTimeStr = `${hour}:${minute}`;
     const todayWibStr = `${year}-${month}-${day}`;
@@ -73,16 +89,15 @@ export class CheckDailyReminderUseCase {
       return { reminded: false, reason: "BEFORE_REMINDER_TIME" };
     }
 
-    // Cek apakah user sudah mengirim laporan hari ini
-    const todayReport = await prisma.report.findFirst({
-      where: {
-        authorId: userId,
-        createdAt: { gte: startOfToday },
-      },
-    });
+    // Cek apakah user sudah mengirim laporan hari ini via repository
+    const todayReport = await reportRepository.findTodayReportByAuthor(
+      userId,
+      startOfToday
+    );
 
     if (todayReport) {
-      // Jika sudah kirim laporan, bersihkan notif pengingat hari ini jika sebelumnya ada
+      // Jika sudah kirim laporan, perpanjang throttle hingga 30 menit & bersihkan notif pengingat jika ada
+      this.lastCheckedMap.set(userId, nowTime + 25 * 60 * 1000);
       await notificationRepository.deleteReminderForReportSubmitted(
         userId,
         startOfToday
@@ -98,6 +113,8 @@ export class CheckDailyReminderUseCase {
       );
 
     if (existingReminder) {
+      // Perpanjang throttle 30 menit agar tidak berulang kali query
+      this.lastCheckedMap.set(userId, nowTime + 25 * 60 * 1000);
       return { reminded: false, reason: "ALREADY_REMINDED" };
     }
 

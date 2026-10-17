@@ -17,6 +17,7 @@ import { getFeedReportsAction } from "../actions/get-feed-reports.action";
 import { ParsedFeedReport } from "../use-cases/get-feed-reports.use-case";
 import { getDivisionsAction } from "@/src/modules/divisions";
 import FeedCard from "./feed-card";
+import { scrollToAndHighlightElement } from "@/src/common/utils/scroll-to-element";
 
 export default function FeedView() {
   const { user } = useUser();
@@ -109,6 +110,17 @@ export default function FeedView() {
 
     return () => clearTimeout(timer);
   }, [searchQuery, selectedDivision]);
+
+  // Auto-scroll dan highlight laporan jika terdapat hash target di URL
+  useEffect(() => {
+    if (!loading && reports.length > 0 && typeof window !== "undefined" && window.location.hash) {
+      const hash = window.location.hash;
+      const timer = setTimeout(() => {
+        scrollToAndHighlightElement(hash);
+      }, 250);
+      return () => clearTimeout(timer);
+    }
+  }, [loading, reports]);
 
   const handleDivisionChange = (val: string | null) => {
     if (!val) return;

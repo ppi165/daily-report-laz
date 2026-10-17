@@ -1,7 +1,8 @@
 import { feedRepository, FeedRepository } from "../repositories/feed.repository";
 import { ToggleAppreciationInput } from "../schemas/toggle-appreciation.schema";
 import { createAppreciationNotificationUseCase } from "@/src/modules/notifications/use-cases/create-appreciation-notification.use-case";
-import { prisma } from "@/src/infrastructure/prisma";
+import { removeAppreciationNotificationUseCase } from "@/src/modules/notifications/use-cases/remove-appreciation-notification.use-case";
+import { userRepository } from "@/src/modules/users";
 
 export class ToggleAppreciationUseCase {
   constructor(private readonly repo: FeedRepository = feedRepository) {}
@@ -11,16 +12,24 @@ export class ToggleAppreciationUseCase {
 
     if (existing) {
       await this.repo.removeAppreciation(input.reportId, userId);
+
+      // Sinkronisasi/hapus notifikasi like saat batal like (Unlike)
+      try {
+        await removeAppreciationNotificationUseCase.execute({
+          reportId: input.reportId,
+          actorId: userId,
+        });
+      } catch (err) {
+        console.error("Gagal sinkronisasi notifikasi unlike:", err);
+      }
+
       return { liked: false };
     } else {
       await this.repo.addAppreciation(input.reportId, userId);
 
       // Picu notifikasi agregasi like ala Instagram ke pemilik laporan
       try {
-        const actor = await prisma.user.findUnique({
-          where: { id: userId },
-          select: { name: true },
-        });
+        const actor = await userRepository.findById(userId);
         if (actor) {
           await createAppreciationNotificationUseCase.execute({
             reportId: input.reportId,

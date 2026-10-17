@@ -10,8 +10,17 @@ export class NotificationRepository {
           select: { id: true, name: true, avatar: true, division: true },
         },
       },
-      orderBy: { updatedAt: "desc" },
+      orderBy: { createdAt: "desc" },
       take: limit,
+    });
+  }
+
+  async countUnread(userId: string) {
+    return prisma.notification.count({
+      where: {
+        userId,
+        isRead: false,
+      },
     });
   }
 
@@ -77,12 +86,60 @@ export class NotificationRepository {
     });
   }
 
-  async markAsRead(id: string) {
-    return prisma.notification.update({
-      where: { id },
+  async createMany(
+    notifications: Array<{
+      userId: string;
+      type: string;
+      title: string;
+      message: string;
+      link?: string | null;
+      reportId?: string | null;
+      actorId?: string | null;
+      metadata?: Prisma.InputJsonValue;
+    }>
+  ) {
+    if (notifications.length === 0) return { count: 0 };
+    return prisma.notification.createMany({
+      data: notifications,
+    });
+  }
+
+  async markAsRead(id: string, userId: string) {
+    return prisma.notification.updateMany({
+      where: { id, userId },
       data: {
         isRead: true,
         readAt: new Date(),
+      },
+    });
+  }
+
+  async markAllAsRead(userId: string) {
+    return prisma.notification.updateMany({
+      where: {
+        userId,
+        isRead: false,
+      },
+      data: {
+        isRead: true,
+        readAt: new Date(),
+      },
+    });
+  }
+
+  async delete(id: string) {
+    return prisma.notification.delete({
+      where: { id },
+    });
+  }
+
+  async deleteByCommentId(commentId: string) {
+    return prisma.notification.deleteMany({
+      where: {
+        metadata: {
+          path: ["commentId"],
+          equals: commentId,
+        },
       },
     });
   }

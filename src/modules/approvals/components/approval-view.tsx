@@ -96,6 +96,18 @@ export default function ApprovalView() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!loading && typeof window !== "undefined" && window.location.hash) {
+      const hashId = window.location.hash.slice(1);
+      const el = document.getElementById(hashId);
+      if (el) {
+        setTimeout(() => {
+          el.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 150);
+      }
+    }
+  }, [loading, activeTab]);
+
   const handleApprove = async (approvalId: string) => {
     setSubmitting(true);
     try {
@@ -262,8 +274,9 @@ export default function ApprovalView() {
 
                   return (
                     <Card
+                      id={`report-${report.id}`}
                       key={report.id}
-                      className="bg-surface-container-lowest border-outline-variant/60 rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col gap-5 hover:border-outline-variant transition-colors"
+                      className="bg-surface-container-lowest border-outline-variant/60 rounded-2xl p-5 sm:p-6 shadow-xs flex flex-col gap-5 hover:border-outline-variant transition-colors scroll-mt-24"
                     >
                       <CardHeader className="p-0 flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                         <div className="flex items-center gap-3">

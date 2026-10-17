@@ -1,5 +1,6 @@
 import { feedRepository, FeedRepository } from "../repositories/feed.repository";
 import { DeleteCommentInput } from "../schemas/delete-comment.schema";
+import { notificationRepository } from "@/src/modules/notifications/repositories/notification.repository";
 
 export class DeleteCommentUseCase {
   constructor(private readonly repo: FeedRepository = feedRepository) {}
@@ -17,7 +18,16 @@ export class DeleteCommentUseCase {
       throw new Error("Anda tidak memiliki izin untuk menghapus komentar ini.");
     }
 
-    return this.repo.deleteComment(input.commentId);
+    const result = await this.repo.deleteComment(input.commentId);
+
+    // Hapus notifikasi terkait komentar ini (COMMENT, COMMENT_REPLY, COMMENT_MENTION)
+    try {
+      await notificationRepository.deleteByCommentId(input.commentId);
+    } catch (err) {
+      console.error("Gagal menghapus notifikasi terkait komentar:", err);
+    }
+
+    return result;
   }
 }
 

@@ -81,6 +81,16 @@ export class UserRepository {
     });
   }
 
+  async findPeersByDivision(division: string, excludeUserId: string) {
+    return prisma.user.findMany({
+      where: {
+        division: { equals: division, mode: "insensitive" },
+        id: { not: excludeUserId },
+      },
+      select: { id: true },
+    });
+  }
+
   async count(options?: { where?: { reports?: { some?: object } } }) {
     return prisma.user.count(options);
   }

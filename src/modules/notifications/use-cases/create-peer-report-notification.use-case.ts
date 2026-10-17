@@ -1,4 +1,4 @@
-import { prisma } from "@/src/infrastructure/prisma";
+import { userRepository } from "@/src/modules/users";
 import { notificationRepository } from "../repositories/notification.repository";
 
 export class CreatePeerReportNotificationUseCase {
@@ -12,32 +12,25 @@ export class CreatePeerReportNotificationUseCase {
 
     if (!division) return;
 
-    // Cari rekan kerja yang berada di divisi yang sama (kecuali pembuat laporan)
-    const peers = await prisma.user.findMany({
-      where: {
-        division: { equals: division, mode: "insensitive" },
-        id: { not: authorId },
-      },
-      select: { id: true },
-    });
+    // Cari rekan kerja di divisi yang sama via repository
+    const peers = await userRepository.findPeersByDivision(division, authorId);
 
     if (peers.length === 0) return;
 
-    // Buat notifikasi untuk setiap rekan sedivisi
-    const promises = peers.map((peer) =>
-      notificationRepository.create({
-        userId: peer.id,
-        type: "PEER_REPORT",
-        title: "Laporan Rekan Sedivisi",
-        message: `${authorName} (Divisi ${division}) telah mempublikasikan daily report hari ini.`,
-        link: `/feed#report-${reportId}`,
-        reportId,
-        actorId: authorId,
-      })
-    );
+    // 1 Query batch createMany menggantikan loop insert individual
+    const notificationsToCreate = peers.map((peer) => ({
+      userId: peer.id,
+      type: "PEER_REPORT",
+      title: "Laporan Rekan Sedivisi",
+      message: `${authorName} (Divisi ${division}) telah mempublikasikan daily report hari ini.`,
+      link: `/feed#report-${reportId}`,
+      reportId,
+      actorId: authorId,
+    }));
 
-    await Promise.allSettled(promises);
+    await notificationRepository.createMany(notificationsToCreate);
   }
 }
 
-export const createPeerReportNotificationUseCase = new CreatePeerReportNotificationUseCase();
+export const createPeerReportNotificationUseCase =
+  new CreatePeerReportNotificationUseCase();

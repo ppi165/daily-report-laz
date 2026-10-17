@@ -257,3 +257,7 @@
 .custom-shadow-hover:hover {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 10px 24px -3px rgba(7, 100, 55, 0.06);
 }
+
+@utility pb-safe {
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom, 0.5rem));
+}

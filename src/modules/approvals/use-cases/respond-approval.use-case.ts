@@ -39,6 +39,7 @@ export class RespondApprovalUseCase {
           link: '/verifikasi',
           reportId: existing.reportId,
           actorId: userId,
+          metadata: { status: 'REJECTED' },
         });
       }
 
@@ -74,6 +75,7 @@ export class RespondApprovalUseCase {
           link: `/feed#report-${existing.reportId}`,
           reportId: existing.reportId,
           actorId: userId,
+          metadata: { status: 'APPROVED' },
         });
 
         // 2. Notifikasi ke rekan sedivisi bahwa laporan baru sudah dipublikasikan

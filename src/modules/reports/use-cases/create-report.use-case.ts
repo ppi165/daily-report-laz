@@ -6,6 +6,7 @@ import { settingRepository } from '@/src/modules/settings';
 import { scheduleRepository } from '@/src/modules/schedules';
 import { createApprovalRequestNotificationUseCase } from '@/src/modules/notifications/use-cases/create-approval-request-notification.use-case';
 import { createPeerReportNotificationUseCase } from '@/src/modules/notifications/use-cases/create-peer-report-notification.use-case';
+import { notificationRepository } from '@/src/modules/notifications/repositories/notification.repository';
 
 export class CreateReportUseCase {
   async execute(input: CreateReportInput, authorId: string) {
@@ -165,6 +166,23 @@ export class CreateReportUseCase {
         division: validated.division,
       })
       .catch(() => {});
+
+    // Bersihkan notifikasi pengingat harian (REMINDER) jika sebelumnya sudah dibuat hari ini
+    try {
+      const wibFormatter = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Jakarta',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      });
+      const todayWibStr = wibFormatter.format(now);
+      const startOfTodayWib = new Date(`${todayWibStr}T00:00:00.000+07:00`);
+      notificationRepository
+        .deleteReminderForReportSubmitted(authorId, startOfTodayWib)
+        .catch(() => {});
+    } catch {
+      // ignore
+    }
 
     return createdReport;
   }

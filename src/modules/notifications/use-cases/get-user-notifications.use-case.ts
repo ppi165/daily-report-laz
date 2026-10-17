@@ -6,7 +6,10 @@ export class GetUserNotificationsUseCase {
       return { notifications: [], unreadCount: 0 };
     }
 
-    const rawNotifications = await notificationRepository.findByUserId(userId);
+    const [rawNotifications, unreadCount] = await Promise.all([
+      notificationRepository.findByUserId(userId),
+      notificationRepository.countUnread(userId),
+    ]);
 
     const notifications = rawNotifications.map((n) => ({
       ...n,
@@ -15,8 +18,6 @@ export class GetUserNotificationsUseCase {
       readAt: n.readAt ? n.readAt.toISOString() : null,
       metadata: (n.metadata as Record<string, unknown>) || null,
     }));
-
-    const unreadCount = notifications.filter((n) => !n.isRead).length;
 
     return {
       notifications,

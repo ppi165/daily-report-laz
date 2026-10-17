@@ -13,19 +13,19 @@ export class CreateApprovalRequestNotificationUseCase {
       (id) => Boolean(id) && id !== authorId
     );
 
-    const promises = uniqueApprovers.map((approverId) =>
-      notificationRepository.create({
+    if (uniqueApprovers.length === 0) return;
+
+    await notificationRepository.createMany(
+      uniqueApprovers.map((approverId) => ({
         userId: approverId,
         type: "APPROVAL_REQUEST",
         title: "Permintaan Verifikasi Clock-in",
         message: `${authorName} menunjuk Anda sebagai saksi verifikasi Clock-in. Mohon tinjau laporan tersebut.`,
-        link: "/verifikasi",
+        link: `/verifikasi#report-${reportId}`,
         reportId,
         actorId: authorId,
-      })
+      }))
     );
-
-    await Promise.allSettled(promises);
   }
 }
 

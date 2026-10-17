@@ -1,7 +1,7 @@
 import { feedRepository, FeedRepository } from "../repositories/feed.repository";
 import { UpdateCommentInput } from "../schemas/update-comment.schema";
 import { createCommentMentionNotificationUseCase } from "@/src/modules/notifications/use-cases/create-comment-mention-notification.use-case";
-import { prisma } from "@/src/infrastructure/prisma";
+import { userRepository } from "@/src/modules/users";
 
 export class UpdateCommentUseCase {
   constructor(private readonly repo: FeedRepository = feedRepository) {}
@@ -16,21 +16,21 @@ export class UpdateCommentUseCase {
       throw new Error("Anda tidak memiliki izin untuk mengedit komentar ini.");
     }
 
+    const oldContent = comment.content;
     const updated = await this.repo.updateComment(input.commentId, input.content);
 
-    // Picu notifikasi sebutan (@Nama / @username) jika komentar memuat tag baru
+    // Picu notifikasi sebutan (@Nama / @username) jika komentar memuat tag baru (cegah duplikasi)
     if (input.content && input.content.includes("@")) {
       try {
-        const actor = await prisma.user.findUnique({
-          where: { id: currentUserId },
-          select: { name: true },
-        });
+        const actor = await userRepository.findById(currentUserId);
         if (actor) {
           await createCommentMentionNotificationUseCase.execute({
             reportId: comment.reportId,
             actorId: currentUserId,
             actorName: actor.name,
             commentContent: input.content,
+            oldCommentContent: oldContent,
+            commentId: comment.id,
           });
         }
       } catch (err) {

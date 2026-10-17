@@ -1,5 +1,6 @@
-import { prisma } from "@/src/infrastructure/prisma";
 import { notificationRepository } from "../repositories/notification.repository";
+import { reportRepository } from "@/src/modules/reports/repositories/report.repository";
+import { feedRepository } from "@/src/modules/feed/repositories/feed.repository";
 
 export class CreateAppreciationNotificationUseCase {
   async execute(input: {
@@ -10,10 +11,7 @@ export class CreateAppreciationNotificationUseCase {
     const { reportId, actorId, actorName } = input;
 
     // Ambil data laporan penerima
-    const report = await prisma.report.findUnique({
-      where: { id: reportId },
-      select: { id: true, authorId: true, title: true, content: true },
-    });
+    const report = await reportRepository.findById(reportId);
 
     if (!report || report.authorId === actorId) {
       // Tidak ada laporan atau pengguna mengapresiasi laporannya sendiri
@@ -24,17 +22,12 @@ export class CreateAppreciationNotificationUseCase {
     const existing = await notificationRepository.findAppreciationNotification(report.authorId, reportId);
 
     // Ambil jumlah like riil terkini dari database
-    const totalLiker = await prisma.reportAppreciation.count({
-      where: { reportId },
-    });
+    const totalLiker = await feedRepository.countAppreciations(reportId);
 
     // Cari nama liker lain jika total like == 2
     let secondLikerName: string | null = null;
     if (totalLiker === 2) {
-      const secondLiker = await prisma.reportAppreciation.findFirst({
-        where: { reportId, userId: { not: actorId } },
-        include: { user: { select: { name: true } } },
-      });
+      const secondLiker = await feedRepository.findSecondAppreciation(reportId, actorId);
       secondLikerName = secondLiker?.user?.name || "1 rekan lainnya";
     }
 
