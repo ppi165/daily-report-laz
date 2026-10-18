@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import FeedMediaCarousel from "./feed-media-carousel";
 import FeedResultPanel from "./feed-result-panel";
 import FeedCommentSection from "./feed-comment-section";
@@ -23,9 +23,38 @@ interface FeedCardProps {
 export default function FeedCard({ report, currentUser }: FeedCardProps) {
   const [hasLiked, setHasLiked] = useState(report.hasLiked);
   const [likesCount, setLikesCount] = useState(report.appreciationsCount);
-  const [isLiking, setIsLiking] = useState(false);
   const [showResult, setShowResult] = useState(false);
   const [commentsCount, setCommentsCount] = useState(report.commentsCount);
+
+  // State sinkronisasi untuk debouncing ala Instagram
+  const syncedStateRef = useRef({
+    liked: report.hasLiked,
+    count: report.appreciationsCount,
+  });
+  const pendingLikedRef = useRef(report.hasLiked);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Bersihkan timer saat unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, []);
+
+  // Update state jika data report dari props berubah saat tidak ada aktivitas pending
+  useEffect(() => {
+    if (!debounceTimerRef.current) {
+      setHasLiked(report.hasLiked);
+      setLikesCount(report.appreciationsCount);
+      syncedStateRef.current = {
+        liked: report.hasLiked,
+        count: report.appreciationsCount,
+      };
+      pendingLikedRef.current = report.hasLiked;
+    }
+  }, [report.id, report.hasLiked, report.appreciationsCount]);
 
   // Akses informasi audit verifikasi Clock-in (Khusus Superadmin, Admin, dan Pengaju sendiri)
   const isAdminOrSuperadmin =
@@ -42,43 +71,70 @@ export default function FeedCard({ report, currentUser }: FeedCardProps) {
     .filter((a) => a.status === "APPROVED")
     .map((a) => a.approverName);
 
-  const handleToggleLike = async () => {
-    if (isLiking) return;
+  const handleToggleLike = (forceLike?: boolean) => {
+    const isExplicitForce = typeof forceLike === "boolean";
+    const currentLiked = pendingLikedRef.current;
+    const nextLiked = isExplicitForce ? forceLike : !currentLiked;
 
-    const previousLiked = hasLiked;
-    const previousCount = likesCount;
-
-    const nextLiked = !hasLiked;
-    const nextCount = nextLiked ? likesCount + 1 : Math.max(0, likesCount - 1);
-
-    setHasLiked(nextLiked);
-    setLikesCount(nextCount);
-    setIsLiking(true);
-
-    try {
-      const res = await toggleAppreciationAction({ reportId: report.id });
-      if (res.success) {
-        if (typeof res.likesCount === "number") {
-          setLikesCount(res.likesCount);
-        }
-      } else {
-        setHasLiked(previousLiked);
-        setLikesCount(previousCount);
-        toast.error(res.message || "Gagal memproses apresiasi");
-      }
-    } catch {
-      setHasLiked(previousLiked);
-      setLikesCount(previousCount);
-      toast.error("Terjadi gangguan jaringan saat memproses apresiasi.");
-    } finally {
-      setIsLiking(false);
+    // Jika dipaksa like (misal double-tap foto) dan sudah liked, tidak perlu toggle ulang
+    if (isExplicitForce && forceLike && currentLiked) {
+      return;
     }
+
+    // 1. Optimistic UI langsung berubah seketika tanpa jeda
+    pendingLikedRef.current = nextLiked;
+    setHasLiked(nextLiked);
+    setLikesCount((prev) => (nextLiked ? prev + 1 : Math.max(0, prev - 1)));
+
+    // 2. Debounce: Batalkan timer sebelumnya dan jadwalkan pengiriman state akhir
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    debounceTimerRef.current = setTimeout(async () => {
+      debounceTimerRef.current = null;
+      const targetLiked = pendingLikedRef.current;
+
+      // Jika state akhir sama dengan state yang sudah tersinkronisasi di server, lewati request
+      if (targetLiked === syncedStateRef.current.liked) {
+        return;
+      }
+
+      try {
+        const res = await toggleAppreciationAction({
+          reportId: report.id,
+          targetLiked,
+        });
+
+        if (res.success && typeof res.likesCount === "number") {
+          syncedStateRef.current = {
+            liked: Boolean(res.liked),
+            count: res.likesCount,
+          };
+          // Sinkronisasi dengan hitungan riil DB jika user sedang tidak melakukan tap baru
+          if (pendingLikedRef.current === res.liked) {
+            setLikesCount(res.likesCount);
+            setHasLiked(res.liked);
+          }
+        } else {
+          // Rollback ke state sinkron terakhir jika gagal
+          setHasLiked(syncedStateRef.current.liked);
+          setLikesCount(syncedStateRef.current.count);
+          pendingLikedRef.current = syncedStateRef.current.liked;
+          toast.error(res.message || "Gagal memproses apresiasi");
+        }
+      } catch {
+        // Rollback ke state sinkron terakhir jika error jaringan
+        setHasLiked(syncedStateRef.current.liked);
+        setLikesCount(syncedStateRef.current.count);
+        pendingLikedRef.current = syncedStateRef.current.liked;
+        toast.error("Terjadi gangguan jaringan saat memproses apresiasi.");
+      }
+    }, 350);
   };
 
   const handleDoubleTapLike = () => {
-    if (!hasLiked) {
-      handleToggleLike();
-    }
+    handleToggleLike(true);
   };
 
   const initialLetter = report.author?.name
@@ -172,7 +228,7 @@ export default function FeedCard({ report, currentUser }: FeedCardProps) {
         {/* Tombol Like ala Instagram */}
         <button
           type="button"
-          onClick={handleToggleLike}
+          onClick={() => handleToggleLike()}
           aria-label={hasLiked ? "Batal suka" : "Beri suka"}
           title={hasLiked ? "Batal suka" : "Beri suka"}
           className="flex items-center gap-1.5 text-xs font-semibold select-none group transition-transform cursor-pointer active:scale-90"

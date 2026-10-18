@@ -17,8 +17,21 @@ export class ToggleAppreciationUseCase {
 
     const isSelfLike = report.authorId === userId;
     const existing = await this.repo.findAppreciation(input.reportId, userId);
+    const isCurrentlyLiked = Boolean(existing);
 
-    if (existing) {
+    // Tentukan aksi yang diinginkan (apakah targetLiked eksplisit atau toggle biasa)
+    const shouldLike =
+      typeof input.targetLiked === "boolean"
+        ? input.targetLiked
+        : !isCurrentlyLiked;
+
+    // Jika status di database sudah sesuai dengan targetLiked, cukup kembalikan data terkini
+    if (shouldLike === isCurrentlyLiked) {
+      const likesCount = await this.repo.countAppreciations(input.reportId);
+      return { liked: shouldLike, likesCount };
+    }
+
+    if (!shouldLike) {
       const likesCount = await this.repo.removeAppreciation(input.reportId, userId);
 
       // Sinkronisasi/hapus notifikasi like saat batal like (Unlike) jika bukan self-like
