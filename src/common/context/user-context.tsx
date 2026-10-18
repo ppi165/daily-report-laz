@@ -65,11 +65,31 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let ignore = false;
 
-    // Baca cache instan di client saat mount HANYA jika sesi browser aktif dan belum di-kick
+    // Baca cache instan di client saat mount HANYA jika sesi browser aktif dan belum di-kick (dengan toleransi 30 menit)
     try {
-      const isSessionActive = sessionStorage.getItem("laz_session_active") === "true";
-      const isKicked = sessionStorage.getItem("laz_session_kicked") === "true";
-      if (!isSessionActive || isKicked) {
+      const isKicked =
+        sessionStorage.getItem("laz_session_kicked") === "true" ||
+        localStorage.getItem("laz_session_kicked") === "true";
+
+      const lastActiveStr = localStorage.getItem("laz_last_active");
+      let isValidSession = false;
+
+      if (!isKicked) {
+        if (lastActiveStr) {
+          const lastActive = parseInt(lastActiveStr, 10);
+          if (!isNaN(lastActive)) {
+            const elapsed = Date.now() - lastActive;
+            if (elapsed < 30 * 60 * 1000) {
+              isValidSession = true;
+              sessionStorage.setItem("laz_session_active", "true");
+            }
+          }
+        } else if (sessionStorage.getItem("laz_session_active") === "true") {
+          isValidSession = true;
+        }
+      }
+
+      if (!isValidSession) {
         localStorage.removeItem(STORAGE_KEY);
         setUser(null);
       } else {
@@ -94,6 +114,7 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           // Gagal verifikasi sesi di server atau token sudah tidak valid
           setUser(null);
           localStorage.removeItem(STORAGE_KEY);
+          localStorage.removeItem("laz_last_active");
           sessionStorage.clear();
           if (
             typeof window !== "undefined" &&
@@ -126,6 +147,9 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     } finally {
       if (typeof window !== "undefined") {
         localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem("laz_last_active");
+        localStorage.setItem("laz_session_kicked", "true");
+        sessionStorage.clear();
       }
       setUser(null);
       window.location.href = "/login";

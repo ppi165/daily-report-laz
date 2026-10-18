@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-// Durasi idle timeout: 30 menit (30 * 60 * 1000 milidetik)
+// Durasi idle timeout & grace period: 30 menit (30 * 60 * 1000 milidetik)
 const IDLE_TIMEOUT_MS = 30 * 60 * 1000;
 // Interval pengecekan keaktifan: setiap 15 detik
 const CHECK_INTERVAL_MS = 15 * 1000;
@@ -20,32 +20,68 @@ export default function IdleTimeoutProvider({
   const isKickingRef = useRef<boolean>(false);
 
   useEffect(() => {
-    // 1. Validasi Sesi Browser/Tab & Proteksi Backward/Forward:
-    // Jika sessionStorage kosong atau pernah ditandai di-kick saat di /login, paksa redirect ke /login
-    const checkSession = (verifyServer = false) => {
-      const activeSession = sessionStorage.getItem("laz_session_active");
-      const isKicked = sessionStorage.getItem("laz_session_kicked") === "true";
+    // Fungsi universal untuk menendang user ke /login
+    const kickToLogin = (reason?: string) => {
+      if (isKickingRef.current) return;
+      isKickingRef.current = true;
 
-      if (!activeSession || isKicked) {
-        if (!isKickingRef.current) {
-          isKickingRef.current = true;
-          fetch("/api/v1/auth/logout", { method: "POST", keepalive: true }).finally(() => {
-            localStorage.removeItem("laz_user_profile");
-            sessionStorage.clear();
-            window.location.replace("/login");
-          });
+      fetch("/api/v1/auth/logout", { method: "POST", keepalive: true }).finally(() => {
+        try {
+          localStorage.removeItem("laz_user_profile");
+          localStorage.removeItem("laz_last_active");
+          localStorage.setItem("laz_session_kicked", "true");
+          sessionStorage.clear();
+        } catch {
+          // ignore
         }
+        const target = reason ? `/login?reason=${reason}` : "/login";
+        window.location.replace(target);
+      });
+    };
+
+    // 1. Validasi Sesi Browser/Tab dengan Grace Period 30 Menit saat browser keluar/ditutup
+    const checkSession = (verifyServer = false) => {
+      const isKicked =
+        sessionStorage.getItem("laz_session_kicked") === "true" ||
+        localStorage.getItem("laz_session_kicked") === "true";
+
+      if (isKicked) {
+        kickToLogin();
         return false;
       }
 
-      // Verifikasi keaslian token di server hanya saat navigasi back/forward (UserProvider sudah memverifikasi saat mount awal)
+      const now = Date.now();
+      const lastActiveStr = localStorage.getItem("laz_last_active");
+
+      if (lastActiveStr) {
+        const lastActive = parseInt(lastActiveStr, 10);
+        if (!isNaN(lastActive)) {
+          const elapsed = now - lastActive;
+          if (elapsed >= IDLE_TIMEOUT_MS) {
+            // Sudah lewat 30 menit sejak terakhir aktif atau browser ditutup -> kick!
+            kickToLogin("idle_timeout");
+            return false;
+          }
+          // Masih dalam batas toleransi < 30 menit -> pulihkan sesi!
+          sessionStorage.setItem("laz_session_active", "true");
+          lastActivityRef.current = now;
+          localStorage.setItem("laz_last_active", now.toString());
+        }
+      } else {
+        // Jika tidak ada data last_active, cek flag active session biasa
+        const activeSession = sessionStorage.getItem("laz_session_active");
+        if (!activeSession) {
+          kickToLogin();
+          return false;
+        }
+      }
+
+      // Verifikasi keaslian token di server hanya saat navigasi back/forward
       if (verifyServer) {
         fetch("/api/v1/users/me", { cache: "no-store" })
           .then((res) => {
             if (!res.ok) {
-              localStorage.removeItem("laz_user_profile");
-              sessionStorage.clear();
-              window.location.replace("/login");
+              kickToLogin();
             }
           })
           .catch(() => {});
@@ -58,27 +94,22 @@ export default function IdleTimeoutProvider({
       return;
     }
 
-    // 4. Pengecekan Idle Timeout 30 Menit
-    const checkIdleTimeout = async () => {
+    // 2. Pengecekan Idle Timeout 30 Menit
+    const checkIdleTimeout = () => {
       const now = Date.now();
-      const elapsed = now - lastActivityRef.current;
+      const lastActiveStorage = localStorage.getItem("laz_last_active");
+      const lastActive = lastActiveStorage
+        ? Math.max(parseInt(lastActiveStorage, 10) || 0, lastActivityRef.current)
+        : lastActivityRef.current;
+
+      const elapsed = now - lastActive;
 
       if (elapsed >= IDLE_TIMEOUT_MS && !isKickingRef.current) {
-        isKickingRef.current = true;
-        try {
-          await fetch("/api/v1/auth/logout", { method: "POST" });
-        } catch {
-          // ignore
-        } finally {
-          localStorage.removeItem("laz_user_profile");
-          sessionStorage.clear();
-          window.location.href = "/login?reason=idle_timeout";
-        }
+        kickToLogin("idle_timeout");
       }
     };
 
-    // 2. Proteksi Navigasi Forward/Backward Browser:
-    // Pastikan event pageshow, popstate, dan visibilitychange selalu mengecek keaktifan sesi saat tab terlihat
+    // 3. Proteksi Navigasi Forward/Backward Browser & Tab Visibility Change
     const handleNavigationCheck = () => {
       if (document.visibilityState === "visible") {
         checkSession(true);
@@ -90,9 +121,16 @@ export default function IdleTimeoutProvider({
     window.addEventListener("popstate", handleNavigationCheck);
     document.addEventListener("visibilitychange", handleNavigationCheck);
 
-    // 3. Catat aktivitas user untuk Idle Mode
+    // 4. Catat aktivitas user & update timestamp ke localStorage
     const updateActivity = () => {
-      lastActivityRef.current = Date.now();
+      const now = Date.now();
+      lastActivityRef.current = now;
+      try {
+        localStorage.setItem("laz_last_active", now.toString());
+        sessionStorage.setItem("laz_session_active", "true");
+      } catch {
+        // ignore
+      }
     };
 
     const activityEvents = [
@@ -110,7 +148,7 @@ export default function IdleTimeoutProvider({
         updateActivity();
         throttleTimeout = setTimeout(() => {
           throttleTimeout = null;
-        }, 5000); // Throttling update setiap 5 detik agar efisien
+        }, 5000); // Throttling update setiap 5 detik agar performa optimal
       }
     };
 

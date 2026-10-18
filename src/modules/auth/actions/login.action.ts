@@ -11,12 +11,14 @@ export async function loginAction(rawInput: LoginInput) {
 
     const cookieStore = await cookies();
 
-    // Session cookie: tidak diset maxAge/expires agar sesi otomatis terhapus saat browser/tab ditutup
+    // Cookie diset dengan maxAge 1 hari (24 jam) agar sesi browser memiliki grace period 30 menit saat ditutup
+    const ONE_DAY_SECONDS = 60 * 60 * 24;
     cookieStore.set('token', result.token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
+      maxAge: ONE_DAY_SECONDS,
     });
 
     return {

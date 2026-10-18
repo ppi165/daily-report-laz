@@ -29,7 +29,9 @@ export default function LoginForm() {
       try {
         sessionStorage.clear();
         sessionStorage.setItem('laz_session_kicked', 'true');
+        localStorage.setItem('laz_session_kicked', 'true');
         localStorage.removeItem('laz_user_profile');
+        localStorage.removeItem('laz_last_active');
         fetch('/api/v1/auth/logout', { method: 'POST', keepalive: true }).catch(() => {});
       } catch {
         // ignore
@@ -83,6 +85,8 @@ export default function LoginForm() {
         // Tandai sesi browser/tab aktif dan hapus tanda kicked
         sessionStorage.setItem('laz_session_active', 'true');
         sessionStorage.removeItem('laz_session_kicked');
+        localStorage.removeItem('laz_session_kicked');
+        localStorage.setItem('laz_last_active', Date.now().toString());
         if (data.data) {
           localStorage.setItem('laz_user_profile', JSON.stringify(data.data));
         }
