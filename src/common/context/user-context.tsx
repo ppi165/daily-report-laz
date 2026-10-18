@@ -25,6 +25,22 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 
 const STORAGE_KEY = "laz_user_profile";
 
+const PROTECTED_ROUTES = [
+  "/dashboard",
+  "/daily-report",
+  "/rekap-report",
+  "/reports",
+  "/verifikasi",
+  "/feed",
+  "/settings",
+  "/admin",
+  "/profil",
+];
+
+function isProtectedRoute(pathname: string): boolean {
+  return PROTECTED_ROUTES.some((route) => pathname.startsWith(route));
+}
+
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<UserSession | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -79,7 +95,10 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
           setUser(null);
           localStorage.removeItem(STORAGE_KEY);
           sessionStorage.clear();
-          if (typeof window !== "undefined" && window.location.pathname !== "/login") {
+          if (
+            typeof window !== "undefined" &&
+            isProtectedRoute(window.location.pathname)
+          ) {
             window.location.replace("/login");
           }
         }

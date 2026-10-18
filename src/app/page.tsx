@@ -3,11 +3,13 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useTheme } from "@/src/common/context/theme-context";
+import { useUser } from "@/src/common/context/user-context";
 
 export default function Home() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { isDarkMode, toggleTheme } = useTheme();
+  const { user } = useUser();
 
   const toggleDarkMode = () => {
     toggleTheme();
@@ -116,10 +118,10 @@ export default function Home() {
               </span>
             </button>
             <Link
-              href="/login"
-              className="px-6 py-2 rounded-full bg-primary-container text-white font-semibold hover:bg-secondary transition-colors shadow-sm whitespace-nowrap hidden sm:flex"
+              href={user ? "/dashboard" : "/login"}
+              className="px-4 sm:px-6 py-1.5 sm:py-2 text-xs sm:text-sm rounded-full bg-primary-container text-white font-semibold hover:bg-secondary transition-colors shadow-sm whitespace-nowrap flex"
             >
-              Masuk
+              {user ? "Dashboard" : "Masuk"}
             </Link>
             <button 
               className={`md:hidden p-2 rounded-lg ${
@@ -136,66 +138,68 @@ export default function Home() {
         </div>
 
         {/* Mobile Sidebar */}
-        <div className={`fixed inset-0 z-[60] md:hidden transition-opacity duration-300 ${isMobileMenuOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setIsMobileMenuOpen(false)}></div>
-          <div className={`absolute top-0 bottom-0 right-0 w-64 ${isDarkMode ? 'bg-[#181818] border-l border-white/10 text-white' : 'bg-white border-l border-gray-200 text-gray-900'} shadow-2xl flex flex-col transition-transform duration-300 ${isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-            <div className={`p-4 flex items-center justify-between border-b ${isDarkMode ? 'border-white/10' : 'border-gray-200'}`}>
-              <span className={`font-bold ${isDarkMode ? 'text-emerald-400' : 'text-primary'}`}>Menu Utama</span>
-              <button 
-                onClick={() => setIsMobileMenuOpen(false)} 
-                className={`p-2 rounded-lg flex items-center justify-center transition-colors ${isDarkMode ? 'bg-white/10 text-gray-300 hover:text-white' : 'bg-gray-100 text-gray-700 hover:text-black'}`}
-              >
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
-            <div className="flex flex-col p-4 gap-2 flex-1">
-              <button 
-                onClick={() => scrollToSection("tentang")} 
-                className={`flex items-center gap-4 text-left p-3 rounded-lg font-medium transition-colors ${
-                  isDarkMode 
-                    ? 'text-gray-300 hover:bg-white/5 hover:text-emerald-400' 
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-primary'
-                }`}
-              >
-                <span className={`material-symbols-outlined ${isDarkMode ? 'text-emerald-400' : 'text-primary'}`}>info</span>
-                Tentang
-              </button>
-              <button 
-                onClick={() => scrollToSection("fitur")} 
-                className={`flex items-center gap-4 text-left p-3 rounded-lg font-medium transition-colors ${
-                  isDarkMode 
-                    ? 'text-gray-300 hover:bg-white/5 hover:text-emerald-400' 
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-primary'
-                }`}
-              >
-                <span className={`material-symbols-outlined ${isDarkMode ? 'text-emerald-400' : 'text-primary'}`}>dashboard</span>
-                Fitur
-              </button>
-              <button 
-                onClick={() => scrollToSection("social")} 
-                className={`flex items-center gap-4 text-left p-3 rounded-lg font-medium transition-colors ${
-                  isDarkMode 
-                    ? 'text-gray-300 hover:bg-white/5 hover:text-emerald-400' 
-                    : 'text-gray-700 hover:bg-gray-100 hover:text-primary'
-                }`}
-              >
-                <span className={`material-symbols-outlined ${isDarkMode ? 'text-emerald-400' : 'text-primary'}`}>share</span>
-                Social
-              </button>
-              
-              <div className={`mt-auto pt-4 border-t ${isDarkMode ? 'border-white/10' : 'border-gray-200'}`}>
-                <Link
-                  href="/login"
-                  className="w-full py-3 rounded-lg bg-primary-container text-white font-semibold hover:bg-secondary transition-colors flex items-center justify-center gap-2 shadow-sm"
-                  onClick={() => setIsMobileMenuOpen(false)}
+        {isMobileMenuOpen && (
+          <div className="fixed inset-0 z-[60] md:hidden">
+            <div className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setIsMobileMenuOpen(false)}></div>
+            <div className={`absolute top-0 bottom-0 right-0 w-64 ${isDarkMode ? 'bg-[#181818] border-l border-white/10 text-white' : 'bg-white border-l border-gray-200 text-gray-900'} shadow-2xl flex flex-col animate-in slide-in-from-right duration-250`}>
+              <div className={`p-4 flex items-center justify-between border-b ${isDarkMode ? 'border-white/10' : 'border-gray-200'}`}>
+                <span className={`font-bold ${isDarkMode ? 'text-emerald-400' : 'text-primary'}`}>Menu Utama</span>
+                <button 
+                  onClick={() => setIsMobileMenuOpen(false)} 
+                  className={`p-2 rounded-lg flex items-center justify-center transition-colors ${isDarkMode ? 'bg-white/10 text-gray-300 hover:text-white' : 'bg-gray-100 text-gray-700 hover:text-black'}`}
                 >
-                  <span className="material-symbols-outlined text-[20px]">login</span>
-                  Masuk Portal
-                </Link>
+                  <span className="material-symbols-outlined">close</span>
+                </button>
+              </div>
+              <div className="flex flex-col p-4 gap-2 flex-1">
+                <button 
+                  onClick={() => scrollToSection("tentang")} 
+                  className={`flex items-center gap-4 text-left p-3 rounded-lg font-medium transition-colors ${
+                    isDarkMode 
+                      ? 'text-gray-300 hover:bg-white/5 hover:text-emerald-400' 
+                      : 'text-gray-700 hover:bg-gray-100 hover:text-primary'
+                  }`}
+                >
+                  <span className={`material-symbols-outlined ${isDarkMode ? 'text-emerald-400' : 'text-primary'}`}>info</span>
+                  Tentang
+                </button>
+                <button 
+                  onClick={() => scrollToSection("fitur")} 
+                  className={`flex items-center gap-4 text-left p-3 rounded-lg font-medium transition-colors ${
+                    isDarkMode 
+                      ? 'text-gray-300 hover:bg-white/5 hover:text-emerald-400' 
+                      : 'text-gray-700 hover:bg-gray-100 hover:text-primary'
+                  }`}
+                >
+                  <span className={`material-symbols-outlined ${isDarkMode ? 'text-emerald-400' : 'text-primary'}`}>dashboard</span>
+                  Fitur
+                </button>
+                <button 
+                  onClick={() => scrollToSection("social")} 
+                  className={`flex items-center gap-4 text-left p-3 rounded-lg font-medium transition-colors ${
+                    isDarkMode 
+                      ? 'text-gray-300 hover:bg-white/5 hover:text-emerald-400' 
+                      : 'text-gray-700 hover:bg-gray-100 hover:text-primary'
+                  }`}
+                >
+                  <span className={`material-symbols-outlined ${isDarkMode ? 'text-emerald-400' : 'text-primary'}`}>share</span>
+                  Social
+                </button>
+                
+                <div className={`mt-auto pt-4 border-t ${isDarkMode ? 'border-white/10' : 'border-gray-200'}`}>
+                  <Link
+                    href={user ? "/dashboard" : "/login"}
+                    className="w-full py-3 rounded-lg bg-primary-container text-white font-semibold hover:bg-secondary transition-colors flex items-center justify-center gap-2 shadow-sm"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <span className="material-symbols-outlined text-[20px]">{user ? "dashboard" : "login"}</span>
+                    {user ? "Buka Dashboard" : "Masuk Portal"}
+                  </Link>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
       </header>
 
       {/* 2. Hero Section */}
