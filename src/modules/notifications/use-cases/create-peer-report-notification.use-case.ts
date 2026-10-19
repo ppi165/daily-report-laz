@@ -1,4 +1,4 @@
-import { userRepository } from "@/src/modules/users";
+import { userRepository } from "@/src/modules/users/repositories/user.repository";
 import { notificationRepository } from "../repositories/notification.repository";
 
 export class CreatePeerReportNotificationUseCase {

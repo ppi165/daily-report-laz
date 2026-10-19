@@ -16,8 +16,10 @@ import { useUser } from "@/src/common/context/user-context";
 import { toast } from "@/components/ui/toast";
 import { changePasswordAction } from "../actions/change-password.action";
 import { updateAvatarAction } from "../actions/update-avatar.action";
+import { deleteAvatarAction } from "../actions/delete-avatar.action";
 import { updateProfileNameAction } from "../actions/update-profile-name.action";
 import { getUserPerformanceAction } from "../actions/get-user-performance.action";
+import DeleteAvatarDialog from "./delete-avatar-dialog";
 
 interface PerformanceReport {
   id: string;
@@ -76,8 +78,10 @@ export default function ProfileView({ initialPerformance = null }: ProfileViewPr
   const [name, setName] = useState(user?.name || "");
   const [savingProfile, setSavingProfile] = useState(false);
 
-  // Avatar Upload State
+  // Avatar Upload & Delete State
   const [avatarLoading, setAvatarLoading] = useState(false);
+  const [showDeleteAvatarDialog, setShowDeleteAvatarDialog] = useState(false);
+  const [deleteAvatarLoading, setDeleteAvatarLoading] = useState(false);
 
   // Kinerja Data State
   const [performance, setPerformance] = useState<PerformanceData | null>(initialPerformance);
@@ -172,6 +176,24 @@ export default function ProfileView({ initialPerformance = null }: ProfileViewPr
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
+    }
+  };
+
+  const handleDeleteAvatar = async () => {
+    setDeleteAvatarLoading(true);
+    try {
+      const res = await deleteAvatarAction();
+      if (res.success) {
+        await refreshUser();
+        toast.success(res.message || "Foto profil berhasil dihapus!");
+        setShowDeleteAvatarDialog(false);
+      } else {
+        toast.error(res.message || "Gagal menghapus foto profil.");
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Terjadi kesalahan saat menghapus foto profil.");
+    } finally {
+      setDeleteAvatarLoading(false);
     }
   };
 
@@ -287,9 +309,11 @@ export default function ProfileView({ initialPerformance = null }: ProfileViewPr
                     <label
                       htmlFor="avatar-upload"
                       className="absolute bottom-0 right-0 size-8 rounded-full bg-primary-container hover:bg-secondary text-white flex items-center justify-center cursor-pointer shadow-sm transition-transform active:scale-95"
-                      title="Ganti Foto Profil"
+                      title={user?.avatar ? "Ganti Foto Profil" : "Unggah Foto Profil"}
                     >
-                      <span className="material-symbols-outlined text-[18px]">photo_camera</span>
+                      <span className="material-symbols-outlined text-[18px]">
+                        {user?.avatar ? "photo_camera" : "upload"}
+                      </span>
                     </label>
 
                     <input
@@ -340,15 +364,53 @@ export default function ProfileView({ initialPerformance = null }: ProfileViewPr
                     </div>
                   </div>
 
-                  <div className="w-full mt-5">
-                    <Separator className="bg-surface-container mb-4" />
-                    <label
-                      htmlFor="avatar-upload"
-                      className="w-full py-2 rounded-xl border border-outline-variant bg-surface-container-low/50 hover:bg-surface-container text-on-surface text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-                    >
-                      <span className="material-symbols-outlined text-[16px]">upload</span>
-                      <span>{avatarLoading ? "Mengunggah..." : "Upload Foto Baru"}</span>
-                    </label>
+                  <div className="w-full mt-5 flex flex-col gap-2">
+                    <Separator className="bg-surface-container mb-2" />
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-outline text-left">
+                      Opsi Foto Profil
+                    </span>
+
+                    {user?.avatar ? (
+                      /* Sudah memiliki foto profil: opsi Ganti Foto & Hapus Foto */
+                      <div className="grid grid-cols-2 gap-2">
+                        {/* Opsi 1: Ganti Foto Profil */}
+                        <label
+                          htmlFor="avatar-upload"
+                          className={`w-full py-2.5 px-3 rounded-xl border border-outline-variant bg-surface-container-low/50 hover:bg-surface-container hover:border-secondary/50 hover:text-secondary text-on-surface text-xs font-semibold transition-all flex items-center justify-center gap-1.5 ${
+                            avatarLoading || deleteAvatarLoading ? "opacity-50 pointer-events-none" : "cursor-pointer active:scale-95"
+                          }`}
+                          title="Pilih berkas foto baru untuk mengganti foto profil"
+                        >
+                          <span className="material-symbols-outlined text-[16px] text-secondary">photo_camera</span>
+                          <span>{avatarLoading ? "Mengunggah..." : "Ganti Foto"}</span>
+                        </label>
+
+                        {/* Opsi 2: Hapus Foto Profil */}
+                        <Button
+                          type="button"
+                          variant="outline"
+                          disabled={avatarLoading || deleteAvatarLoading}
+                          title="Hapus Foto Profil"
+                          onClick={() => setShowDeleteAvatarDialog(true)}
+                          className="w-full h-auto py-2.5 px-3 rounded-xl border border-outline-variant text-xs font-semibold transition-all flex items-center justify-center gap-1.5 text-error hover:border-error/50 hover:bg-error/10 hover:text-error cursor-pointer active:scale-95"
+                        >
+                          <span className="material-symbols-outlined text-[16px]">delete</span>
+                          <span>Hapus Foto</span>
+                        </Button>
+                      </div>
+                    ) : (
+                      /* Belum ada foto profil / Pengguna baru: hanya tombol Unggah Foto */
+                      <label
+                        htmlFor="avatar-upload"
+                        className={`w-full py-2.5 px-4 rounded-xl border border-outline-variant bg-surface-container-low/50 hover:bg-surface-container hover:border-secondary/50 hover:text-secondary text-on-surface text-xs font-semibold transition-all flex items-center justify-center gap-2 ${
+                          avatarLoading || deleteAvatarLoading ? "opacity-50 pointer-events-none" : "cursor-pointer active:scale-95"
+                        }`}
+                        title="Pilih berkas foto untuk profil Anda"
+                      >
+                        <span className="material-symbols-outlined text-[18px] text-secondary">upload</span>
+                        <span>{avatarLoading ? "Mengunggah..." : "Unggah Foto"}</span>
+                      </label>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -740,6 +802,14 @@ export default function ProfileView({ initialPerformance = null }: ProfileViewPr
           </div>
         </div>
       </main>
+
+      {/* Dialog Konfirmasi Hapus Foto Profil */}
+      <DeleteAvatarDialog
+        open={showDeleteAvatarDialog}
+        onOpenChange={setShowDeleteAvatarDialog}
+        onConfirm={handleDeleteAvatar}
+        loading={deleteAvatarLoading}
+      />
     </AppShell>
   );
 }

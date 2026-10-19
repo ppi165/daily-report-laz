@@ -1,7 +1,19 @@
 import { prisma } from '@/src/infrastructure/prisma';
 
+export interface UserProfileRecord {
+  id: string;
+  name: string;
+  email: string;
+  username: string;
+  division: string;
+  role: string;
+  position: string | null;
+  avatar: string | null;
+  createdAt: Date;
+}
+
 export class UserRepository {
-  async findById(id: string) {
+  async findById(id: string): Promise<UserProfileRecord | null> {
     return prisma.user.findUnique({
       where: { id },
       select: {
@@ -102,7 +114,7 @@ export class UserRepository {
     });
   }
 
-  async updateAvatar(id: string, avatarUrl: string) {
+  async updateAvatar(id: string, avatarUrl: string | null) {
     return prisma.user.update({
       where: { id },
       data: { avatar: avatarUrl },
