@@ -55,7 +55,7 @@ model Report {
   isLate        Boolean  @default(false)
   
   authorId      String
-  author        User     @relation(fields: [authorId], references: [id])
+  author        User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
   
   approvals     ReportApproval[]
   likes         ReportAppreciation[]
@@ -104,7 +104,7 @@ model ReportApproval {
   report           Report    @relation(fields: [reportId], references: [id], onDelete: Cascade)
   
   approverId       String?
-  approver         User?     @relation("ApproverRelation", fields: [approverId], references: [id])
+  approver         User?     @relation("ApproverRelation", fields: [approverId], references: [id], onDelete: SetNull)
   
   approverMockId   String?
   approverName     String

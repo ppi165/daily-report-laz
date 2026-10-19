@@ -33,6 +33,7 @@ import { resetPasswordAction } from "../actions/reset-password.action";
 import UserStatsOverview from "./user-stats-overview";
 import CreateUserDialog from "./create-user-dialog";
 import EditRoleDialog, { ManagedUserItem } from "./edit-role-dialog";
+import DeleteUserDialog from "./delete-user-dialog";
 
 export default function UserManagerView() {
   const { user: currentUser } = useUser();
@@ -55,6 +56,7 @@ export default function UserManagerView() {
   // Modals
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingRoleUser, setEditingRoleUser] = useState<ManagedUserItem | null>(null);
+  const [deletingUser, setDeletingUser] = useState<ManagedUserItem | null>(null);
 
   // Reset Password Dialog State
   const [resettingUser, setResettingUser] = useState<ManagedUserItem | null>(null);
@@ -126,6 +128,17 @@ export default function UserManagerView() {
     if (currentUser.role === "ADMIN") {
       if (target.role === "SUPERADMIN") return false;
       if (target.role === "ADMIN" && target.id !== currentUser.id) return false;
+      return true;
+    }
+    return false;
+  };
+
+  const canDeleteUser = (target: ManagedUserItem) => {
+    if (!currentUser) return false;
+    if (currentUser.id === target.id) return false;
+    if (currentUser.role === "SUPERADMIN") return true;
+    if (currentUser.role === "ADMIN") {
+      if (target.role === "SUPERADMIN" || target.role === "ADMIN") return false;
       return true;
     }
     return false;
@@ -287,6 +300,7 @@ export default function UserManagerView() {
                       users.map((u) => {
                         const canEdit = canEditUser(u);
                         const canReset = canResetUser(u);
+                        const canDelete = canDeleteUser(u);
 
                         return (
                           <tr key={u.id} className="hover:bg-surface-container-low/30 transition-colors">
@@ -358,6 +372,28 @@ export default function UserManagerView() {
                                   <span className="material-symbols-outlined text-[15px]">lock_reset</span>
                                   <span className="hidden sm:inline">Reset Password</span>
                                 </Button>
+
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  disabled={!canDelete}
+                                  title={
+                                    currentUser?.id === u.id
+                                      ? "Tidak dapat menghapus akun Anda sendiri"
+                                      : canDelete
+                                      ? "Hapus Pengguna"
+                                      : "Tidak memiliki hak akses menghapus akun ini"
+                                  }
+                                  onClick={() => setDeletingUser(u)}
+                                  className={`h-8 px-2.5 text-xs rounded-lg font-semibold flex items-center gap-1.5 ${
+                                    canDelete
+                                      ? "border-outline-variant hover:border-error/50 hover:bg-error/10 hover:text-error text-on-surface-variant cursor-pointer"
+                                      : "opacity-40 cursor-not-allowed border-outline-variant/30 text-outline"
+                                  }`}
+                                >
+                                  <span className="material-symbols-outlined text-[15px]">delete</span>
+                                  <span className="hidden sm:inline">Hapus</span>
+                                </Button>
                               </div>
                             </td>
                           </tr>
@@ -391,6 +427,16 @@ export default function UserManagerView() {
             actorName={currentUser?.name}
             onSuccess={(msg) => {
               setToastMessage({ title: "Data Amil Diperbarui", desc: msg });
+              loadData();
+            }}
+          />
+
+          {/* Dialog Hapus Pengguna */}
+          <DeleteUserDialog
+            user={deletingUser}
+            onClose={() => setDeletingUser(null)}
+            onSuccess={(msg) => {
+              setToastMessage({ title: "Amil Berhasil Dihapus", desc: msg });
               loadData();
             }}
           />

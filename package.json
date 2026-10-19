@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "postinstall": "prisma generate",
+    "postinstall": "prisma generate && node scripts/fix-tw-animate.mjs",
     "seed:uat": "node prisma/seed-uat.mjs",
     "reset:data": "node prisma/reset-transactions.mjs",
     "reset:clean": "node prisma/reset-clean-superadmin.mjs"
