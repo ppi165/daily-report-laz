@@ -160,14 +160,24 @@ export default function CameraCaptureDialog({
     startCamera(facingMode);
   };
 
+  // Close dialog and clean up
+  const handleClose = useCallback(() => {
+    stopStream();
+    setCapturedDataUrl(null);
+    setCapturedBlob(null);
+    setErrorMsg(null);
+    onOpenChange(false);
+  }, [stopStream, onOpenChange]);
+
   // Confirm photo and return File object
-  const handleConfirmPhoto = () => {
+  const handleConfirmPhoto = useCallback(() => {
     if (!capturedBlob) return;
-    const fileName = `dokumentasi-${Date.now()}.jpg`;
+    const timestamp = Date.now();
+    const fileName = `dokumentasi-${timestamp}.jpg`;
     const file = new File([capturedBlob], fileName, { type: "image/jpeg" });
     onCapture(file);
     handleClose();
-  };
+  }, [capturedBlob, onCapture, handleClose]);
 
   // Handle fallback native mobile camera capture
   const handleNativeCaptureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -177,20 +187,9 @@ export default function CameraCaptureDialog({
     handleClose();
   };
 
-  // Close dialog and clean up
-  const handleClose = () => {
-    stopStream();
-    setCapturedDataUrl(null);
-    setCapturedBlob(null);
-    setErrorMsg(null);
-    onOpenChange(false);
-  };
-
   // Lifecycle when open changes
   useEffect(() => {
     if (open) {
-      setCapturedDataUrl(null);
-      setCapturedBlob(null);
       startCamera(facingMode);
     } else {
       stopStream();

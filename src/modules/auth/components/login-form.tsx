@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useTheme } from '@/src/common/context/theme-context';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,7 +13,6 @@ import ForgotPasswordDialog from './forgot-password-dialog';
 import SessionNoticeDialog from './session-notice-dialog';
 
 export default function LoginForm() {
-  const router = useRouter();
   const { isDarkMode, toggleTheme } = useTheme();
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
@@ -245,10 +244,20 @@ export default function LoginForm() {
 
           <Separator className="bg-surface-container-high" />
 
-          <CardFooter className="p-0 pb-6 sm:pb-8 pt-1 bg-transparent border-0 justify-center">
+          <CardFooter className="p-0 pb-6 sm:pb-8 pt-1 bg-transparent border-0 flex flex-col items-center gap-3">
             <span className="text-xs text-on-surface-variant tracking-normal">
               Internal Lazis Persis • Akses Terenkripsi
             </span>
+
+            <Link
+              href="/"
+              className="inline-flex items-center gap-1.5 text-xs text-outline hover:text-secondary transition-colors duration-150 group cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-[15px] group-hover:-translate-x-0.5 transition-transform">
+                arrow_back
+              </span>
+              <span>Kembali ke Halaman Utama</span>
+            </Link>
           </CardFooter>
         </Card>
       </main>

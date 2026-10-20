@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/dialog";
 import { parseReportContent } from "../utils/export-excel.util";
 import UserAvatar from "@/src/common/components/user-avatar";
+import { useUser } from "@/src/common/context/user-context";
+import DeleteReportDialog from "./delete-report-dialog";
 
 export interface ReportItemData {
   id: string;
@@ -30,10 +32,14 @@ export interface ReportItemData {
 interface RekapTableProps {
   reports: ReportItemData[];
   loading: boolean;
+  onReportDeleted?: (reportId: string, message: string) => void;
 }
 
-export default function RekapTable({ reports, loading }: RekapTableProps) {
+export default function RekapTable({ reports, loading, onReportDeleted }: RekapTableProps) {
+  const { user } = useUser();
+  const isSuperadmin = user?.role === "SUPERADMIN" || user?.role === "SUPER_ADMIN";
   const [selectedReport, setSelectedReport] = useState<ReportItemData | null>(null);
+  const [reportToDelete, setReportToDelete] = useState<ReportItemData | null>(null);
 
   return (
     <>
@@ -48,7 +54,7 @@ export default function RekapTable({ reports, loading }: RekapTableProps) {
               <th className="py-3.5 px-4 min-w-[220px]">Pekerjaan</th>
               <th className="py-3.5 px-4 min-w-[220px]">Hasil / Output</th>
               <th className="py-3.5 px-4 w-32 text-center">Status</th>
-              <th className="py-3.5 px-4 text-right w-24">Aksi</th>
+              <th className="py-3.5 px-4 text-right w-28">Aksi</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-surface-container/60">
@@ -159,15 +165,30 @@ export default function RekapTable({ reports, loading }: RekapTableProps) {
                       </div>
                     </td>
                     <td className="py-3.5 px-4 text-right">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setSelectedReport(report)}
-                        className="h-8 px-2.5 rounded-lg text-xs font-semibold text-secondary hover:bg-secondary/10 cursor-pointer flex items-center gap-1 ml-auto"
-                      >
-                        <span className="material-symbols-outlined text-[16px] text-amber-500">lightbulb</span>
-                        <span>Detail</span>
-                      </Button>
+                      <div className="flex items-center justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setSelectedReport(report)}
+                          className="h-8 px-2.5 rounded-lg text-xs font-semibold text-secondary hover:bg-secondary/10 cursor-pointer flex items-center gap-1"
+                        >
+                          <span className="material-symbols-outlined text-[16px] text-amber-500">lightbulb</span>
+                          <span>Detail</span>
+                        </Button>
+
+                        {isSuperadmin && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setReportToDelete(report)}
+                            className="h-8 px-2 rounded-lg text-xs font-semibold text-error hover:bg-error/10 cursor-pointer flex items-center gap-0.5"
+                            title="Hapus Laporan Testing (Khusus Superadmin)"
+                          >
+                            <span className="material-symbols-outlined text-[16px]">delete</span>
+                            <span className="hidden sm:inline">Hapus</span>
+                          </Button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 );
@@ -265,12 +286,47 @@ export default function RekapTable({ reports, loading }: RekapTableProps) {
                         </div>
                       </div>
                     )}
+
+                  {isSuperadmin && (
+                    <div className="pt-2 border-t border-outline-variant/40 flex justify-end">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const current = selectedReport;
+                          setSelectedReport(null);
+                          setReportToDelete(current);
+                        }}
+                        className="text-error hover:bg-error/10 text-xs font-semibold flex items-center gap-1.5 px-3 py-1.5 rounded-xl cursor-pointer"
+                      >
+                        <span className="material-symbols-outlined text-[16px]">delete</span>
+                        <span>Hapus Laporan Testing Ini</span>
+                      </Button>
+                    </div>
+                  )}
                 </div>
               </div>
             );
           })()}
         </DialogContent>
       </Dialog>
+
+      {/* Dialog Konfirmasi Hapus Laporan oleh Superadmin */}
+      <DeleteReportDialog
+        open={Boolean(reportToDelete)}
+        report={reportToDelete}
+        onOpenChange={(open) => !open && setReportToDelete(null)}
+        onSuccess={(deletedId, message) => {
+          setReportToDelete(null);
+          if (selectedReport?.id === deletedId) {
+            setSelectedReport(null);
+          }
+          if (onReportDeleted) {
+            onReportDeleted(deletedId, message);
+          }
+        }}
+      />
     </>
   );
 }

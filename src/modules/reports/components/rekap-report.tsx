@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { exportReportsToExcel } from "../utils/export-excel.util";
+import { toast } from "@/components/ui/toast";
 import RekapTable from "./rekap-table";
 
 interface ReportData {
@@ -111,6 +112,11 @@ export default function RekapReport() {
       ignore = true;
     };
   }, [selectedDivision, startDate, endDate]);
+
+  const handleReportDeleted = (deletedReportId: string, message: string) => {
+    setReports((prev) => prev.filter((r) => r.id !== deletedReportId));
+    toast.success(message, "Laporan Dihapus");
+  };
 
   const handlePeriodChange = (val: string | null) => {
     if (!val) return;
@@ -387,7 +393,11 @@ export default function RekapReport() {
           </Card>
 
           {/* Tabel Rekap Data */}
-          <RekapTable reports={filteredReports} loading={loading} />
+          <RekapTable
+            reports={filteredReports}
+            loading={loading}
+            onReportDeleted={handleReportDeleted}
+          />
         </div>
       </main>
     </AppShell>

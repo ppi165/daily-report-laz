@@ -5,6 +5,7 @@ import AppShell from "@/src/common/components/app-shell";
 import SuccessToast from "@/src/common/components/success-toast";
 import ClockInApproverSelect from "@/src/modules/approvals/components/clock-in-approver-select";
 import ReportDocumentationPicker from "./report-documentation-picker";
+import ReportSuccessDialog from "./report-success-dialog";
 import { createReportAction } from "../actions/create-report.action";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -165,6 +166,7 @@ export default function ReportForm({
   const [uploadedPhoto, setUploadedPhoto] = useState<UploadedFile | null>(null);
   const [uploading, setUploading] = useState(false);
   const [toastData, setToastData] = useState<{ title: string; description: string } | null>(null);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const isClockIn = mode === "clock-in";
@@ -296,6 +298,12 @@ export default function ReportForm({
         if (!isClockIn) {
           setReportedToday(true);
         }
+
+        // Tampilkan pop-up dialog khusus untuk perangkat tablet ke bawah (< 1024px)
+        if (typeof window !== "undefined" && window.innerWidth < 1024) {
+          setShowSuccessDialog(true);
+        }
+
         setToastData({
           title: isClockIn ? "Pengajuan Clock-in Berhasil Terkirim" : "Laporan Berhasil Diterbitkan",
           description: isClockIn
@@ -495,6 +503,14 @@ export default function ReportForm({
               </form>
             </CardContent>
           </Card>
+
+          <ReportSuccessDialog
+            open={showSuccessDialog}
+            onOpenChange={setShowSuccessDialog}
+            isClockIn={isClockIn}
+            division={division}
+            witnessCount={settings.clockInRequiredWitness}
+          />
 
           {toastData && (
             <SuccessToast
