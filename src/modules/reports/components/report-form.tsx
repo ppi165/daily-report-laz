@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import AppShell from "@/src/common/components/app-shell";
 import SuccessToast from "@/src/common/components/success-toast";
 import ClockInApproverSelect from "@/src/modules/approvals/components/clock-in-approver-select";
+import ReportDocumentationPicker from "./report-documentation-picker";
 import { createReportAction } from "../actions/create-report.action";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -201,10 +202,7 @@ export default function ReportForm({
     }
   };
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const handleUploadPhoto = async (file: File) => {
     if (!file.type.startsWith("image/")) {
       alert("Hanya berkas gambar yang diperbolehkan.");
       return;
@@ -452,90 +450,13 @@ export default function ReportForm({
                   </div>
                 </div>
 
-                <div className="flex flex-col gap-3 pt-2">
-                  <div className="flex flex-col gap-1">
-                    <h2 className="text-sm font-semibold text-on-surface flex items-center gap-1.5">
-                      <span>Dokumentasi Pekerjaan</span>
-                      <span className="text-xs font-bold text-error">
-                        * Wajib
-                      </span>
-                    </h2>
-                    <p className="text-xs text-on-surface-variant">
-                      Unggah minimal 1 foto dokumentasi hasil atau aktivitas pekerjaan hari ini.
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-1 gap-4 pt-1">
-                    {uploading ? (
-                      <div className="border-2 border-dashed border-secondary rounded-xl p-8 bg-surface-container-low/40 flex flex-col items-center justify-center gap-2">
-                        <div className="size-8 rounded-full border-3 border-secondary border-t-transparent animate-spin"></div>
-                        <p className="text-xs font-semibold text-on-surface">
-                          Mengunggah foto dokumentasi...
-                        </p>
-                      </div>
-                    ) : uploadedPhoto ? (
-                      <div className="border border-outline-variant/80 rounded-2xl p-4 bg-surface-container-lowest flex flex-col gap-3 relative group hover:border-secondary transition-colors duration-150">
-                        <div className="flex items-start justify-between">
-                          <span className="text-xs font-bold text-secondary">
-                            Foto Dokumentasi
-                          </span>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="text-error hover:bg-error/10 px-2.5 py-1 rounded-lg text-xs flex items-center gap-1 transition-colors cursor-pointer h-auto"
-                            title="Hapus Foto"
-                            type="button"
-                            onClick={() => setUploadedPhoto(null)}
-                          >
-                            <span data-icon="inline-start" className="material-symbols-outlined text-[16px]">
-                              delete
-                            </span>
-                            <span>Hapus Foto</span>
-                          </Button>
-                        </div>
-                        <div className="flex items-center gap-3 bg-surface-container-low/80 p-3 rounded-xl border border-outline-variant/60">
-                          <div className="size-16 rounded-lg overflow-hidden shrink-0 border border-outline-variant/40 bg-surface-variant">
-                            <img
-                              alt={uploadedPhoto.name}
-                              className="w-full h-full object-cover"
-                              src={uploadedPhoto.url}
-                            />
-                          </div>
-                          <div className="overflow-hidden flex-1">
-                            <p className="text-xs font-semibold text-on-surface truncate">
-                              {uploadedPhoto.name}
-                            </p>
-                            <div className="text-secondary text-xs mt-0.5 font-medium">
-                              <span>Foto siap dilampirkan</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <label
-                        className="border-2 border-dashed border-outline-variant rounded-2xl p-6 text-center hover:border-secondary hover:bg-surface-container-low/40 transition-colors duration-150 flex flex-col items-center justify-center cursor-pointer min-h-[130px]"
-                      >
-                        <div className="size-10 rounded-full bg-secondary/10 flex items-center justify-center mb-2 text-secondary">
-                          <span className="material-symbols-outlined text-[24px]">
-                            add_photo_alternate
-                          </span>
-                        </div>
-                        <p className="text-xs font-semibold text-on-surface">
-                          Pilih atau Tarik Foto ke sini
-                        </p>
-                        <p className="text-[11px] text-outline mt-0.5">
-                          Format yang didukung: PNG, JPG, JPEG
-                        </p>
-                        <input
-                          accept="image/png, image/jpeg, image/webp"
-                          className="hidden"
-                          type="file"
-                          onChange={handleFileChange}
-                        />
-                      </label>
-                    )}
-                  </div>
-                </div>
+                <ReportDocumentationPicker
+                  uploadedPhoto={uploadedPhoto}
+                  uploading={uploading}
+                  onUploadFile={handleUploadPhoto}
+                  onRemovePhoto={() => setUploadedPhoto(null)}
+                  required={true}
+                />
 
                 {isClockIn && (
                   <ClockInApproverSelect
